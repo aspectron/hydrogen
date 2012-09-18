@@ -9,20 +9,25 @@
 #include "async_queue.hpp"
 #include "events.hpp"
 
+#include "boost/enable_shared_from_this.hpp"
+
 namespace aspect
 {
 	namespace gui 
 	{
 
-		class HYDROGEN_API window : public window_base
+		class HYDROGEN_API window : public boost::enable_shared_from_this<window>//, public window_base
 		{
 			private:
 
-				HWND hwnd_;
+				volatile HWND hwnd_;
 				HCURSOR cursor_;
 				bool	fullscreen_;
 				unsigned long style_;
 				bool terminating_;
+				volatile bool valid_;
+				uint32_t width_;
+				uint32_t height_;
 
 				// ~~~
 
@@ -40,6 +45,7 @@ namespace aspect
 
 				void test_function_binding(void) { printf("TEST FUNCTION BINDING INVOKED!\n"); }
 
+				// boostshared_ptr<window> get_shared_ptr() { return shared_from_this(); }
 
 				operator HWND () const { return hwnd_; }
 				static window *pwnd_from_hwnd(HWND hwnd)
@@ -66,11 +72,18 @@ namespace aspect
 // 					  SetWindowPos(*this, NULL, left, top, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 // 				  }
 
+				void get_size(int *piwidth, int *piheight)
+				{
+					*piwidth = width_;
+					*piheight = height_;
+				}
+
+
 				void process_events(void);
 				void process_events_blocking(void);
 		};
 
-		class windows_thread
+		class HYDROGEN_API windows_thread
 		{
 			public:
 

@@ -46,7 +46,7 @@ aspect::gui::window* WeakJSClassCreatorOps<aspect::gui::window>::Ctor( v8::Argum
 
 //		video_mode mode(1280,720,32);
 	if(!args.Length())
-		throw new std::runtime_error("Window constructor requires configuration object as an argument");
+		throw std::runtime_error("Window constructor requires configuration object as an argument");
 
 	window::creation_args ca;
 

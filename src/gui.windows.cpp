@@ -113,6 +113,8 @@ public:
 
 		while ( !is_terminating_ )
 		{
+			printf(".");
+
 			boost::posix_time::ptime const start = boost::posix_time::microsec_clock::local_time();
 
 //			Berkelium::update();
@@ -132,7 +134,10 @@ public:
 			boost::posix_time::ptime const finish = boost::posix_time::microsec_clock::local_time();
 
 			boost::posix_time::time_duration const period = update_interval_ - (finish - start);
-			boost::this_thread::sleep(period);
+			// THIS HANGS???
+			//boost::this_thread::sleep(period);
+			Sleep(5);
+
 		}
 		callbacks_.clear();
 	}
@@ -207,6 +212,9 @@ bool windows_thread::schedule(callback cb)
 
 void windows_thread::main()
 {
+
+	printf("WINDOWS THREAD RUNNING...\n");
+
 	main_loop_->run();
 }
 
@@ -223,11 +231,18 @@ window::window(const creation_args *args)
 	// TODO - WHAT IF CREATE WINDOW WILL FAIL?  IT WILL RESULT IN hwnd_ BEING NULL AND A DEADLOCK!
 
 	while(aspect::utils::atomic_is_null(hwnd_))
-		boost::this_thread::yield();
+	{
+//		printf("waiting...\n");
+//		boost::this_thread::yield();
+		Sleep(5);
+	}
 }
 
 void window::create_window_impl( const creation_args *args) //video_mode mode, const std::string& caption, unsigned long requested_style ) 
 {
+
+	printf("ENTERED CREATE_WINDOW_IMPL\n");
+
 	// Compute position and size
 	int left   = (GetDeviceCaps(GetDC(NULL), HORZRES) - args->width)  / 2;
 	int top    = (GetDeviceCaps(GetDC(NULL), VERTRES) - args->height) / 2;
@@ -267,6 +282,9 @@ void window::create_window_impl( const creation_args *args) //video_mode mode, c
 	DWORD style =  WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_VISIBLE;
 
 	hwnd_ = CreateWindowA("jsx_generic", args->caption.c_str(), style, left, top, width, height, NULL, NULL, GetModuleHandle(NULL), this);
+
+	printf("WINDOW CREATED: %08x\n",(int)hwnd_);
+
 #endif				  
 
 	// Switch to fullscreen if requested
@@ -286,12 +304,18 @@ void window::create_window_impl( const creation_args *args) //video_mode mode, c
 
 window::~window()
 {
-	destroy_window();
+	if(hwnd_)
+	{
+		destroy_window();
+		while(aspect::utils::atomic_is_not_null(hwnd_))
+			boost::this_thread::yield();
+	}
 }
 
 void window::destroy_window()
 {
-	windows_thread::schedule(boost::bind(&window::destroy_window_impl, this));
+	if(hwnd_)
+		windows_thread::schedule(boost::bind(&window::destroy_window_impl, this));
 }
 
 void window::destroy_window_impl( void )
@@ -362,7 +386,7 @@ void window::process_event( UINT message, WPARAM wparam, LPARAM lparam )
 		{
 			if(style_ & AWS_APPWINDOW)
 			{
-				set_terminating();
+//				set_terminating();
 				PostQuitMessage(true);
 			}
 		} break;
