@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -130,25 +130,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\core\CORE.vcxproj">
-      <Project>{4c602428-76a8-47c4-b525-795dc28fed62}</Project>
-      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\extern\v8-juice\v8-juice-vc9.vcxproj">
-      <Project>{9423af8d-4b98-4e8f-9491-e4d08d90e21c}</Project>
-      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="src\engine.cpp" />
+    <ClCompile Include="src\gl.texture.cpp" />
     <ClCompile Include="src\hydrogen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine.hpp" />
     <ClInclude Include="src\gl.iface.hpp" />
     <ClInclude Include="src\gl.shader.hpp" />
+    <ClInclude Include="src\gl.texture.hpp" />
     <ClInclude Include="src\hydrogen.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

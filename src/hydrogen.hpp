@@ -3,6 +3,7 @@
 #include "core.hpp"
 #include "v8_core.hpp"
 
+#include "math.hpp"
 #include "oxygen.hpp"
 
 #if OS(WINDOWS)
@@ -28,6 +29,7 @@
 
 #include "gl.shader.hpp"
 #include "gl.iface.hpp"
+#include "gl.texture.hpp"
 
 #include "engine.hpp"
 

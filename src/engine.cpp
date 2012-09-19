@@ -1,7 +1,8 @@
-#include "HYDROGEN.hpp"
+#include "hydrogen.hpp"
 
 using namespace v8;
 using namespace v8::juice;
+
 
 namespace v8 { namespace juice {
 
@@ -186,8 +187,16 @@ void engine::main()
 	iface_->setup();
 	iface_->set_active(true);
 
-
 	setup();
+
+
+	gl::texture tex;
+	tex.setup(1024,1024,aspect::gl::image_encoding::BGRA8);
+	tex.configure(GL_LINEAR, GL_CLAMP_TO_EDGE);
+
+
+//	tex.upload();
+
 
 	printf("OXYGEN ENGINE RUNNING!\n");
 	uint32_t iter = 0;
@@ -200,6 +209,9 @@ void engine::main()
 		glLoadIdentity();	
 
 		// TODO - RENDER!
+		tex.upload();
+
+		tex.draw(math::vec2(-0.5,-0.5),math::vec2(0.5,0.5), false);
 
 
 		wchar_t wsz[128];
@@ -214,7 +226,8 @@ void engine::main()
 
 
 		// TODO - 
-		Sleep(33);
+//		Sleep(33);
+		Sleep(1);
 		iter++;
 	}
 
@@ -243,7 +256,7 @@ bool engine::setup(void)
 //						return false;
 //					}
 	// iface_->setup_fonts();
-
+//	glLigt
 	// do we modify vsync?
 //					SetVSync(pArgList->Status);
 
@@ -260,7 +273,7 @@ bool engine::setup(void)
 	glEnable(GL_TEXTURE_2D);
 //    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 //    glEnable(GL_COLOR_MATERIAL);
-    glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHTING);
 
 
 	// set up one-byte alignment for pixel storage (saves memory)
@@ -276,6 +289,18 @@ bool engine::setup(void)
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 //	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
+
+
+	//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+//	glDisable(GL_BLEND); // test
+//	glDepthFunc(GL_ALWAYS); // test
+
+	//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 	_setup_viewport();
 
