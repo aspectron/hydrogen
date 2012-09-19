@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -130,15 +130,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\engine.cpp" />
+    <ClCompile Include="src\gl.context.cpp" />
+    <ClCompile Include="src\gl.engine.cpp" />
+    <ClCompile Include="src\gl.entity.cpp" />
+    <ClCompile Include="src\gl.pipeline.cpp" />
     <ClCompile Include="src\gl.texture.cpp" />
     <ClCompile Include="src\hydrogen.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\engine.hpp" />
+    <ClInclude Include="src\gl.context.hpp" />
+    <ClInclude Include="src\gl.engine.hpp" />
+    <ClInclude Include="src\gl.entity.hpp" />
     <ClInclude Include="src\gl.iface.hpp" />
+    <ClInclude Include="src\gl.pipeline.hpp" />
     <ClInclude Include="src\gl.shader.hpp" />
     <ClInclude Include="src\gl.texture.hpp" />
+    <ClInclude Include="src\gl.transform.hpp" />
     <ClInclude Include="src\hydrogen.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

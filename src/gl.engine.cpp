@@ -6,7 +6,7 @@ using namespace v8::juice;
 
 namespace v8 { namespace juice {
 
-aspect::engine * WeakJSClassCreatorOps<aspect::engine>::Ctor( v8::Arguments const & args, std::string & exceptionText )
+aspect::gl::engine * WeakJSClassCreatorOps<aspect::gl::engine>::Ctor( v8::Arguments const & args, std::string & exceptionText )
 {
 	if(!args.Length())
 		throw std::runtime_error("oxygen::engine() requires hydrogen::window object");
@@ -17,18 +17,17 @@ aspect::engine * WeakJSClassCreatorOps<aspect::engine>::Ctor( v8::Arguments cons
 //	boost::shared_ptr<aspect::gui::window> ptr(window);
 //	return new aspect::engine(ptr);
 //	return new aspect::engine(window->shared_from_this());
-	return new aspect::engine(window);
+	return new aspect::gl::engine(window);
 }
 
-void WeakJSClassCreatorOps<aspect::engine>::Dtor( aspect::engine *o )
+void WeakJSClassCreatorOps<aspect::gl::engine>::Dtor( aspect::gl::engine *o )
 {
 	delete o;
 }
 
 }} // ::v8::juice
 
-namespace aspect 
-{
+namespace aspect { namespace gl {
 
 // engine *engine::global_ = NULL;
 
@@ -135,7 +134,7 @@ tswp_(0)
 
 	// TODO - v8 PERSISTENT HANDLE!
 
-	boost::shared_ptr<aspect::gui::window> ptr = target_window->shared_from_this();
+//	boost::shared_ptr<aspect::gui::window> ptr = target_window->shared_from_this();
 
 /*
 	_aspect_assert(!engine::global_);
@@ -419,4 +418,4 @@ void engine::setup_viewport(void)
 
 }
 
-} // namespace aspect
+} } // namespace aspect::gl

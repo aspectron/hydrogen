@@ -31,7 +31,13 @@
 #include "gl.iface.hpp"
 #include "gl.texture.hpp"
 
-#include "engine.hpp"
+#include "gl.transform.hpp"
+
+#include "gl.pipeline.hpp"
+#include "gl.context.hpp"
+#include "gl.entity.hpp"
+
+#include "gl.engine.hpp"
 
 /*
 namespace aspect

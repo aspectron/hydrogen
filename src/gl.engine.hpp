@@ -4,8 +4,7 @@
 #include "async_queue.hpp"
 #include "events.hpp"
 
-namespace aspect
-{
+namespace aspect { namespace gl {
 
 	class HYDROGEN_API engine
 	{
@@ -88,8 +87,8 @@ namespace aspect
 	};
 
 
-} // ::aspect
+} } // aspect::gl
 
-#define WEAK_CLASS_TYPE aspect::engine
+#define WEAK_CLASS_TYPE aspect::gl::engine
 #define WEAK_CLASS_NAME engine
 #include <v8/juice/WeakJSClassCreator-Decl.h>
