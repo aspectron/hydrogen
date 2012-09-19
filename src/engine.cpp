@@ -135,6 +135,8 @@ tswp_(0)
 
 	// TODO - v8 PERSISTENT HANDLE!
 
+	boost::shared_ptr<aspect::gui::window> ptr = target_window->shared_from_this();
+
 /*
 	_aspect_assert(!engine::global_);
 	if ( engine::global_ )
