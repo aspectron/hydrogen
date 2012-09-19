@@ -1,0 +1,192 @@
+#version 120
+#extension GL_EXT_gpu_shader4 : enable
+
+mat3  ycbcr_to_rgb_mat = mat3( 1.164, 0.000, 1.596, 1.164, -0.391, -0.813, 1.164, 2.018, 0.000 );
+vec3  ycbcr_to_rgb_vec = vec3( -0.87416470588235, +0.53132549019608, -1.08599215686274 );
+
+#if 0
+
+uniform isampler2D  sampler;
+
+
+vec3 repack(ivec4 src)
+{
+	ivec3 res;// = ivec3(0,0,0);
+	res.r = (src.a << 4) | (src.b >> 4);
+	res.g = ((src.b & 0x0f) << 6) | (src.g >> 2);
+	res.b = ((src.g & 0x3) << 8) | src.r;
+
+/*
+	ivec3 res;// = ivec3(0,0,0);
+	res.r = (src.r << 4) | (src.g >> 4);
+	res.g = ((src.g & 0x0f) << 6) | (src.b >> 2);
+	res.b = ((src.b & 0x3) << 8) | src.a;
+
+
+*/
+
+
+	return vec3(res.r / 1024.0, res.g / 1024.0, res.b / 1024.0); 
+}
+
+vec3 _ycbcr2rgb(float y, float cb, float cr)
+{
+	vec3 YCbCr = vec3(y,cb,cr);//cr,y,cb);
+	return vec3( dot( ycbcr_to_rgb_mat[ 0 ], YCbCr ), dot( ycbcr_to_rgb_mat[ 1 ], YCbCr ), dot( ycbcr_to_rgb_mat[ 2 ], YCbCr ) )	 + ycbcr_to_rgb_vec;
+
+}
+
+vec3 ycbcr_to_rgb(vec3 YCbCr)
+{
+//	vec3 YCbCr = vec3(y,cb,cr);//cr,y,cb);
+	return vec3( dot( ycbcr_to_rgb_mat[ 0 ], YCbCr ), dot( ycbcr_to_rgb_mat[ 1 ], YCbCr ), dot( ycbcr_to_rgb_mat[ 2 ], YCbCr ) )	 + ycbcr_to_rgb_vec;
+
+}
+
+void main(void)
+{
+
+//gl_FragColor = vec4(0.5,0.25,0.5,1.0);
+//return;
+
+	float scale = 1280.0 / 1920.0;
+
+	// calculated on output resolution 1920
+	int x = int(mod(floor(gl_FragCoord.x),6.0));
+
+//float src_frag_coord_x = gl_FragCoord.x * scale;
+
+
+	float src_width = 1280.0; //1920.0 / 6.0 * 4.0; // 1280
+	float dst_width = 1920.0;
+
+	vec2 uv = gl_TexCoord[0].xy; //vec2(gl_TexCoord[0].x * 0.5,gl_TexCoord[0].y);
+	
+	//if(uv.y < 0.15) return;
+
+/*
+	float fx = uv.x * src_width;
+	fx = fx - mod(fx,4.0) + 0.5;
+	float _fx0 = fx;
+	fx = fx / src_width;
+	uv.x = fx;
+*/
+
+	float fx = uv.x * src_width;
+	uv.x = (fx - mod(fx,4.0) + 0.5) / src_width;
+
+	// 4 yuv10bit DWORDS after unpacking have 6 pixels
+	
+/*	
+	ivec4 c1 = texture2D(sampler, uv);
+	ivec4 c2 = texture2D(sampler, uv+vec2(1,0)/(src_width)); 
+	ivec4 c3 = texture2D(sampler, uv+vec2(2,0)/(src_width));
+	ivec4 c4 = texture2D(sampler, uv+vec2(3,0)/(src_width));
+*/
+/*
+	vec3 r1 = repack(c1); // Cr0-Y0-Cb0
+	vec3 r2 = repack(c2); // Y2-Cb1-Y1
+	vec3 r3 = repack(c3); // Cb2-Y3-Cr1
+	vec3 r4 = repack(c4); // Y5-Cr2-Y4
+
+	// now lets convert to rgb. from 6 ycbcr "samples" we have 6 rgb
+	vec3 rgb[6]; 
+	rgb[0] = ycbcr2rgb(r1.g, r1.b, r1.r); // y0-cb0-cr0
+	rgb[1] = ycbcr2rgb(r2.b, r1.b, r1.r); // y1-cb0-cr0
+	rgb[2] = ycbcr2rgb(r2.r, r2.g, r3.b); // y2-cb1-cr1
+	rgb[3] = ycbcr2rgb(r3.g, r2.g, r3.b); // y3-cb1-cr1
+	rgb[4] = ycbcr2rgb(r4.b, r3.r, r3.b); // y4-cb2-cr2
+	rgb[5] = ycbcr2rgb(r4.r, r3.r, r3.b); // y5-cb2-cr2
+
+	gl_FragColor = vec4(rgb[x], 1.0);
+*/
+
+gl_FragColor.a = 1.0;
+
+	if(x == 0)
+	{
+		
+		vec3 r1 = repack(texture2D(sampler, uv)); // Cr0-Y0-Cb0
+//		gl_FragColor.rgb = ycbcr_to_rgb(repack(texture2D(sampler, uv)).gbr); // y0-cb0-cr0
+		gl_FragColor.rgb = ycbcr_to_rgb(repack(texture2D(sampler, uv)).gbr); // y0-cb0-cr0
+	}
+	else
+	if(x == 1)
+	{
+		vec3 r1 = repack(texture2D(sampler, uv)); // Cr0-Y0-Cb0
+		vec3 r2 = repack(texture2D(sampler, uv+vec2(1,0)/(src_width))); // Y2-Cb1-Y1
+		gl_FragColor.rgb = ycbcr_to_rgb(vec3(r2.b, r1.b, r1.r)); // y1-cb0-cr0
+	}
+	else
+	{
+		vec3 r2 = repack(texture2D(sampler, uv+vec2(1,0)/(src_width))); // Y2-Cb1-Y1
+		vec3 r3 = repack(texture2D(sampler, uv+vec2(2,0)/(src_width))); // Cb2-Y3-Cr1
+		gl_FragColor.rgb = ycbcr_to_rgb(vec3(r2.r, r2.g, r3.b)); // y2-cb1-cr1
+	}
+
+}
+
+#else
+
+
+
+// working YCbCr8
+
+uniform sampler2D  sampler_Y;//sampler;
+uniform sampler2D  sampler_CbCr;
+
+//uniform sampler2D sampler[2];
+
+
+void main(void)
+{
+	vec4 txCbCr = texture2D(sampler_CbCr,gl_TexCoord[0].xy * vec2(0.5,1.0));
+	vec4 txY = texture2D(sampler_Y,gl_TexCoord[0].xy);
+
+//	vec4 txCbCr = texture2D(sampler[0],gl_TexCoord[0].xy * vec2(0.5,1.0));
+//	vec4 txY = texture2D(sampler[1],gl_TexCoord[0].xy);
+
+#if 0
+	gl_FragColor.r = txY.r;
+	gl_FragColor.a = 1.0;
+	gl_FragColor.b = txCbCr.r;
+	gl_FragColor.g = txCbCr.g;
+	return;
+#endif
+
+	vec3 YCbCr = vec3(txY.r,txCbCr.a,txCbCr.r);
+	
+	vec4 col = vec4(0.0,0.0,0.0,1.0);
+	col.bgr = vec3( dot( ycbcr_to_rgb_mat[ 0 ], YCbCr ), dot( ycbcr_to_rgb_mat[ 1 ], YCbCr ), dot( ycbcr_to_rgb_mat[ 2 ], YCbCr ) )	 + ycbcr_to_rgb_vec;
+	gl_FragColor = col;
+	
+	return;
+	
+	/*
+	
+#if 1
+	vec4 src = texture2D(sampler_CbCr,gl_TexCoord[0].xy);
+	gl_FragColor = src; //vec4(src.r,src.a,0.5,1.0);
+	gl_FragColor.a = 1.0;
+	gl_FragColor.b = 0.5;
+//	gl_FragColor = vec4(0.5,0.25,0.5,1.0);
+	return;
+#endif
+
+	vec3 YCbCr;
+//	vec2 tx = gl_TexCoord[0].uv; vec2(gl_TexCoord[0].x * 0.5,gl_TexCoord[0].y);
+//	vec4 src = texture2D(sampler,gl_TexCoord[0].xy);
+
+	if(mod(floor(gl_FragCoord.x),2.0)>0.5)
+		YCbCr = src.abr;
+	else
+		YCbCr = src.gbr;
+
+	vec4 col = vec4(0.0,0.0,0.0,1.0);
+	col.bgr = vec3( dot( ycbcr_to_rgb_mat[ 0 ], YCbCr ), dot( ycbcr_to_rgb_mat[ 1 ], YCbCr ), dot( ycbcr_to_rgb_mat[ 2 ], YCbCr ) )	 + ycbcr_to_rgb_vec;
+	gl_FragColor = col;
+	
+	*/
+}
+
+#endif

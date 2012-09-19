@@ -1,0 +1,209 @@
+#if 1
+uniform sampler2D  sampler;
+
+mat3  ycbcr_to_rgb_mat = mat3( 1.164, 0.000, 1.596, 1.164, -0.391, -0.813, 1.164, 2.018, 0.000 );
+//vec3  ycbcr_to_rgb_vec = vec3( -0.87416470588235, +0.53132549019608, -1.08599215686274 );
+vec3  ycbcr_to_rgb_vec = vec3( -0.87416470588235, +0.53132549019608, -1.08599215686274 );
+
+
+
+mat3  tm2 = mat3( 1.0, 0.0, 1.402, 1.0, -3.4413, -0.714136, 1.0, 1.772, 0);
+//mat3  tm2 = mat3( 1.0, 1.0, 1.0, 1.402, -3.4413, 1.772, 1.0, 1.0, 0.0);
+
+void main(void)
+{
+	// col.rgb is the YCbCr (YUV) color space on input, RGB on output.
+
+    vec4 col = texture2D(sampler,gl_TexCoord[0].xy);
+
+
+// --> orig | 	col.rgb = vec3( dot( ycbcr_to_rgb_mat[ 0 ], col.rgb ), dot( ycbcr_to_rgb_mat[ 1 ], col.rgb ), dot( ycbcr_to_rgb_mat[ 2 ], col.rgb ) )	 + ycbcr_to_rgb_vec;
+
+
+//col.rgb = vec3( dot( ycbcr_to_rgb_mat[ 0 ], col.rgb ), dot( ycbcr_to_rgb_mat[ 1 ], col.rgb ), dot( ycbcr_to_rgb_mat[ 2 ], col.rgb ) )	 + ycbcr_to_rgb_vec;
+
+
+//	col.rgb = vec3( dot( tm2[ 0 ], col.rgb ), dot( tm2[ 1 ], col.rgb ), dot( tm2[ 2 ], col.rgb ) )	 + ycbcr_to_rgb_vec;
+//	col.bgr = vec3( dot( tm2[ 0 ], col.bgr ), dot( tm2[ 1 ], col.bgr ), dot( tm2[ 2 ], col.bgr ) );
+
+
+/*
+
+Reference standard   	  Kry   	  Kby
+
+ITU601 / ITU-T 709 1250/50/2:1
+	
+
+0.299
+	
+
+0.114
+
+ITU709 / ITU-T 709 1250/60/2:1
+	
+
+0.2126
+	
+
+0.0722
+
+SMPTE 240M (1999)
+	
+
+0.212
+	
+
+0.087
+*/
+
+
+float Y;
+float Cb;
+float Cr;
+float y1;
+float y2;
+
+/*
+Cb = col.b;
+y1 = col.g;
+Cr = col.r;
+y2 = col.a;
+
+Y = y1;
+*/
+
+Y = col.b;
+Cb = col.g;
+Cr = col.r;
+
+float Kry = 0.229;
+float Kby = 0.114;
+float Kgy = 0.1;
+
+//col.r = Cb;
+//col.r = Y;// + Cr;
+//col.g =Y-(Kby/Kgy)*Cb-(Kry/Kgy)*Cr;
+//col.b = Y + Cb;
+//col.g = 0.0;
+//col.b = 0.0;
+col.a = 1.0;
+
+gl_FragColor = col;
+
+
+/*
+float y1;
+float u;
+float y2;
+float v;
+*/
+/*
+u = col.b;
+y1 = col.g;
+v = col.r;
+y2 = col.a;
+*/
+/*
+u = col.b*256.0;
+y1 = col.g*256.0;
+v = col.r*256.0;
+y2 = col.a*256.0;
+
+//vec3 yuv = vec3(y1,u,v);
+
+//col.rgb = vec3( dot( tm2[ 0 ], y1 ), dot( tm2[ 1 ], u ), dot( tm2[ 2 ], v ) );
+//col.rgb = vec3( dot( tm2[ 0 ], yuv ), dot( tm2[ 1 ], yuv ), dot( tm2[ 2 ], yuv ) ) + ycbcr_to_rgb_vec;
+
+
+col.r = ( 298.082 * y1    + 408.583 * v ) / 256 - 222.921;
+col.g = ( 298.082 * y1 - 100.291 * u - 208.120 * v ) / 256.0 + 135.576;
+col.b = ( 298.082 * y1 + 516.412 * v        ) / 256.0 - 276.836;
+
+float iv = 1.0 / 256.0;
+
+vec4 cc;
+cc.r = col.r * iv;
+cc.g = col.g * iv;
+cc.b = col.b * iv;
+cc.a = 1.0;
+
+    gl_FragColor = cc;
+*/
+
+/*
+	vec4 rgb = vec4(0.0,0.0,0.0,1.0);
+
+float y1;
+float u;
+float y2;
+float v;
+
+u = col.b;
+y1 = col.g;
+v = col.r;
+y2 = col.a;
+
+
+//rgb.rgb = v;
+
+	rgb.g = v - (y1+u) / 4;
+	rgb.b = rgb.g + y1;
+	rgb.r = u + rgb.g;
+
+      rgb[2] = (y1 - (u + v) / 4);
+      rgb[1] = (u + rgb[2]);
+      rgb[0] = (v + rgb[2]);
+      rgb[3] = 1.0;
+
+
+gl_FragColor = rgb;
+*/
+
+/*
+      rgb [0] = (y1 + 1.371 * v);
+      rgb [1] = (y1 - 0.698 * v - 0.336 * u);
+      rgb [2] = (y1 + 1.732 * u);
+*/
+	
+/*	
+	cc.g = col.r - (col.g+col.b) / 4;
+	if(cc.g > 1.0) cc.g = 1.0;
+	if(cc.g < 0.0) cc.g = 0.0;
+	cc.b = col.g + cc.g;
+	cc.r = col.b + cc.g;
+*/	
+
+//
+}
+
+#endif
+
+
+
+/*
+// rgb to yuyv
+
+// fragment
+sampler2DRect sampler;
+
+static vec3 y_const = vec3( 0.257,  0.504,  0.098);
+static vec3 v_const = vec3( 0.439, -0.368, -0.071);
+static vec3 u_const = vec3(-0.148, -0.291, +0.439);
+ 
+void main()
+{
+  // read two rgb pixels
+  vec3 rgb1 = texture2DRect(sampler, gl_TexCoord[0].xy);
+  vec3 rgb2 = texture2DRect(sampler, gl_TexCoord[1].xy);
+  vec3 rgb12 = (rgb1 + rgb2) * 0.5;
+  
+  vec4 yuyv; // yuyv -> rgba
+  
+  yuyv.b = dot (rgb1,  y_const) +  16.0/256.0; // Y1
+  yuyv.g = dot (rgb12, u_const) + 128.0/256.0; // v
+  yuyv.r = dot (rgb2,  y_const) +  16.0/256.0; // Y2
+  yuyv.a = dot (rgb12, v_const) + 128.0/256.0; // u
+  
+  gl_FragColor = yuyv;
+}
+*/

@@ -1,0 +1,9 @@
+for any reference of auto configuration do:  man nvidia-settings
+
+to enable VSync, do the following:
+
+nvidia-settings --assign="SyncToVBlank=1"
+
+also look at:  ~/.nvidia-settings-rc
+
+

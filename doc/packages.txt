@@ -1,0 +1,31 @@
+getting running:
+
+sudo -s
+apt-get update
+apt-get -f upgrade
+apt-get install nvidia-glx-180  (or higher?)
+
+nvidia-xconfig
+nvidia-settings
+
+
+
+install packages:
+
+unrar
+subversion
+g++
+mesa-common-dev
+libx11-dev
+libglew1.5-dev
+libxrandr-dev
+libtbb2
+libtbb-dev
+kdevelop
+
+---
+
+blackmagic driver
+in the folder run
+dpkg -i DeckLink-XXXXX  
+apt-get -f install

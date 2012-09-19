@@ -1,4 +1,3 @@
-
 var hydrogen = (function()
 {
     var bindings = require("bindings");

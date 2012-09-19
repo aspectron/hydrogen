@@ -1,0 +1,10 @@
+On main GL thread :
+1) Copy to PBO (n)
+ 1.1) Map PBO (n) into memory
+ 1.2) Tell another thread to start filling in the data
+2) Copy PBO to GPU
+  2.1) Wait for 1.2 from previous iteration to complete.
+  2.2) Unmap PBO (n-1)
+  2.3) Initiate upload (n-1) to texture
+3) Render
+  2.4) Render with texture (n-2)

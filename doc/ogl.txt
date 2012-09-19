@@ -1,0 +1,9 @@
+Linux
+
+Linux is similar to the Macintosh, except that the worker threads need a drawable. For this I used p-buffers.
+
+   1. The main thread creates a new context, shared with the main context.
+   2. The worker thread makes a new small pbuffer for itself.
+   3. The worker thread sets the worker context as current, using the pbuffer as its drawable.
+
+I tried using the main window as the drawable for all threads, but this causes some kind of locking or thrashing between threads and hurts performance of the main renderer. Extra hidden windows were unreliable for reasons I was not able to determine.
