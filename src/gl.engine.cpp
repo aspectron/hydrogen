@@ -422,7 +422,10 @@ void engine::setup_viewport(void)
 	glLoadIdentity();
 
 	// (re)calculate the aspect ratio of the viewport (0,0 is bottom left)
-	glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f);
+	glOrtho(0.0f, viewport_width_, viewport_height_, 0.0f, 0.0f, 1.0f);
+
+	// resolution intependent glOrtho
+//	glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f);
 	//gluPerspective(45.0f, (float)nWidth / (float)nHeight, 1.0f, 100.0f);
 
 // portrait mode
