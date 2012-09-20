@@ -1,14 +1,13 @@
 #include "hydrogen.hpp"
 
-namespace aspect
-{
+namespace aspect { namespace gl {
 
 	void render_context::reset_pipeline( void )
 	{
 //		pipeline.reset(active_camera);
 	}
 
-	void render_context::_register( boost::shared_ptr<entity> e, bool force )
+	void render_context::register_entity( boost::shared_ptr<entity> e, bool force )
 	{
 		pipeline.register_entity(e, force);
 	}
@@ -18,4 +17,4 @@ namespace aspect
 		pipeline.render(this);
 	}
 
-} // aspect
+} } // aspect::gl

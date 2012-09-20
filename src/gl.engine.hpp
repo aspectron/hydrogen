@@ -55,6 +55,15 @@ namespace aspect { namespace gl {
 			uint32_t get_flags(void) const { return flags_; }
 			void set_flags(uint32_t flags) { flags_ = flags; }
 
+//			void register_entity(shared_ptr<entity>& e);
+
+
+			void attach(boost::shared_ptr<entity>& e) { world_.attach(e); }
+			void detach(boost::shared_ptr<entity>& e) { world_.detach(e); }
+
+			v8::Handle<v8::Value> attach(v8::Arguments const& args);
+			v8::Handle<v8::Value> detach(v8::Arguments const& args);
+
 
 		private:
 
@@ -74,6 +83,12 @@ namespace aspect { namespace gl {
 			boost::scoped_ptr<aspect::gui::window> window_;
 			v8::Persistent<v8::Value> window_handle_;
 
+//			render_context context_;
+
+			world	world_;
+
+	//		std::vector<boost::shared_ptr<persistent_object_reference>> entities_;
+
 //			aspect::v8_core::persistent_object_reference<aspect::gui::window>	window_;
 
 			bool setup(void);
@@ -84,6 +99,7 @@ namespace aspect { namespace gl {
 			void get_viewport_units(double *x, double *y);
 			void _setup_viewport(void);
 			void setup_viewport(void);
+
 	};
 
 

@@ -3,6 +3,7 @@
 using namespace v8;
 using namespace v8::juice;
 
+V8_IMPLEMENT_CLASS_BINDER(aspect::gl::engine, aspect_engine);
 
 namespace v8 { namespace juice {
 
@@ -22,6 +23,7 @@ aspect::gl::engine * WeakJSClassCreatorOps<aspect::gl::engine>::Ctor( v8::Argume
 
 void WeakJSClassCreatorOps<aspect::gl::engine>::Dtor( aspect::gl::engine *o )
 {
+//	o->release();
 	delete o;
 }
 
@@ -195,36 +197,50 @@ void engine::main()
 	tex.setup(1024,1024,aspect::gl::image_encoding::BGRA8);
 	tex.configure(GL_LINEAR, GL_CLAMP_TO_EDGE);
 
-
 //	tex.upload();
 
+//	double ts0 = get_ts();
 
 	printf("OXYGEN ENGINE RUNNING!\n");
 	uint32_t iter = 0;
 
 	while(!main_loop_->is_terminating())
 	{
+
+		double ts0 = utils::get_ts();
+
 		validate_iface();
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		glLoadIdentity();	
 
 		// TODO - RENDER!
-		tex.upload();
+		// tex.upload();
 
-		tex.draw(math::vec2(-0.5,-0.5),math::vec2(0.5,0.5), false);
+		// tex.draw(math::vec2(-0.75,-0.75),math::vec2(-0.7,-0.7), false);
 
+		render_context context;
+
+//		context_.render();
+
+//		world_.init(context);
+
+		world_.render(&context);
 
 		wchar_t wsz[128];
-		wsprintf(wsz, L"iter: %d", iter);
+		swprintf(wsz, L"iter: %d  fps: %1.2f ", iter, (float)fps_);
 		iface()->output_text(0,0,wsz);
 
-		glFlush();
+//		glFlush();
 
 		iface()->swap_buffers();	
 
 		main_loop_->execute_callbacks();
 
+		double ts1 = utils::get_ts();
+
+		double delta = 1000.0 / (ts1-ts0);
+		fps_ = (fps_ + delta) / 2;
 
 		// TODO - 
 //		Sleep(33);
@@ -235,6 +251,8 @@ void engine::main()
 	main_loop_->clear_callbacks();
 
 //	main_loop_->run();
+
+	world_.destroy();
 
 	cleanup();
 
@@ -417,5 +435,43 @@ void engine::setup_viewport(void)
 	glLoadIdentity();
 
 }
+
+v8::Handle<v8::Value> engine::attach( v8::Arguments const& args )
+{
+	if(!args.Length())
+		throw std::invalid_argument("engine::attach() requires entity as an argument");
+
+	entity *e = convert::CastFromJS<entity>(args[0]);
+	if(!e)
+		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
+
+//	boost::shared_ptr<entity> ptr(e);
+	attach(e->shared_from_this());
+
+//	boost::shared_ptr<persistent_object_reference<entity>>	reference(new persistent_object_reference<entity>(e));
+
+	return convert::CastToJS(this);
+}
+
+v8::Handle<v8::Value> engine::detach( v8::Arguments const& args )
+{
+	if(!args.Length())
+		throw std::invalid_argument("engine::attach() requires entity as an argument");
+
+	entity *e = convert::CastFromJS<entity>(args[0]);
+	if(!e)
+		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
+
+	detach(e->shared_from_this());
+
+	return convert::CastToJS(this);
+}
+
+/*
+void engine::register_entity( shared_ptr<entity>& e )
+{
+//	pipeline
+}
+*/
 
 } } // namespace aspect::gl

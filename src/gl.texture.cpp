@@ -430,6 +430,9 @@ void texture::upload()
 			static int nn = 0;
 			nn++;
 
+			memset(ptr,nn,get_data_size());
+
+			/*
 			for(int y = 0; y < get_height(); y++)
 			{
 				GLubyte *p = ptr + (y * get_width() * 4);
@@ -445,6 +448,7 @@ void texture::upload()
 					nn++;
 				}
 			}
+			*/
 
 #endif
 

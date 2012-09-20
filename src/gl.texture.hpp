@@ -38,7 +38,7 @@ enum image_encoding
 	Unknown
 };
 
-class texture
+class HYDROGEN_API texture
 {
 	public:
 

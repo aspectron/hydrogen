@@ -1,7 +1,6 @@
 #include "hydrogen.hpp"
 
-namespace aspect
-{
+namespace aspect { namespace gl {
 
 	void render_pipeline::reset( /*camera *_c */)
 	{
@@ -56,4 +55,4 @@ namespace aspect
 			(*iter).entity_->render(context);
 	}
 
-}
+} } // aspect::gl

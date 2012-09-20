@@ -1,8 +1,7 @@
 #ifndef _GL_PIPELINE_HPP_
 #define _GL_PIPELINE_HPP_
 
-namespace aspect
-{
+namespace aspect { namespace gl {
 //	class camera;
 	class entity;
 	class render_context;
@@ -60,6 +59,6 @@ namespace aspect
 //				void _register_pipeline_entry(const pipeline_entry &_e);
 	};
 
-} // aspect
+} } // aspect::gl
 
 #endif // _GL_PIPELINE_HPP_

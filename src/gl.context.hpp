@@ -1,8 +1,7 @@
 #ifndef _ASPECT_RENDER_CONTEXT_HPP_
 #define _ASPECT_RENDER_CONTEXT_HPP_
 
-namespace aspect
-{
+namespace aspect { namespace gl {
 
 	class HYDROGEN_API render_context
 	{
@@ -23,10 +22,10 @@ namespace aspect
 			}
 
 			void reset_pipeline(void);
-			void _register(boost::shared_ptr<entity> e, bool force = false);
+			void register_entity(boost::shared_ptr<entity> e, bool force = false);
 			void render(void);
 	};
 
-} // aspect
+} } // aspect::gl
 
 #endif // _ASPECT_RENDER_CONTEXT_HPP_
