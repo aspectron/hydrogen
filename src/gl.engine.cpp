@@ -370,6 +370,7 @@ void engine::validate_iface(void)
 	if(width != viewport_width_ || height != viewport_height_)
 	{
 		update_viewport();
+		setup_viewport();
 		set_flags(get_flags() | FLAG_VIEWPORT_UPDATE);
 	}
 	else
