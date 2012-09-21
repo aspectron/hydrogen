@@ -48,8 +48,10 @@ class HYDROGEN_API texture
 		typedef std::vector<texture*>::iterator iterator;
 
 		GLuint  m_id;
-		GLuint	m_pbo;
+//		GLuint	m_pbo[2];
+		std::vector<GLuint>	pbo_;
 		unsigned char *m_pbo_buffer;
+		uint32_t mapped_pbo_idx_;
 		GLuint	m_fbo;
 		int m_width;
 		int m_height;
@@ -72,7 +74,7 @@ class HYDROGEN_API texture
 			FLAG_SETUP			= 0x00000001,
 			FLAG_FBO			= 0x00000002,
 			FLAG_PBO			= 0x00000004,
-			FLAG_PBO_ALT		= 0x00000008,
+			FLAG_PBOx2			= 0x00000008,
 			FLAG_SUBTEXTURES	= 0x00000010,
 			FLAG_CONFIG			= 0x00000020,
 			FLAG_INTERLACED		= 0x00000040,
@@ -89,11 +91,12 @@ class HYDROGEN_API texture
 
 		texture()
 			: //m_filter(NULL),
-		m_id(0), m_pbo(0), m_pbo_buffer(NULL), m_fbo(0), m_width(0), m_height(0), m_output_width(0), m_output_height(0), m_bpp(0), m_encoding(image_encoding::Unknown), 
+		m_id(0), m_pbo_buffer(NULL), m_fbo(0), m_width(0), m_height(0), m_output_width(0), m_output_height(0), m_bpp(0), m_encoding(image_encoding::Unknown), 
 			  m_trs(0.0), m_cvt(0.0),
 			  m_flags(0),
 			  m_shader(NULL),
-			  m_draw_cache_list(0)
+			  m_draw_cache_list(0),
+			  mapped_pbo_idx_(0)
 			  
 		{
 
@@ -120,8 +123,8 @@ class HYDROGEN_API texture
 		bool is_pbo_mapped(void) const { return m_flags & FLAG_PBO ? true : false; }
 		unsigned char *get_pbo_buffer(void) { return m_pbo_buffer; }
 
-		bool map_pbo(void);
-		void unmap_pbo(void);
+		bool map_pbo(uint32_t idx = 0);
+		void unmap_pbo(uint32_t idx = 0);
 		void bind(gl::shader *custom_shader = NULL);
 		void unbind(gl::shader *custom_shader = NULL);
 		void cleanup(void);
@@ -143,7 +146,7 @@ class HYDROGEN_API texture
 
 		GLuint get_id(void) const { return m_id; }
 
-		GLuint get_pbo(void) const { return m_pbo; }
+		GLuint get_pbo(uint32_t idx) const { return pbo_[idx]; }
 		int get_width(void) const { return m_width; }
 		int get_height(void) const { return m_height; }
 		int get_output_width(void) const { return m_output_width; }
