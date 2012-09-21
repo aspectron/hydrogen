@@ -229,7 +229,9 @@ void engine::main()
 
 		wchar_t wsz[128];
 		swprintf(wsz, L"iter: %d  fps: %1.2f ", iter, (float)fps_);
+		GLdouble black[] = {0.0,0.0,0.0,1.0};
 		iface()->output_text(0,0,wsz);
+		iface()->output_text(0,24,wsz,black);
 
 //		glFlush();
 
@@ -240,7 +242,7 @@ void engine::main()
 		double ts1 = utils::get_ts();
 
 		double delta = 1000.0 / (ts1-ts0);
-		fps_ = (fps_ + delta) / 2;
+		fps_ = (fps_ * 0.99 + delta * 0.01);
 
 		// TODO - 
 //		Sleep(33);

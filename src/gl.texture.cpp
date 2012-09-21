@@ -24,7 +24,7 @@ void texture::configure(GLint filter, GLint wrap)
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	m_flags |= FLAG_CONFIG;
+	m_flags |= CONFIG;
 }
 
 void texture::_update_pixels(GLubyte* dst)
@@ -90,7 +90,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 				glUniform1iARB(glGetUniformLocationARB(m_shader->get_program(),"sampler_CbCr"),1);
 				glUseProgram(0);
 
-				m_flags |= FLAG_SUBTEXTURES;
+				m_flags |= SUBTEXTURES;
 
 			} break;
 
@@ -117,7 +117,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 				glUniform1iARB(glGetUniformLocationARB(m_shader->get_program(),"sampler_Cr"),2);
 				glUseProgram(0);
 
-				m_flags |= FLAG_SUBTEXTURES;
+				m_flags |= SUBTEXTURES;
 
 			} break;
 
@@ -161,7 +161,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 				m_format_internal = GL_RGBA_INTEGER_EXT;
 
 				//m_processing = PROCESSING_FBO;
-				m_flags |= FLAG_FBO;
+				m_flags |= FBO;
 
 				m_bpp = 4; // ???
 
@@ -202,7 +202,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 			} break;
 	}
 
-	if((m_flags & FLAG_SUBTEXTURES) == 0)
+	if((m_flags & SUBTEXTURES) == 0)
 	{
 		//if(m_configuration & CONFIGURE_NORMAL_TEXTURE_PROCESSING)
 
@@ -251,10 +251,10 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 
 		uint32_t pbo_buffers = 0;
-		if(m_flags & FLAG_PBO)
+		if(m_flags & PBO)
 			pbo_buffers = 1;
 		else
-		if(m_flags & FLAG_PBOx2)
+		if(m_flags & PBOx2)
 			pbo_buffers = 2;
 
 		for(uint32_t i = 0; i < pbo_buffers; i++)
@@ -272,7 +272,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 		}
 	}
 
-	m_flags |= FLAG_SETUP;
+	m_flags |= SETUP;
 }
 
 void texture::setup_shader_parameters(gl::shader *shader)
@@ -311,7 +311,7 @@ bool texture::accept(image_encoding encoding)
 #if 1
 void texture::upload()
 {
-	if((m_flags & FLAG_SETUP) == 0)
+	if((m_flags & SETUP) == 0)
 	{
 
 //		setup(1024,1024,image_encoding::RGBA8);
@@ -329,13 +329,13 @@ void texture::upload()
 
 	// FBO
 	//if(m_textures.size())
-	if(m_flags & FLAG_SUBTEXTURES)
+	if(m_flags & SUBTEXTURES)
 	{
 		for(size_t i = 0; i < m_textures.size(); i++)
 			m_textures[i]->upload();
 	}
 	else
-	if(m_flags & FLAG_FBO)
+	if(m_flags & FBO)
 	{
 //		m_cvt0 = tick_count::now();
 		for(size_t i = 0; i < m_textures.size(); i++)
@@ -505,7 +505,7 @@ void texture::upload()
 
 bool texture::map_pbo(uint32_t idx)
 {
-	if(m_flags & FLAG_SUBTEXTURES)
+	if(m_flags & SUBTEXTURES)
 	{
 		for(size_t i = 0; i < m_textures.size(); i++)
 			if(!m_textures[i]->map_pbo(idx))
@@ -514,7 +514,7 @@ bool texture::map_pbo(uint32_t idx)
 				return false;
 			}
 
-		m_flags |= FLAG_PBO;
+		m_flags |= PBO;
 		return true;
 	}
 	else
@@ -555,7 +555,7 @@ bool texture::map_pbo(uint32_t idx)
 
 		if(m_pbo_buffer)
 		{
-			m_flags |= FLAG_PBO;
+			m_flags |= PBO;
 			return true;
 		}
 
@@ -568,7 +568,7 @@ bool texture::map_pbo(uint32_t idx)
 
 void texture::unmap_pbo(uint32_t idx)
 {
-	if(m_flags & FLAG_SUBTEXTURES)
+	if(m_flags & SUBTEXTURES)
 	{
 		for(size_t i = 0; i < m_textures.size(); i++)
 			m_textures[i]->unmap_pbo(idx);
@@ -593,9 +593,9 @@ void texture::unmap_pbo(uint32_t idx)
 
 void texture::bind(gl::shader *custom_shader)
 {
-	_aspect_assert(get_flags() & FLAG_CONFIG);
+	_aspect_assert(get_flags() & CONFIG);
 
-	if(m_flags & FLAG_SUBTEXTURES)
+	if(m_flags & SUBTEXTURES)
 	{
 //								_aspect_assert(!"error - not allowed to bind multiple texture container");
 //								m_textures[0]->bind();
@@ -628,7 +628,7 @@ void texture::bind(gl::shader *custom_shader)
 
 void texture::unbind(gl::shader *custom_shader)
 {
-	if(m_flags & FLAG_SUBTEXTURES)
+	if(m_flags & SUBTEXTURES)
 	{
 //								_aspect_assert(!"error - not allowed to bind multiple texture container");
 //								m_textures[0]->bind();

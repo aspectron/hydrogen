@@ -71,13 +71,13 @@ class HYDROGEN_API texture
 
 		enum texture_processing
 		{
-			FLAG_SETUP			= 0x00000001,
-			FLAG_FBO			= 0x00000002,
-			FLAG_PBO			= 0x00000004,
-			FLAG_PBOx2			= 0x00000008,
-			FLAG_SUBTEXTURES	= 0x00000010,
-			FLAG_CONFIG			= 0x00000020,
-			FLAG_INTERLACED		= 0x00000040,
+			SETUP		= 0x00000001,
+			FBO			= 0x00000002,
+			PBO			= 0x00000004,
+			PBOx2		= 0x00000008,
+			SUBTEXTURES	= 0x00000010,
+			CONFIG		= 0x00000020,
+			INTERLACED	= 0x00000040,
 		};
 
 		unsigned int m_flags;
@@ -120,7 +120,7 @@ class HYDROGEN_API texture
 
 		void upload();
 
-		bool is_pbo_mapped(void) const { return m_flags & FLAG_PBO ? true : false; }
+		bool is_pbo_mapped(void) const { return m_flags & PBO ? true : false; }
 		unsigned char *get_pbo_buffer(void) { return m_pbo_buffer; }
 
 		bool map_pbo(uint32_t idx = 0);
@@ -135,12 +135,12 @@ class HYDROGEN_API texture
 		{
 // ?????????????????????????????????????????????????????  <=== TODO
 //			if(flags & av::bitmap::flag_interlaced)
-//				return FLAG_INTERLACED;
+//				return INTERLACED;
 
 			return 0;
 		}
 
-		bool is_interlaced(void) const { return get_flags() & FLAG_INTERLACED ? true : false; }
+		bool is_interlaced(void) const { return get_flags() & INTERLACED ? true : false; }
 
 		// ~~~
 

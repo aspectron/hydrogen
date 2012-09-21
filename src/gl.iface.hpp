@@ -134,7 +134,7 @@ class iface_base
 		virtual bool is_vsync_enabled(void) = 0;
 		virtual void set_vsync_interval(int interval) = 0;
 
-		virtual void output_text(double x, double y, wchar_t *text) = 0;
+		virtual void output_text(double x, double y, wchar_t *text, GLdouble *clr) = 0;
 
 //				virtual void get_viewport_size(int *pwidth, int *pheight) = 0;
 
@@ -330,10 +330,14 @@ public:
 
 	}
 
-	void output_text(double x, double y, wchar_t *text)
+	void output_text(double x, double y, wchar_t *text, GLdouble *clr = NULL)
 	{
+		double default_color[] = {1.0,1.0,1.0,1.0};
+		if(!clr)
+			clr = default_color;
 
-		glColor4ub(255,255,255,255);
+		glColor4dv(clr);
+		//glColor4ub(255,255,255,255);
 		glDisable(GL_COLOR_MATERIAL);
 		glDisable(GL_LIGHTING);
 
@@ -354,7 +358,7 @@ public:
 		glLoadIdentity();
 
 		//glTranslatef(x,y,0.0f);
-		glRasterPos2f((GLfloat)x,(GLfloat)y+100); //iY+pFont->m_iHeight - 4 /*4 is a hardcoded margin*/);	// set raster position...
+		glRasterPos2f((GLfloat)x,(GLfloat)y); //iY+pFont->m_iHeight - 4 /*4 is a hardcoded margin*/);	// set raster position...
 
 
 
