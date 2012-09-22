@@ -180,7 +180,7 @@ engine::~engine()
 
 void engine::main()
 {
-	aspect::utils::set_thread_name("oxygen");
+	aspect::utils::set_thread_name("hydrogen");
 
 	// main thread
 
