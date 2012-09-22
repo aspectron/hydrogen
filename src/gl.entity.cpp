@@ -1,8 +1,9 @@
 #include "hydrogen.hpp"
 
+using namespace v8;
+using namespace v8::juice;
 
 V8_IMPLEMENT_CLASS_BINDER(aspect::gl::entity, aspect_entity);
-
 
 namespace v8 { namespace juice {
 
@@ -51,22 +52,52 @@ void entity::delete_all_children(void)
 //		delete children[i];
 //		for(child = children.begin(); child != children.end(); child++)
 //			delete *child;
-	children.clear();
+	boost::mutex::scoped_lock lock(children_mutex_);
+	children_.clear();
 }
 
 void entity::detach(boost::shared_ptr<entity>& e)
 {
+	boost::mutex::scoped_lock lock(children_mutex_);
 	std::vector<boost::shared_ptr<entity>>::iterator _ei;
-	for(_ei = children.begin(); _ei != children.end(); _ei++)
+	for(_ei = children_.begin(); _ei != children_.end(); _ei++)
 	{
 		if((*_ei).get() == e.get()) 
 		{
-			children.erase(_ei);
+			children_.erase(_ei);
 			return;
 		}
 	}
 
 	_aspect_assert(false);
+}
+
+v8::Handle<v8::Value> entity::attach( v8::Arguments const& args )
+{
+	if(!args.Length())
+		throw std::invalid_argument("engine::attach() requires entity as an argument");
+
+	entity *e = convert::CastFromJS<entity>(args[0]);
+	if(!e)
+		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
+
+	attach(e->shared_from_this());
+
+	return convert::CastToJS(this);
+}
+
+v8::Handle<v8::Value> entity::detach( v8::Arguments const& args )
+{
+	if(!args.Length())
+		throw std::invalid_argument("engine::attach() requires entity as an argument");
+
+	entity *e = convert::CastFromJS<entity>(args[0]);
+	if(!e)
+		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
+
+	detach(e->shared_from_this());
+
+	return convert::CastToJS(this);
 }
 
 aspect::math::matrix * entity::get_transform_matrix_ptr( void )
@@ -88,8 +119,10 @@ boost::shared_ptr<entity> entity::instance( uint32_t flags )
 	if(flags & INSTANCE_COPY_TRANSFORM)
 		target->entity_transform.copy(entity_transform);
 
+	boost::mutex::scoped_lock lock(children_mutex_);
+
 	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
-	for(child_iterator = children.begin(); child_iterator != children.end(); child_iterator++)
+	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
 	{
 		boost::shared_ptr<entity> child = (*child_iterator)->instance(flags);
 		target->attach(child);
@@ -101,8 +134,9 @@ boost::shared_ptr<entity> entity::instance( uint32_t flags )
 void entity::init( render_context *context )
 {
 	init_invoked_ = true;
+	boost::mutex::scoped_lock lock(children_mutex_);
 	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
-	for(child_iterator = children.begin(); child_iterator != children.end(); child_iterator++)
+	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
 		(*child_iterator)->init(context);
 }
 
@@ -111,8 +145,9 @@ void entity::update(render_context *context)
 {
 //	age += context->delta;
 
+	boost::mutex::scoped_lock lock(children_mutex_);
 	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
-	for(child_iterator = children.begin(); child_iterator != children.end(); child_iterator++)
+	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
 		(*child_iterator)->update(context);
 }
 
@@ -120,8 +155,9 @@ void entity::update(render_context *context)
 void entity::render( render_context *context )
 {
 //	_aspect_assert(init_invoked_);
+	boost::mutex::scoped_lock lock(children_mutex_);
 	std::vector<boost::shared_ptr<entity>>::iterator child;
-	for(child = children.begin(); child != children.end(); child++)
+	for(child = children_.begin(); child != children_.end(); child++)
 		(*child)->render(context);
 }
 
@@ -136,6 +172,30 @@ void entity::apply_rotation( const math::quat &q )
 	m = mrot * m;
 
 	set_transform_matrix(m);
+}
+
+struct entity_z_less {
+	bool operator ()(boost::shared_ptr<entity> const& a, boost::shared_ptr<entity> const& b) const {
+
+		math::vec3 v1,v2;
+		a->get_location(v1);
+		b->get_location(v2);
+		if (v1.z < v2.z) return true;
+		if (v1.z > v2.z) return false;
+
+		return false;
+	}
+};
+
+void entity::sort_z( void )
+{
+	boost::mutex::scoped_lock lock(children_mutex_);
+	std::sort(children_.begin(), children_.end(), entity_z_less());
+}
+
+void entity::set_location( double x,double y,double z)
+{
+	_set_location(math::vec3(x,y,z));
 }
 
 
@@ -156,5 +216,6 @@ void world::cleanup( void )
 //		_ei = deletion_queue.erase(_ei);
 	deletion_queue.clear();
 }
+
 
 } } // aspect::gl

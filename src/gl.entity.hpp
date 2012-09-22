@@ -24,13 +24,17 @@ namespace aspect { namespace gl {
 			transform	entity_transform; //m_Transform;
 
 			entity *parent;
-			std::vector<boost::shared_ptr<entity>> children;
+			std::vector<boost::shared_ptr<entity>> children_;
+			boost::mutex	children_mutex_;
 
 			entity();
 			virtual ~entity();
 			
-			void attach(boost::shared_ptr<entity>& child) { children.push_back(child); child->parent = this; }
+			void attach(boost::shared_ptr<entity>& child) { children_.push_back(child); child->parent = this; }
 			void detach(boost::shared_ptr<entity>& child);
+
+			v8::Handle<v8::Value> attach(v8::Arguments const& args);
+			v8::Handle<v8::Value> detach(v8::Arguments const& args);
 			void delete_all_children(void);
 
 			// transform
@@ -52,9 +56,13 @@ namespace aspect { namespace gl {
 			virtual boost::shared_ptr<entity> instance(uint32_t flags = 0);
 			virtual void init(render_context *context);
 			virtual void render(render_context *context);
-
-
+			
 			virtual void update(render_context *context);
+
+			// ---
+
+			void sort_z(void);
+			void set_location(double,double,double);
 
 		protected:
 
@@ -78,6 +86,7 @@ namespace aspect { namespace gl {
 			// call this after processing physics steps
 			void cleanup(void);
 			void destroy(void) { delete_all_children(); }
+
 	};
 
 } } // namespace aspect::gl

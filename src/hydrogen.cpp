@@ -23,7 +23,10 @@ void hydrogen_install(Handle<Object> target)
 	ClassBinder<aspect::gl::entity> *binder_entity = new ClassBinder<aspect::gl::entity>(target);
 	V8_SET_CLASS_BINDER(aspect::gl::entity, binder_entity);
 	(*binder_entity)
-//		.BindMemFunc<void, &aspect::gl::entity::hello_world>("hello world!")
+		.BindMemFunc<void, &aspect::gl::entity::sort_z>("sort_z")
+		.BindMemFunc<void, double, double, double, &aspect::gl::entity::set_location>("set_location")
+		.BindMemFunc<&aspect::gl::entity::attach>("attach")
+		.BindMemFunc<&aspect::gl::entity::detach>("detach")
 		.Seal();
 
 
