@@ -13,8 +13,8 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(OutDir);$(JSX)/extern/boost/lib/x86;$(JSX)/extern/openssl/lib/x86;$(JSX)/extern/v8/lib/debug/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32d.lib;ws2_32.lib;winmm.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>extern/glew/lib/x86;$(OutDir);$(JSX)/extern/boost/lib/x86;$(JSX)/extern/openssl/lib/x86;$(JSX)/extern/v8/lib/debug/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;winmm.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 </Project>

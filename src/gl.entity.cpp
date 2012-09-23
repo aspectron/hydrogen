@@ -156,9 +156,11 @@ void entity::render( render_context *context )
 {
 //	_aspect_assert(init_invoked_);
 	boost::mutex::scoped_lock lock(children_mutex_);
-	std::vector<boost::shared_ptr<entity>>::iterator child;
-	for(child = children_.begin(); child != children_.end(); child++)
-		(*child)->render(context);
+//	std::vector<boost::shared_ptr<entity>>::iterator child;
+//	for(child = children_.begin(); child != children_.end(); child++)
+//		(*child)->render(context);
+	for(int i = 0; i < children_.size(); i++)
+		children_[i]->render(context);
 }
 
 void entity::apply_rotation( const math::quat &q )

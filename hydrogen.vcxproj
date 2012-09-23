@@ -146,6 +146,7 @@
     <ClInclude Include="src\gl.shader.hpp" />
     <ClInclude Include="src\gl.texture.hpp" />
     <ClInclude Include="src\gl.transform.hpp" />
+    <ClInclude Include="src\gl.viewport.hpp" />
     <ClInclude Include="src\hydrogen.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

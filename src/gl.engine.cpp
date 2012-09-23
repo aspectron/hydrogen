@@ -18,7 +18,7 @@ aspect::gl::engine * WeakJSClassCreatorOps<aspect::gl::engine>::Ctor( v8::Argume
 //	boost::shared_ptr<aspect::gui::window> ptr(window);
 //	return new aspect::engine(ptr);
 //	return new aspect::engine(window->shared_from_this());
-	return new aspect::gl::engine(window);
+	return new aspect::gl::engine(window->shared_from_this());
 }
 
 void WeakJSClassCreatorOps<aspect::gl::engine>::Dtor( aspect::gl::engine *o )
@@ -124,7 +124,7 @@ private:
 };
 
 
-engine::engine(aspect::gui::window* target_window)
+engine::engine(boost::shared_ptr<aspect::gui::window>& target_window)
 : window_(target_window),
 flags_(0),
 viewport_width_(0),
@@ -133,6 +133,13 @@ fps_(0),
 frt_(0),
 tswp_(0)
 {
+
+	world_ = ((new world())->shared_from_this());
+//	viewport_ = boost::make_shared<viewport>();
+
+// 	world_->release();
+// 	world_.reset();
+// 	world_ = ((new world())->shared_from_this());
 
 	// TODO - v8 PERSISTENT HANDLE!
 
@@ -148,7 +155,7 @@ tswp_(0)
 */
 
 //	task_queue_.reset(new async_queue(cfg_.task_thread_count));
-	task_queue_.reset(new async_queue(1));
+	task_queue_.reset(new async_queue("HYDROGEN",1));
 
 
 	boost::posix_time::time_duration interval(boost::posix_time::microseconds(1000000 / 30));
@@ -166,6 +173,9 @@ engine::~engine()
 
 	task_queue_.reset();
 
+	world_->release();
+	world_.reset();
+
 //	_aspect_assert(thorium::global_ == this);
 //	thorium::global_ = NULL;
 
@@ -180,7 +190,7 @@ engine::~engine()
 
 void engine::main()
 {
-	aspect::utils::set_thread_name("hydrogen");
+//	aspect::utils::set_thread_name("hydrogen");
 
 	// main thread
 
@@ -219,19 +229,20 @@ void engine::main()
 
 		// tex.draw(math::vec2(-0.75,-0.75),math::vec2(-0.7,-0.7), false);
 
-		render_context context;
+		render_context context(this);
+			//window_->get_size(&context.width_,&context.height_);
 
 //		context_.render();
 
 //		world_.init(context);
 
-		world_.render(&context);
+		world_->render(&context);
 
 		wchar_t wsz[128];
-		swprintf(wsz, L"iter: %d  fps: %1.2f ", iter, (float)fps_);
+		swprintf(wsz, L"fps: %1.2f ", (float)fps_);
 		GLdouble black[] = {0.0,0.0,0.0,1.0};
-		iface()->output_text(0,0,wsz);
-		iface()->output_text(0,24,wsz,black);
+		iface()->output_text(16,45,wsz);
+//		iface()->output_text(0,35,wsz,black);
 
 //		glFlush();
 
@@ -254,7 +265,8 @@ void engine::main()
 
 //	main_loop_->run();
 
-	world_.destroy();
+	//((world*)(world_.get()))->destroy(); 
+	world_->delete_all_children();
 
 	cleanup();
 
@@ -276,6 +288,7 @@ bool engine::setup(void)
 //						// TODO - error handling!
 //						return false;
 //					}
+
 	// iface_->setup_fonts();
 //	glLigt
 	// do we modify vsync?
@@ -284,6 +297,7 @@ bool engine::setup(void)
 //	glShadeModel(GL_SMOOTH);					// enable smooth shading
 	glShadeModel(GL_FLAT);					// enable smooth shading
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// black background/clear color
+//	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);		// black background/clear color
 
 	// set-up the depth buffer
 //					glClearDepth(1.0f);
@@ -317,6 +331,8 @@ bool engine::setup(void)
 	//////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 //	glDisable(GL_BLEND); // test
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //	glDepthFunc(GL_ALWAYS); // test
 
 	//////////////////////////////////////////////////////////////////////////
@@ -334,6 +350,11 @@ bool engine::setup(void)
 
 //					m_capture_receiver.push_back(new capture_receiver);
 	//m_capture_receiver[0]->m_texture[0]->setup(1280,720,av::YCbCr8); // asy.12
+
+
+//	viewport_->bind(iface()->window());
+
+
 
 	return true;
 }
@@ -425,10 +446,12 @@ void engine::setup_viewport(void)
 	glLoadIdentity();
 
 	// (re)calculate the aspect ratio of the viewport (0,0 is bottom left)
-	glOrtho(0.0f, viewport_width_, viewport_height_, 0.0f, 0.0f, 1.0f);
+//	glOrtho(0.0f, viewport_width_, viewport_height_, 0.0f, 0.0f, 1.0f);
 
 	// resolution intependent glOrtho
+//	glOrtho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
 //	glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f);
+	glOrtho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
 	//gluPerspective(45.0f, (float)nWidth / (float)nHeight, 1.0f, 100.0f);
 
 // portrait mode
@@ -440,6 +463,15 @@ void engine::setup_viewport(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
+}
+
+math::vec2 engine::map_pixel_to_view(math::vec2 const& v)
+{
+	return math::vec2( v.x / (double)viewport_width_, v.y / (double)viewport_height_);
+//	return math::vec2( v.x / (double)viewport_width_ * 2.0 - 1.0,
+//		(1.0 - (v.y / (double)viewport_height_)) * 2.0 - 1.0);
+
+//	return vec2((v.x + 1.0) * 0.5 * (double)viewport_width_, (v.y + 1.0) * 0.5 * (double)viewport_height_);
 }
 
 v8::Handle<v8::Value> engine::attach( v8::Arguments const& args )

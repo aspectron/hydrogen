@@ -14,8 +14,8 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(OutDir);$(JSX)/extern/boost/lib/x86;$(JSX)/extern/openssl/lib/x86;$(JSX)/extern/v8/lib/release/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32.lib;ws2_32.lib;winmm.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>extern/glew/lib/x86;$(OutDir);$(JSX)/extern/boost/lib/x86;$(JSX)/extern/openssl/lib/x86;$(JSX)/extern/v8/lib/release/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;winmm.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 </Project>

@@ -17,4 +17,9 @@ namespace aspect { namespace gl {
 		pipeline.render(this);
 	}
 
+	math::vec2 render_context::map_pixel_to_view( math::vec2 const& v )
+	{
+		return engine_->map_pixel_to_view(v);
+	}
+
 } } // aspect::gl

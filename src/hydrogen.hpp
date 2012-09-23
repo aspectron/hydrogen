@@ -22,7 +22,8 @@
 
 
 #if OS(WINDOWS)
-#include <GL/glew.h>
+#include "glew/include/glew.h"
+//#include <GL/glew.h>
 #elif OS(LINUX)
 #include <GL/glxew.h>
 #include <GL/glew.h>
@@ -37,6 +38,7 @@
 #include "gl.pipeline.hpp"
 #include "gl.context.hpp"
 #include "gl.entity.hpp"
+#include "gl.viewport.hpp"
 
 #include "gl.engine.hpp"
 

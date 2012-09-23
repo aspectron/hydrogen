@@ -216,19 +216,15 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 		void *image_data = malloc(get_data_size());
 
-//								memset(image_data,123,get_data_size());
+#if 1	// RESET OR NOISE
+		memset(image_data,0,get_data_size());
+#else
 		if(!bfloat)
 		{
-//			_update_pixels((GLubyte*)image_data);
-//			memset(image_data,255,m_width*m_height*m_bpp);
 			int n = 0;
 			unsigned char *ptr = (unsigned char *)image_data;
 			for(int i = 0; i < m_width * m_height * m_bpp; i++)
-			{
 				ptr[i] = rand() % 255;
-//				n += 25;
-//				if(i > 100) break;
-			}
 		}
 		else
 		{
@@ -236,6 +232,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 			for(int i = 0; i < m_width * m_height; i++)
 				ptr[i] = 0.175f;
 		}
+#endif 
 
 		glBindTexture(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, get_id()); 
 //							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
@@ -709,11 +706,20 @@ void texture::draw(const math::vec2 &tl, const math::vec2 &br, bool cache)
 			m_draw_cache_list = glGenLists(1);
 			glNewList(m_draw_cache_list, GL_COMPILE);
 			glBegin(GL_QUADS);
-			//glNormal3f(0, 0, 1);
-			glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
-			glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
-			glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
-			glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
+
+			glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x, tl.y);
+			glTexCoord2d(1.0, 0.0);   glVertex2d( br.x, tl.y);
+			glTexCoord2d(1.0, 1.0);   glVertex2d( br.x,  br.y);
+			glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x,  br.y);
+
+/*
+glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
+glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
+glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
+glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
+
+*/
+
 			glEnd();
 			glEndList();
 		}
@@ -722,10 +728,19 @@ void texture::draw(const math::vec2 &tl, const math::vec2 &br, bool cache)
 	{
 		glBegin(GL_QUADS);
 		glNormal3f(0, 0, 1);
-		glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
-		glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
-		glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
-		glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
+		glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x, tl.y);
+		glTexCoord2d(1.0, 0.0);   glVertex2d( br.x, tl.y);
+		glTexCoord2d(1.0, 1.0);   glVertex2d( br.x,  br.y);
+		glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x,  br.y);
+
+/*
+glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
+glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
+glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
+glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
+
+*/
+
 		glEnd();
 	}
 

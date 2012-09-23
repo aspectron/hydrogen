@@ -295,7 +295,7 @@ public:
 
 	void setup_fonts(void)
 	{
-		HFONT hfont = ::CreateFont(14,			// Height Of Font
+		HFONT hfont = ::CreateFont(12,			// Height Of Font
 //		HFONT hfont = ::CreateFont(-10,			// Height Of Font
 			0,								// Width Of Font
 			0,								// Angle Of Escapement

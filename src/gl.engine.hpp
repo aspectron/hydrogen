@@ -25,7 +25,7 @@ namespace aspect { namespace gl {
 
 
 
-			engine(aspect::gui::window*);
+			engine(boost::shared_ptr<aspect::gui::window>& );
 			virtual ~engine();
 
 
@@ -50,7 +50,7 @@ namespace aspect { namespace gl {
 			boost::scoped_ptr<async_queue> task_queue_;
 
 			boost::scoped_ptr<aspect::gl::iface>& iface(void) { return iface_; }
-			boost::scoped_ptr<aspect::gui::window>& window(void) { return window_; }
+			boost::shared_ptr<aspect::gui::window>& window(void) { return window_; }
 		
 			uint32_t get_flags(void) const { return flags_; }
 			void set_flags(uint32_t flags) { flags_ = flags; }
@@ -58,12 +58,13 @@ namespace aspect { namespace gl {
 //			void register_entity(shared_ptr<entity>& e);
 
 
-			void attach(boost::shared_ptr<entity>& e) { world_.attach(e); }
-			void detach(boost::shared_ptr<entity>& e) { world_.detach(e); }
+			void attach(boost::shared_ptr<entity>& e) { world_->attach(e); }
+			void detach(boost::shared_ptr<entity>& e) { world_->detach(e); }
 
 			v8::Handle<v8::Value> attach(v8::Arguments const& args);
 			v8::Handle<v8::Value> detach(v8::Arguments const& args);
 
+			math::vec2 engine::map_pixel_to_view(math::vec2 const& v);
 
 		private:
 
@@ -80,12 +81,15 @@ namespace aspect { namespace gl {
 			boost::scoped_ptr<aspect::gl::iface> iface_;
 
 			// I AM UNABLE TO USE shared_ptr<> BECAUSE OF WHAT SEEMS TO BE DLL BOUNDARY PROBLEMS!
-			boost::scoped_ptr<aspect::gui::window> window_;
-			v8::Persistent<v8::Value> window_handle_;
+			//boost::scoped_ptr<aspect::gui::window> window_;
+			//v8::Persistent<v8::Value> window_handle_;
+			boost::shared_ptr<aspect::gui::window> window_;
 
 //			render_context context_;
 
-			world	world_;
+			//world	world_;
+			boost::shared_ptr<entity>	world_;
+//			boost::shared_ptr<viewport>	viewport_;
 
 	//		std::vector<boost::shared_ptr<persistent_object_reference>> entities_;
 
