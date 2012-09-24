@@ -211,7 +211,7 @@ void engine::main()
 
 //	double ts0 = get_ts();
 
-	printf("OXYGEN ENGINE RUNNING!\n");
+//	printf("HYDROGEN ENGINE RUNNING!\n");
 	uint32_t iter = 0;
 
 	while(!main_loop_->is_terminating())
@@ -241,7 +241,7 @@ void engine::main()
 		wchar_t wsz[128];
 		swprintf(wsz, L"fps: %1.2f ", (float)fps_);
 		GLdouble black[] = {0.0,0.0,0.0,1.0};
-		iface()->output_text(16,45,wsz);
+		iface()->output_text(20,58,wsz);
 //		iface()->output_text(0,35,wsz,black);
 
 //		glFlush();
@@ -408,7 +408,7 @@ void engine::update_viewport(void)
 	if(viewport_width_ < 1) viewport_width_ = 1;
 	if(viewport_height_ < 1) viewport_height_ = 1;
 	glViewport(0, 0, viewport_width_, viewport_height_);
-	printf("updating viewport: %d %d\n",viewport_width_,viewport_height_);
+//	printf("updating viewport: %d %d\n",viewport_width_,viewport_height_);
 }
 
 void engine::get_viewport_size(size_t *width, size_t *height)
