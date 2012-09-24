@@ -14,9 +14,7 @@ class iface_base
 		gui::window	*m_pwnd;
 
 	public:
-
-
-						
+								
 		std::vector<shader *>	m_shaders;
 		GLuint				m_program;
 		//typedef vector<shader *>::iterator shader_iterator;
@@ -253,12 +251,6 @@ public:
 		if(m_hdc) ::ReleaseDC(*window(),m_hdc);
 	}
 
-
-	// 				void get_viewport_size(int *pwidth, int *pheight)
-	// 				{
-	// 					window_generic()->get_size(pwidth,pheight);
-	// 				}
-
 	void set_active(bool active) const
 	{
 		if (active)
@@ -272,15 +264,12 @@ public:
 				wglMakeCurrent(NULL, NULL);
 		}
 	}
-
-
+	
 	void swap_buffers(void)
 	{
 		::SwapBuffers(m_hdc);
 	}
-
-
-
+	
 	bool is_vsync_enabled(void)
 	{					
 		return m_pfn_wglGetSwapIntervalEXT ? (m_pfn_wglGetSwapIntervalEXT() > 0) : false;
@@ -311,10 +300,9 @@ public:
 			FF_DONTCARE|DEFAULT_PITCH,		// Family And Pitch
 			L"Lucida Console");					// Font Name
 
-		if(!hfont) return;// E_FAIL;
+		if(!hfont) return;
 
 		//					ActivateRenderingContext(this);
-
 
 		HFONT hOldFont = (HFONT) SelectObject(m_hdc,hfont);
 		m_font_base = glGenLists(96);
@@ -325,8 +313,6 @@ public:
 
 		SelectObject(m_hdc,hOldFont);
 		DeleteObject(hfont);
-
-		//					m_FontMapper.AddFont(pHandle,iBase,size.cy);
 
 	}
 
@@ -340,8 +326,6 @@ public:
 		//glColor4ub(255,255,255,255);
 		glDisable(GL_COLOR_MATERIAL);
 		glDisable(GL_LIGHTING);
-
-
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -360,15 +344,11 @@ public:
 		//glTranslatef(x,y,0.0f);
 		glRasterPos2f((GLfloat)x,(GLfloat)y); //iY+pFont->m_iHeight - 4 /*4 is a hardcoded margin*/);	// set raster position...
 
-
-
 		glPushAttrib(GL_LIST_BIT);
 		glListBase(m_font_base-32);
 		glCallLists((GLsizei)wcslen(text),GL_UNSIGNED_SHORT, text);
 		//					glCallLists(strlen(pText),GL_UNSIGNED_BYTE, pText);
 		glPopAttrib();
-
-
 
 		// ~~~
 
@@ -377,12 +357,9 @@ public:
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
-
-
 	}
 
 };
-
 
 #elif OS(LINUX) // ---------------------------------------------------------------------------|
 
@@ -490,8 +467,6 @@ printf("extensions: %s",extensions);
 };
 
 #endif
-
-
 
 } } // namespace aspect::gl
 

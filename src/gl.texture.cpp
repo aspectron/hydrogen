@@ -34,9 +34,6 @@ void texture::_update_pixels(GLubyte* dst)
 	if(!dst)
 		return;
 
-	//memset(dst,color++,get_data_size());
-	//return;
-
 	int* ptr = (int*)dst;
 
 	// copy 4 bytes at once
@@ -60,13 +57,9 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 	m_output_width = width;
 	m_output_height = height;
 
-//m_format_components = GL_RGBA;
-//m_format_internal = GL_RGBA;
-//m_configuration = CONFIGURE_PBO;
 	m_width = width;
 	m_height = height;
 	m_bpp = 0;
-
 
 	bool bfloat = false;
 

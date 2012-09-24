@@ -18,8 +18,6 @@ namespace aspect { namespace gl {
 				INSTANCE_COPY_TRANSFORM = 0x00000001
 			};
 			
-//			boost::shared_ptr<entity>	self_;
-
 			double age_;
 			transform	entity_transform; //m_Transform;
 
@@ -73,7 +71,6 @@ namespace aspect { namespace gl {
 			bool init_invoked_;
 	};
 
-//	typedef std::vector<entity*> entity_ptr_array;
 	extern uint32_t global_entity_count;
 
 	class HYDROGEN_API world : public entity

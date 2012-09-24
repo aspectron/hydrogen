@@ -14,21 +14,17 @@ aspect::gl::entity * WeakJSClassCreatorOps<aspect::gl::entity>::Ctor( v8::Argume
 
 void WeakJSClassCreatorOps<aspect::gl::entity>::Dtor( aspect::gl::entity *o )
 {
-//	delete o;
 	o->release();
 }
 
 }} // ::v8::juice
-
-
 
 namespace aspect { namespace gl {
 
 uint32_t global_entity_count = 0;
 
 entity::entity()
-	: //bounding_type(BOUNDING_NONE),
-		parent(NULL),
+	:	parent(NULL),
 		age_(0.0),
 		init_invoked_(false)
 {
@@ -40,18 +36,13 @@ entity::~entity()
 	delete_all_children();
 
 	if(parent)
-		parent->detach(self_); //shared_from_this());
+		parent->detach(self_);
 
 	global_entity_count--;
 }
 
 void entity::delete_all_children(void)
 {
-//	entity_ptr_array::iterator child;
-//	for(int i = children.size()-1; i >= 0; --i)
-//		delete children[i];
-//		for(child = children.begin(); child != children.end(); child++)
-//			delete *child;
 	boost::mutex::scoped_lock lock(children_mutex_);
 	children_.clear();
 }

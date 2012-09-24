@@ -4,8 +4,6 @@
 using namespace v8;
 using namespace v8::juice;
 
-// V8_IMPLEMENT_CLASS_BINDER(aspect::gl::engine, aspect_engine);
-
 DECLARE_LIBRARY_ENTRYPOINTS(hydrogen_install, hydrogen_uninstall);
 
 void hydrogen_install(Handle<Object> target)
@@ -15,7 +13,6 @@ void hydrogen_install(Handle<Object> target)
 	ClassBinder<aspect::gl::engine> *binder_engine = new ClassBinder<aspect::gl::engine>(target);
 	V8_SET_CLASS_BINDER(aspect::gl::engine, binder_engine);
 	(*binder_engine)
-		.BindMemFunc<void, &aspect::gl::engine::hello_world>("hello world!")
 		.BindMemFunc<&aspect::gl::engine::attach>("attach")
 		.BindMemFunc<&aspect::gl::engine::detach>("detach")
 		.Seal();
@@ -28,7 +25,6 @@ void hydrogen_install(Handle<Object> target)
 		.BindMemFunc<&aspect::gl::entity::attach>("attach")
 		.BindMemFunc<&aspect::gl::entity::detach>("detach")
 		.Seal();
-
 
 }
 

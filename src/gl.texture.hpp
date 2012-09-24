@@ -3,23 +3,7 @@
 
 #pragma warning (disable : 4482)
 
-/*
-#include "av.hpp"
-#include "av.bitmap.hpp"
-#include "gl.hpp"
-#include "gl.shader.hpp"
-#include "math.point2d.hpp"
-
-#include "tbb/tick_count.h"
-*/
-
-// #include <vector>
-
-namespace aspect
-{
-
-namespace gl
-{
+namespace aspect { namespace gl {
 
 enum image_encoding
 {
@@ -42,13 +26,10 @@ class HYDROGEN_API texture
 {
 	public:
 
-//						texture *m_filter;
-
 		std::vector<texture*> m_textures;
 		typedef std::vector<texture*>::iterator iterator;
 
 		GLuint  m_id;
-//		GLuint	m_pbo[2];
 		std::vector<GLuint>	pbo_;
 		unsigned char *m_pbo_buffer;
 		uint32_t mapped_pbo_idx_;
@@ -97,7 +78,6 @@ class HYDROGEN_API texture
 			  m_shader(NULL),
 			  m_draw_cache_list(0),
 			  mapped_pbo_idx_(0)
-			  
 		{
 
 		}
@@ -106,7 +86,6 @@ class HYDROGEN_API texture
 		{
 			cleanup();
 		}
-
 
 		// ~~~
 
@@ -131,7 +110,6 @@ class HYDROGEN_API texture
 		void setup_shader_parameters(gl::shader *shader);
 
 		static uint32_t bitmap_flags_to_texture_flags(uint32_t flags)
-	
 		{
 // ?????????????????????????????????????????????????????  <=== TODO
 //			if(flags & av::bitmap::flag_interlaced)
@@ -171,8 +149,6 @@ class HYDROGEN_API texture
 
 
 
-} // gl
-
-} // aspect
+} } // aspect::gl
 
 #endif // __GL_TEXTURE_HPP__

@@ -15,9 +15,7 @@ namespace aspect
 
 			aspect::math::vec3	location;
 			aspect::math::quat	orientation;
-//			aspect::math::vec3	rotation;
 			aspect::math::vec3	scale;
-//			aspect::math::vec3	m_direction;
 			
 			aspect::math::matrix transform_matrix;
 
@@ -68,79 +66,9 @@ namespace aspect
 
 					transform_matrix.apply_translation(location);
 
-//					math::matrix m_translation;
-//					m_translation.set_identity();
-//					m_translation.set_translation(location);
-
-//					transform_matrix *= m_translation;
-
 					flags |= TRANSFORM_CACHE;
 				}
-
-				/*
-				matrix.set_rot_z(rotation.z);
-				matrix.set_rot_y(rotation.y);
-				matrix.set_rot_x(rotation.x);
-				*/
-
-				/*
-
-				m_Transform.SetIdentity();
-				m_qOrient.ToMatrix(m_Transform);
-
-		//		m_Transform.ApplyRotZ(m_fRotationOffset * GAPI_DEG_TO_RAD);
-				GAPI_EulerAngles ea(0.0f,0.0f,m_fRotationOffset * GAPI_DEG_TO_RAD,GAPI_EulerAngles::orderXYZs);
-				GAPI_Matrix mRot; 
-				mRot.SetIdentity();
-				ea.ToMatrix(mRot);
-				m_Transform *= mRot;
-				//mRot.SetRotation()
-
-
-				GAPI_Point3d ptScale;
-				m_ptScale.GetPoint3D(ptScale);
-				m_Transform.ApplyScale(ptScale);
-
-				GAPI_Point3d p;
-				m_ptPos.GetPoint3D(p);
-				m_Transform.ApplyTranslation(p );
-
-				SetFlags(dwGetFlags() | flagTRANSFORM);
-*/
-
-/*				glPushMatrix();
-				{
-					glLoadIdentity();
-					
-					glTranslatef( location.x,
-								  location.y,
-								  location.z );
-
-					glRotatef( rotation.z,
-							   0.0f,
-							   0.0f,
-							   1.0f );	
-
-					glRotatef( rotation.y,
-							   0.0f,
-							   1.0f,
-							   0.0f );		
-
-					glRotatef( rotation.x,
-							   1.0f,
-							   0.0f,
-							   0.0f );
-
-					glScalef( scale.x,
-							  scale.y,
-							  scale.z );
-
-					glGetFloatv( GL_MODELVIEW_MATRIX, &matrix);
-				}
-				glPopMatrix();
-*/
 			}
-
 	};
 
 } // aspect

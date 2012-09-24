@@ -15,23 +15,18 @@ aspect::gl::engine * WeakJSClassCreatorOps<aspect::gl::engine>::Ctor( v8::Argume
 	aspect::gui::window *window = convert::CastFromJS<aspect::gui::window>(args[0]);
 	if(!window)
 		throw std::runtime_error("oxygen::engine() - constructor argument is not a window");
-//	boost::shared_ptr<aspect::gui::window> ptr(window);
-//	return new aspect::engine(ptr);
-//	return new aspect::engine(window->shared_from_this());
+
 	return new aspect::gl::engine(window->shared_from_this());
 }
 
 void WeakJSClassCreatorOps<aspect::gl::engine>::Dtor( aspect::gl::engine *o )
 {
-//	o->release();
-	delete o;
+	o->release();
 }
 
 }} // ::v8::juice
 
 namespace aspect { namespace gl {
-
-// engine *engine::global_ = NULL;
 
 class engine::main_loop : boost::noncopyable
 {
@@ -65,6 +60,7 @@ public:
 	/// Is the main loop terminating?
 	bool is_terminating() const { return is_terminating_; }
 
+	/*
 	void run()
 	{
 		aspect::utils::set_thread_name("thorium");
@@ -87,6 +83,7 @@ public:
 		}
 		callbacks_.clear();
 	}
+	*/
 
 	void execute_callbacks()
 	{
@@ -137,26 +134,7 @@ tswp_(0)
 	world_ = ((new world())->shared_from_this());
 //	viewport_ = boost::make_shared<viewport>();
 
-// 	world_->release();
-// 	world_.reset();
-// 	world_ = ((new world())->shared_from_this());
-
-	// TODO - v8 PERSISTENT HANDLE!
-
-//	boost::shared_ptr<aspect::gui::window> ptr = target_window->shared_from_this();
-
-/*
-	_aspect_assert(!engine::global_);
-	if ( engine::global_ )
-	{
-		throw new std::runtime_error("Only one instance of engine object is allowed");
-	}
-	engine::global_ = this;
-*/
-
-//	task_queue_.reset(new async_queue(cfg_.task_thread_count));
 	task_queue_.reset(new async_queue("HYDROGEN",1));
-
 
 	boost::posix_time::time_duration interval(boost::posix_time::microseconds(1000000 / 30));
 
@@ -175,26 +153,12 @@ engine::~engine()
 
 	world_->release();
 	world_.reset();
-
-//	_aspect_assert(thorium::global_ == this);
-//	thorium::global_ = NULL;
-
-// 	for (clients::iterator iter = clients_.begin(), end = clients_.end(); iter != end; ++iter)
-// 	{
-// 		delete *iter;
-// 	}
-// 
-// 	istorage::cleanup();
 }
 
 
 void engine::main()
 {
-//	aspect::utils::set_thread_name("hydrogen");
-
 	// main thread
-
-	// TODO - init
 
 	iface_.reset(new aspect::gl::iface(window_.get()));
 	iface_->setup();
@@ -202,18 +166,7 @@ void engine::main()
 
 	setup();
 
-
-	gl::texture tex;
-	tex.setup(1024,1024,aspect::gl::image_encoding::BGRA8);
-	tex.configure(GL_LINEAR, GL_CLAMP_TO_EDGE);
-
-//	tex.upload();
-
-//	double ts0 = get_ts();
-
-//	printf("HYDROGEN ENGINE RUNNING!\n");
 	uint32_t iter = 0;
-
 	while(!main_loop_->is_terminating())
 	{
 
@@ -224,18 +177,7 @@ void engine::main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		glLoadIdentity();	
 
-		// TODO - RENDER!
-		// tex.upload();
-
-		// tex.draw(math::vec2(-0.75,-0.75),math::vec2(-0.7,-0.7), false);
-
 		render_context context(this);
-			//window_->get_size(&context.width_,&context.height_);
-
-//		context_.render();
-
-//		world_.init(context);
-
 		world_->render(&context);
 
 		wchar_t wsz[128];
@@ -263,21 +205,13 @@ void engine::main()
 
 	main_loop_->clear_callbacks();
 
-//	main_loop_->run();
-
-	//((world*)(world_.get()))->destroy(); 
 	world_->delete_all_children();
 
 	cleanup();
 
 	iface_.reset();
 
-	// TODO - shutdown
 }
-
-
-
-
 
 bool engine::setup(void)
 {
@@ -325,64 +259,23 @@ bool engine::setup(void)
 //	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 
-
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-//	glDisable(GL_BLEND); // test
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//	glDepthFunc(GL_ALWAYS); // test
 
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////
 	_setup_viewport();
 
 	iface()->setup_shaders();
 
-//					m_texture.setup(1920,1080,4,false);
-// asy.tex					m_texture.setup(1920/2,1080,4,true);
-//					m_texture.setup(1920,1080,4,true);
-//					m_texture.setup(1280,720,4);
-
-//					m_capture_receiver.push_back(new capture_receiver);
-	//m_capture_receiver[0]->m_texture[0]->setup(1280,720,av::YCbCr8); // asy.12
-
+//	m_capture_receiver.push_back(new capture_receiver);
+//	m_capture_receiver[0]->m_texture[0]->setup(1280,720,av::YCbCr8); // asy.12
 
 //	viewport_->bind(iface()->window());
-
-
 
 	return true;
 }
 
 void engine::cleanup(void)
 {
-// ----------------------------------------------------------
-//
-//	TODO 
-//
-/*
-	for(int i = 0; i < m_entities.size(); i++)
-		delete m_entities[i];
-	m_entities.clear();
-*/
-// ----------------------------------------------------------
-
-
-/*
-	m_texture[0]->cleanup();
-	delete m_texture[0];
-	m_texture[0] = NULL;
-
-	m_texture[1]->cleanup();
-	delete m_texture[1];
-	m_texture[1] = NULL;
-*/
-
 	iface_->cleanup();
 }
 
@@ -415,9 +308,6 @@ void engine::get_viewport_size(size_t *width, size_t *height)
 {
 	*width = viewport_width_;
 	*height = viewport_height_;
-
-//	if(get_flags() & flag_portrait)
-//		math::swap(*width,*height);
 }
 
 void engine::get_viewport_units(double *x, double *y)
@@ -435,7 +325,6 @@ void engine::get_viewport_units(double *x, double *y)
 void engine::_setup_viewport(void)
 {
 	update_viewport();
-
 	setup_viewport();
 }
 
@@ -470,7 +359,6 @@ math::vec2 engine::map_pixel_to_view(math::vec2 const& v)
 	return math::vec2( v.x / (double)viewport_width_, v.y / (double)viewport_height_);
 //	return math::vec2( v.x / (double)viewport_width_ * 2.0 - 1.0,
 //		(1.0 - (v.y / (double)viewport_height_)) * 2.0 - 1.0);
-
 //	return vec2((v.x + 1.0) * 0.5 * (double)viewport_width_, (v.y + 1.0) * 0.5 * (double)viewport_height_);
 }
 
@@ -483,10 +371,7 @@ v8::Handle<v8::Value> engine::attach( v8::Arguments const& args )
 	if(!e)
 		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
 
-//	boost::shared_ptr<entity> ptr(e);
 	attach(e->shared_from_this());
-
-//	boost::shared_ptr<persistent_object_reference<entity>>	reference(new persistent_object_reference<entity>(e));
 
 	return convert::CastToJS(this);
 }
@@ -504,12 +389,5 @@ v8::Handle<v8::Value> engine::detach( v8::Arguments const& args )
 
 	return convert::CastToJS(this);
 }
-
-/*
-void engine::register_entity( shared_ptr<entity>& e )
-{
-//	pipeline
-}
-*/
 
 } } // namespace aspect::gl
