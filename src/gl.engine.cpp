@@ -220,8 +220,9 @@ void engine::main()
 
 		double total_delta_ts1 = 1000.0 / (ts1-ts0);
 		double total_delta_ts2 = 1000.0 / (ts2-ts0);
+		double total_delta_tsrt = 1000.0 / (ts_rt-ts0);
 		//fps_ = (fps_ * 0.5 + total_delta * 0.5);
-		fps_unheld_ = (fps_unheld_ * 0.99 + total_delta_ts1 * 0.01);
+		fps_unheld_ = (fps_unheld_ * 0.99 + total_delta_tsrt * 0.01);
 		fps_ = (fps_ * 0.99 + total_delta_ts2 * 0.01);
 		frt_ = frt_ * 0.99 + (ts_rt-ts0) * 0.01;
 		//fps_ = total_delta;
