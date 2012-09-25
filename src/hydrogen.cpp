@@ -15,6 +15,11 @@ void hydrogen_install(Handle<Object> target)
 	(*binder_engine)
 		.BindMemFunc<&aspect::gl::engine::attach>("attach")
 		.BindMemFunc<&aspect::gl::engine::detach>("detach")
+		.BindMemFunc<void, bool, &aspect::gl::engine::show_engine_info>("show_engine_info")
+		.BindMemFunc<void, double, double, &aspect::gl::engine::set_engine_info_location>("set_engine_info_location")
+		.BindMemFunc<void, double, &aspect::gl::engine::set_rendering_hold_interval>("set_rendering_hold_interval")
+		.BindMemFunc<void, bool, &aspect::gl::engine::enable_rendering_hold>("enable_rendering_hold")
+		.BindMemFunc<void, int, &aspect::gl::engine::set_vsync_interval>("set_vsync_interval")
 		.Seal();
 
 	ClassBinder<aspect::gl::entity> *binder_entity = new ClassBinder<aspect::gl::entity>(target);

@@ -127,8 +127,12 @@ flags_(0),
 viewport_width_(0),
 viewport_height_(0),
 fps_(0),
+fps_unheld_(0),
 frt_(0),
-tswp_(0)
+tswp_(0),
+show_engine_info_(false),
+hold_rendering_(false),
+hold_interval_(1000.0/60.0)
 {
 
 	world_ = ((new world())->shared_from_this());
@@ -166,6 +170,8 @@ void engine::main()
 
 	setup();
 
+	aspect::threads::event holder;
+
 	uint32_t iter = 0;
 	while(!main_loop_->is_terminating())
 	{
@@ -180,13 +186,17 @@ void engine::main()
 		render_context context(this);
 		world_->render(&context);
 
-		wchar_t wsz[128];
-		swprintf(wsz, L"fps: %1.2f ", (float)fps_);
-		GLdouble black[] = {0.0,0.0,0.0,1.0};
-		iface()->output_text(20,58,wsz);
+		if(show_engine_info_)
+		{
+			wchar_t wsz[128];
+			swprintf(wsz, L"fps: %1.2f (%1.2f) frt: %1.2f ", (float)fps_unheld_, (float)fps_, (float) frt_);
+			GLdouble black[] = {0.0,0.0,0.0,1.0};
+			//iface()->output_text(20,58,wsz);
+			iface()->output_text(engine_info_location_.x,engine_info_location_.y,wsz);
+		}
 //		iface()->output_text(0,35,wsz,black);
 
-//		glFlush();
+		glFlush();
 
 		iface()->swap_buffers();	
 
@@ -194,12 +204,29 @@ void engine::main()
 
 		double ts1 = utils::get_ts();
 
-		double delta = 1000.0 / (ts1-ts0);
-		fps_ = (fps_ * 0.99 + delta * 0.01);
+		double delta_ts1 = ts1-ts0;
+		if(hold_rendering_)
+		{
+			double remains = hold_interval_ - delta_ts1;
+			if(remains > 0.0)
+				WaitForSingleObject(holder.native_handle(), (DWORD)(remains + 0.5));
+		}
+		else
+			Sleep(0);
+
+		double ts2 = utils::get_ts();
+
+		double total_delta_ts1 = 1000.0 / (ts1-ts0);
+		double total_delta_ts2 = 1000.0 / (ts2-ts0);
+		//fps_ = (fps_ * 0.5 + total_delta * 0.5);
+		fps_unheld_ = (fps_unheld_ * 0.99 + total_delta_ts1 * 0.01);
+		fps_ = (fps_ * 0.99 + total_delta_ts2 * 0.01);
+		frt_ = frt_ * 0.99 + delta_ts1 * 0.01;
+		//fps_ = total_delta;
 
 		// TODO - 
 //		Sleep(33);
-		Sleep(1);
+//		Sleep(1);
 		iter++;
 	}
 
@@ -388,6 +415,17 @@ v8::Handle<v8::Value> engine::detach( v8::Arguments const& args )
 	detach(e->shared_from_this());
 
 	return convert::CastToJS(this);
+}
+
+void engine::set_vsync_interval_impl( int i )
+{
+	iface_->set_vsync_interval(i);
+}
+
+void engine::set_vsync_interval( int i )
+{
+	//iface_->set_vsync_interval(i);
+	main_loop_->schedule(boost::bind(&engine::set_vsync_interval_impl, this, i));
 }
 
 } } // namespace aspect::gl

@@ -41,6 +41,13 @@ namespace aspect { namespace gl {
 
 			math::vec2 engine::map_pixel_to_view(math::vec2 const& v);
 
+			void show_engine_info(bool f) { show_engine_info_ = f; }
+			void set_engine_info_location(double x, double y) { engine_info_location_ = math::vec2(x,y); }
+			void enable_rendering_hold(bool f) { hold_rendering_ = f; }
+			void set_rendering_hold_interval(double d) { hold_interval_ = d; }
+			void set_vsync_interval(int i);
+			void set_vsync_interval_impl(int i);
+
 		private:
 
 			class main_loop;
@@ -49,10 +56,14 @@ namespace aspect { namespace gl {
 
 			boost::thread thread_;
 
+			bool	show_engine_info_;
+			math::vec2	engine_info_location_;
+			bool hold_rendering_;
+			double hold_interval_;
 			uint32_t flags_;
 			uint32_t viewport_width_;
 			uint32_t viewport_height_;
-			double fps_,frt_,tswp_;
+			double fps_,fps_unheld_,frt_,tswp_;
 			boost::scoped_ptr<aspect::gl::iface> iface_;
 			boost::shared_ptr<aspect::gui::window> window_;
 			boost::shared_ptr<entity>	world_;

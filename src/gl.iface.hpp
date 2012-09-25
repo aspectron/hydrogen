@@ -216,6 +216,12 @@ public:
 
 		//////////////////////////////////////////////////////////////////////////
 
+		m_hglrc = ::wglCreateContext(m_hdc);
+		if(!::wglMakeCurrent(m_hdc, m_hglrc))
+			return false;
+
+		//////////////////////////////////////////////////////////////////////////
+
 		//get extensions of graphics card
 		char* extensions = (char*)glGetString(GL_EXTENSIONS);
 
@@ -232,10 +238,6 @@ public:
 		set_vsync_interval(1);
 
 		//////////////////////////////////////////////////////////////////////////
-
-		m_hglrc = ::wglCreateContext(m_hdc);
-		if(!::wglMakeCurrent(m_hdc, m_hglrc))
-			return false;
 
 		setup_fonts();
 

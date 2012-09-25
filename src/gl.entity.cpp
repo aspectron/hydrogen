@@ -153,7 +153,7 @@ void entity::render( render_context *context )
 	for(int i = 0; i < children_.size(); i++)
 		children_[i]->render(context);
 }
-
+ 
 void entity::apply_rotation( const math::quat &q )
 {
 	math::matrix &m = get_transform_matrix();
