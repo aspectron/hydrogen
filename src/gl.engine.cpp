@@ -198,6 +198,8 @@ void engine::main()
 
 		glFlush();
 
+		double ts_rt = utils::get_ts();
+
 		iface()->swap_buffers();	
 
 		main_loop_->execute_callbacks();
@@ -221,7 +223,7 @@ void engine::main()
 		//fps_ = (fps_ * 0.5 + total_delta * 0.5);
 		fps_unheld_ = (fps_unheld_ * 0.99 + total_delta_ts1 * 0.01);
 		fps_ = (fps_ * 0.99 + total_delta_ts2 * 0.01);
-		frt_ = frt_ * 0.99 + delta_ts1 * 0.01;
+		frt_ = frt_ * 0.99 + (ts_rt-ts0) * 0.01;
 		//fps_ = total_delta;
 
 		// TODO - 
