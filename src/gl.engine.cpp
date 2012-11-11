@@ -386,7 +386,7 @@ void engine::setup_viewport(void)
 
 math::vec2 engine::map_pixel_to_view(math::vec2 const& v)
 {
-	return math::vec2( v.x / (double)viewport_width_, v.y / (double)viewport_height_);
+	return math::vec2( v.x / (double)(viewport_width_ ), v.y / (double)(viewport_height_ ));
 //	return math::vec2( v.x / (double)viewport_width_ * 2.0 - 1.0,
 //		(1.0 - (v.y / (double)viewport_height_)) * 2.0 - 1.0);
 //	return vec2((v.x + 1.0) * 0.5 * (double)viewport_width_, (v.y + 1.0) * 0.5 * (double)viewport_height_);
