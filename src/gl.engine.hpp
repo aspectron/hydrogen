@@ -28,7 +28,7 @@ namespace aspect { namespace gl {
 
 			void main();
 
-			boost::scoped_ptr<aspect::gl::iface>& iface(void) { return iface_; }
+			boost::shared_ptr<aspect::gl::iface>& iface(void) { return iface_; }
 			boost::shared_ptr<aspect::gui::window>& window(void) { return window_; }
 		
 			uint32_t get_flags(void) const { return flags_; }
@@ -64,7 +64,7 @@ namespace aspect { namespace gl {
 			uint32_t viewport_width_;
 			uint32_t viewport_height_;
 			double fps_,fps_unheld_,frt_,tswp_;
-			boost::scoped_ptr<aspect::gl::iface> iface_;
+			boost::shared_ptr<aspect::gl::iface> iface_;
 			boost::shared_ptr<aspect::gui::window> window_;
 			boost::shared_ptr<entity>	world_;
 

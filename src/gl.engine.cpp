@@ -157,6 +157,8 @@ engine::~engine()
 
 	world_->release();
 	world_.reset();
+
+	iface_.reset();
 }
 
 
@@ -164,7 +166,8 @@ void engine::main()
 {
 	// main thread
 
-	iface_.reset(new aspect::gl::iface(window_.get()));
+//	iface_.reset(boost::make_shared<aspect::gl::iface>(new aspect::gl::iface(window_.get())));
+	iface_ = boost::make_shared<aspect::gl::iface>(window_.get());
 	iface_->setup();
 	iface_->set_active(true);
 
@@ -306,6 +309,7 @@ bool engine::setup(void)
 
 void engine::cleanup(void)
 {
+	iface_->cleanup_shaders();
 	iface_->cleanup();
 }
 

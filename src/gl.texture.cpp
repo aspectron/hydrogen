@@ -10,8 +10,9 @@ namespace gl
 
 void texture::configure(GLint filter, GLint wrap)
 {
-	for(size_t i = 0; i < m_textures.size(); i++)
-		m_textures[i]->configure(filter,wrap);
+//	for(size_t i = 0; i < m_textures.size(); i++)
+//		m_textures[i]->configure(filter,wrap);
+	_aspect_assert(get_id());
 
 	if(get_id())
 	{
@@ -190,6 +191,8 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 				m_format_internal = GL_BGRA;
 				m_bpp = 2;
 				m_output_width = m_width / 2;
+//				create_YCbCr8_shader();
+				shader_ = iface_->get_integrated_shader(iface_base::integrated_shader_YCbCr8);
 			} break;
 
 		default:
@@ -202,7 +205,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 	}
 
 	// create texture
-	glGenTextures(1, &m_id);
+	glGenTextures(1, &id_);
 
 //	scoped_ptr<void> image_data(malloc(get_data_size()));
 
@@ -251,7 +254,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 		if(m_flags & PBOx2)
 			pbo_buffers = 2;
 
-	for(uint32_t i = 0; i < pbo_buffers; i++)
+	for(uint32_t in = 0; in < pbo_buffers; in++)
 	{
 		GLuint pbo_id;
 		glGenBuffersARB(1, &pbo_id);
@@ -272,6 +275,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 	m_flags |= SETUP;
 }
 
+/*
 void texture::setup_shader_parameters(gl::shader *shader)
 {
 	switch(m_encoding)
@@ -304,6 +308,7 @@ bool texture::accept(aspect::image::encoding encoding)
 
 	return false;								
 }
+*/
 
 #if 1
 void texture::upload()
@@ -329,8 +334,8 @@ void texture::upload()
 	if(m_flags & FBO)
 	{
 //		m_cvt0 = tick_count::now();
-		for(size_t i = 0; i < m_textures.size(); i++)
-			m_textures[i]->upload();
+//		for(size_t i = 0; i < m_textures.size(); i++)
+//			m_textures[i]->upload();
 //		m_cvt1 = tick_count::now();
 //		m_cvt = (m_cvt1-m_cvt0).seconds();
 
@@ -341,7 +346,7 @@ void texture::upload()
 		_aspect_assert(m_fbo && "error - unable to create fbo (frame buffer object)");
 
 
-		glBindTexture(GL_TEXTURE_2D,m_textures[0]->get_id());
+		glBindTexture(GL_TEXTURE_2D,get_id());
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -494,26 +499,13 @@ void texture::upload()
 
 #endif
 
+
 bool texture::map_pbo(uint32_t idx)
 {
-	if(m_flags & SUBTEXTURES)
-	{
-		for(size_t i = 0; i < m_textures.size(); i++)
-			if(!m_textures[i]->map_pbo(idx))
-			{
-				_aspect_assert(!"failed to map texture pbo!");
-				return false;
-			}
+	GLint ierr = 0;
 
-		m_flags |= PBO;
-		return true;
-	}
-	else
-	{
-		GLint ierr = 0;
-
-		glBindTexture(GL_TEXTURE_2D,0);
-		// PBO
+	glBindTexture(GL_TEXTURE_2D,0);
+	// PBO
 // 		if(!m_pbo)
 // 		{
 // 			glGenBuffersARB(1, &m_pbo);
@@ -524,146 +516,88 @@ bool texture::map_pbo(uint32_t idx)
 // 		}
 
 
-		glBindTexture(GL_TEXTURE_2D, get_id());
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_pbo(idx));
+	glBindTexture(GL_TEXTURE_2D, get_id());
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_pbo(idx));
 
-		// map the buffer object into client's memory
-		// Note that glMapBufferARB() causes sync issue.
-		// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
-		// for GPU to finish its job. To avoid waiting (stall), you can call
-		// first glBufferDataARB() with NULL pointer before glMapBufferARB().
-		// If you do that, the previous data in PBO will be discarded and
-		// glMapBufferARB() returns a new allocated pointer immediately
-		// even if GPU is still working with the previous data.
+	// map the buffer object into client's memory
+	// Note that glMapBufferARB() causes sync issue.
+	// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
+	// for GPU to finish its job. To avoid waiting (stall), you can call
+	// first glBufferDataARB() with NULL pointer before glMapBufferARB().
+	// If you do that, the previous data in PBO will be discarded and
+	// glMapBufferARB() returns a new allocated pointer immediately
+	// even if GPU is still working with the previous data.
 		
-		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_data_size(), 0, GL_STREAM_DRAW_ARB);
+	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_data_size(), 0, GL_STREAM_DRAW_ARB);
 
-		m_pbo_buffer = (unsigned char*)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY_ARB);
-		_aspect_assert(m_pbo_buffer);
-		mapped_pbo_idx_ = idx;
+	pbo_buffer_ = (unsigned char*)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+	_aspect_assert(pbo_buffer_);
+	mapped_pbo_idx_ = idx;
 
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
-		if(m_pbo_buffer)
-		{
-			m_flags |= PBO;
-			return true;
-		}
-
-		_aspect_assert(!"failed to map texture pbo!");
-		return false;
+	if(pbo_buffer_)
+	{
+		m_flags |= PBO;
+		return true;
 	}
 
+	_aspect_assert(!"failed to map texture pbo!");
 	return false;
 }
 
+
+
 void texture::unmap_pbo(uint32_t idx)
 {
-	if(m_flags & SUBTEXTURES)
-	{
-		for(size_t i = 0; i < m_textures.size(); i++)
-			m_textures[i]->unmap_pbo(idx);
-	}
-	else
-	{
 
-		_aspect_assert(get_pbo(idx) && "no pbo id present - did you call map_pbo() before?");
+	_aspect_assert(get_pbo(idx) && "no pbo id present - did you call map_pbo() before?");
 
-		glBindTexture(GL_TEXTURE_2D, get_id());
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_pbo(idx));
+	glBindTexture(GL_TEXTURE_2D, get_id());
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_pbo(idx));
 
-		glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB); // release pointer to mapping buffer
+	glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB); // release pointer to mapping buffer
 
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, get_width(), get_height(), get_format_internal(), GL_UNSIGNED_BYTE, 0);
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, get_output_width(), get_height(), get_format_internal(), GL_UNSIGNED_BYTE, 0);
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
-		m_pbo_buffer = NULL;
-	}
+	pbo_buffer_ = NULL;
 //						glBindTexture(GL_TEXTURE_2D,0);
 }
 
-void texture::bind(gl::shader *custom_shader)
+
+void texture::bind(void) //gl::shader *custom_shader)
 {
 	_aspect_assert(get_flags() & CONFIG);
 
-	if(m_flags & SUBTEXTURES)
-	{
-//								_aspect_assert(!"error - not allowed to bind multiple texture container");
-//								m_textures[0]->bind();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D,get_id());
 
-		if(custom_shader)
-			glUseProgram(custom_shader->get_program());
-		else
-		if(m_shader)
-			glUseProgram(m_shader->get_program());
+	if(shader_.get())
+		glUseProgram(shader_->get_program());
 
-		for(size_t i = 0; i < m_textures.size(); i++)
-		{
-			glActiveTexture(GL_TEXTURE0 + i);
-			glBindTexture(GL_TEXTURE_2D,m_textures[i]->get_id());
-//									glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-//									glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-		}
-
-//								for(int i = 0; i < m_samplers.size(); i++)
-//									glUniform1iARB(m_samplers[i],i);
-
-	}
-	else
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D,get_id());
-	}
 }
 
-void texture::unbind(gl::shader *custom_shader)
+void texture::unbind(void) // gl::shader *custom_shader)
 {
-	if(m_flags & SUBTEXTURES)
-	{
-//								_aspect_assert(!"error - not allowed to bind multiple texture container");
-//								m_textures[0]->bind();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D,0);
 
-		if(m_shader || custom_shader)
-			glUseProgram(0);
-
-		for(size_t i = 0; i < m_textures.size(); i++)
-		{
-			glActiveTexture(GL_TEXTURE0 + i);
-			glBindTexture(GL_TEXTURE_2D,0);
-		}
-	}
-	else
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D,0);
-	}
+	if(shader_.get())
+		glUseProgram(0);
 }
 
 
 void texture::cleanup(void)
 {
-	if(m_draw_cache_list)
-		glDeleteLists(m_draw_cache_list,1);
+	if(draw_cache_list_)
+		glDeleteLists(draw_cache_list_,1);
 
-	if(m_pbo_buffer)
-	{
+	if(pbo_buffer_)
 		unmap_pbo(mapped_pbo_idx_);
-	}
 
-	if(m_shader)
-	{
-		delete m_shader;
-		m_shader = NULL;
-	}
-
-	for(size_t i = 0; i < m_textures.size(); i++)
-	{
-//						m_textures[i]->cleanup();
-		delete m_textures[i];
-	}
-
-	m_textures.empty();
+	if(shader_)
+		shader_.reset();
 
 	if(pbo_.size())
 	{
@@ -678,10 +612,10 @@ void texture::cleanup(void)
 		m_fbo = 0;
 	}
 
-	if(m_id)
+	if(id_)
 	{
-		glDeleteTextures(1, &m_id); 
-		m_id = 0;
+		glDeleteTextures(1, &id_); 
+		id_ = 0;
 	}
 
 	m_flags = 0;
@@ -693,12 +627,12 @@ void texture::draw(const math::vec2 &tl, const math::vec2 &br, bool cache)
 
 	if(cache)
 	{
-		if(m_draw_cache_list)
-			glCallList(m_draw_cache_list);
+		if(draw_cache_list_)
+			glCallList(draw_cache_list_);
 		else
 		{
-			m_draw_cache_list = glGenLists(1);
-			glNewList(m_draw_cache_list, GL_COMPILE);
+			draw_cache_list_ = glGenLists(1);
+			glNewList(draw_cache_list_, GL_COMPILE);
 			glBegin(GL_QUADS);
 
 			glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x, tl.y);
@@ -741,6 +675,46 @@ glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
 	unbind();
 }
 
+/*void texture::create_YCbCr8_shader(void)
+{
+	const char*	source =
+		"#version 130 \n"
+		"uniform sampler2D UYVYtex; \n"		// UYVY macropixel texture passed as RGBA format
+		"void main(void) \n"
+		"{\n"
+		"	float tx, ty, Y, Cb, Cr, r, g, b; \n"
+		"	tx = gl_TexCoord[0].x; \n"
+		"	ty = gl_TexCoord[0].y; \n"
+
+		// The UYVY texture appears to the shader with 1/2 the true width since we used RGBA format to pass UYVY
+		"	int true_width = textureSize(UYVYtex, 0).x * 2; \n"
+
+		// For U0 Y0 V0 Y1 macropixel, lookup Y0 or Y1 based on whether
+		// the original texture x coord is even or odd.
+		"	if (fract(floor(tx * true_width + 0.5) / 2.0) > 0.0) \n"
+		"		Y = texture2D(UYVYtex, vec2(tx,ty)).a; \n"		// odd so choose Y1
+		"	else \n"
+		"		Y = texture2D(UYVYtex, vec2(tx,ty)).g; \n"		// even so choose Y0
+		"	Cb = texture2D(UYVYtex, vec2(tx,ty)).b; \n"
+		"	Cr = texture2D(UYVYtex, vec2(tx,ty)).r; \n"
+
+		// Y: Undo 1/256 texture value scaling and scale [16..235] to [0..1] range
+		// C: Undo 1/256 texture value scaling and scale [16..240] to [-0.5 .. + 0.5] range
+		"	Y = (Y * 256.0 - 16.0) / 219.0; \n"
+		"	Cb = (Cb * 256.0 - 16.0) / 224.0 - 0.5; \n"
+		"	Cr = (Cr * 256.0 - 16.0) / 224.0 - 0.5; \n"
+		// Convert to RGB using Rec.709 conversion matrix (see eq 26.7 in Poynton 2003)
+		"	r = Y + 1.5748 * Cr; \n"
+		"	g = Y - 0.1873 * Cb - 0.4681 * Cr; \n"
+		"	b = Y + 1.8556 * Cb; \n"
+
+		// Set alpha to 0.7 for partial transparency when GL_BLEND is enabled
+		"	gl_FragColor = vec4(r, g, b, 0.7); \n"
+		"}\n";
+
+	shader_.reset(new shader(GL_FRAGMENT_SHADER, source));
+}
+*/
 
 } // gl
 

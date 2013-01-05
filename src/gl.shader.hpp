@@ -16,15 +16,16 @@ class shader
 
 		typedef std::vector<shader*>::iterator iterator;
 
-		std::string	m_filename;
-		std::string	m_source;
-		GLuint	m_type;
-		GLuint	m_id;
-		GLuint	m_program;
+		std::string	source_;
+		GLuint	type_;
+		GLuint	id_;
+		GLuint	program_;
 
-		shader()
-			: m_id(0), m_type(0), m_program(0)
+		shader(GLuint type = 0, const char *source = NULL)
+			: id_(0), program_(0), type_(type), source_(source)
 		{
+			if(type && source)
+				build(type_,source_.c_str());
 		}
 
 		~shader()
@@ -34,23 +35,23 @@ class shader
 
 		void cleanup(void)
 		{
-			if(m_program)
+			if(program_)
 			{
-				glDeleteObjectARB(m_program);
-				m_program = 0;
+				glDeleteObjectARB(program_);
+				program_ = 0;
 			}
 
-			if(m_id)
+			if(id_)
 			{
-				glDeleteShader(m_id);
-				m_id = 0;
+				glDeleteShader(id_);
+				id_ = 0;
 			}
 		}
 
-		GLuint get_id(void) const { return m_id; }
-		GLuint get_program(void) const { return m_program; }
+		GLuint get_id(void) const { return id_; }
+		GLuint get_program(void) const { return program_; }
 
-		GLuint get_shader_type_from_filename(const char *filename)
+/*		GLuint get_shader_type_from_filename(const char *filename)
 		{
 			if(strstr(filename,".frag"))
 				return GL_FRAGMENT_SHADER;
@@ -65,15 +66,16 @@ class shader
 
 			return NULL;
 		}
-
+*/
+/*
 		bool read_file(const std::string &filename)
 		{
-			m_source.clear();
+			source_.clear();
 
 			printf("loading shader: %s\n",filename.c_str());
 
-			m_type = get_shader_type_from_filename(filename.c_str());
-			if(!m_type)
+			type_ = get_shader_type_from_filename(filename.c_str());
+			if(!type_)
 				return false;
 
 			std::ifstream ifs;
@@ -87,35 +89,39 @@ class shader
 
 			std::stringstream ss;
 			ss << ifs.rdbuf();
-			m_source = ss.str();
+			source_ = ss.str();
 
 			m_filename = filename;
 
 			return true;
 		}
+*/
 
-		GLint compile(void)
+		GLint compile(GLuint type, const char *source)
 		{
-			printf("compiling shader '%s'\n",m_filename.c_str());
+//			printf("compiling shader '%s'\n",m_filename.c_str());
 
-			m_id = glCreateShader(m_type);
-			const char *source = m_source.c_str();
-			glShaderSource(m_id,1,&source,NULL);
+//			source_ = source;
 
-			glCompileShader(m_id);
+			id_ = glCreateShader(type);
+//			if(!source)
+//				source = source_.c_str();
+			glShaderSource(id_,1,&source,NULL);
+
+			glCompileShader(id_);
 
 			// Print the compilation log.
 			
 			GLint status = 0;
-			//glGetObjectParameterivARB(m_id,GL_OBJECT_COMPILE_STATUS_ARB,&status);
-			glGetShaderiv(m_id,GL_COMPILE_STATUS,&status);
+			//glGetObjectParameterivARB(id_,GL_OBJECT_COMPILE_STATUS_ARB,&status);
+			glGetShaderiv(id_,GL_COMPILE_STATUS,&status);
 			if(!status)
 			{
 				GLint size = 0;
-				glGetShaderiv(m_id,GL_INFO_LOG_LENGTH,&size);
+				glGetShaderiv(id_,GL_INFO_LOG_LENGTH,&size);
 				char *buffer = (char*)malloc(size);
-				glGetShaderInfoLog(m_id,size,NULL,buffer);
-				error("shader compilation failed","\n%s\n", buffer);
+				glGetShaderInfoLog(id_,size,NULL,buffer);
+				aspect::error("shader compilation failed","\n%s\n", buffer);
 
 #if 0
 				std::string filename;
@@ -136,20 +142,20 @@ class shader
 
 		GLint link(void)
 		{
-			m_program = glCreateProgramObjectARB();
+			program_ = glCreateProgramObjectARB();
 
-			glAttachShader(m_program,get_id());
+			glAttachShader(program_,get_id());
 
-			glLinkProgram(m_program);
+			glLinkProgram(program_);
 
 			GLint link_status;
-			glGetProgramiv(m_program,GL_LINK_STATUS,&link_status);
+			glGetProgramiv(program_,GL_LINK_STATUS,&link_status);
 			if(!link_status)
 			{
 				GLint size = 0;
-				glGetProgramiv(m_program,GL_INFO_LOG_LENGTH,&size);
+				glGetProgramiv(program_,GL_INFO_LOG_LENGTH,&size);
 				char *buffer = (char*)malloc(size);
-				glGetProgramInfoLog(m_program,size,NULL,buffer);
+				glGetProgramInfoLog(program_,size,NULL,buffer);
 				error("program link failed","\n%s\n", buffer);
 				free(buffer);
 			}
@@ -157,27 +163,35 @@ class shader
 			return link_status;
 		}
 
-		bool operator() (const std::string &filename)
+		bool build(GLuint type, const char *source)
 		{
-			cleanup();
-
-//			std::string folder;
-//			aspect::get_application_folder(folder);
-//			folder += "/shaders/";
-//			if(!read_file(folder + filename))
-			if(!read_file(filename))
-			{
-				_aspect_assert(!"unable to load shader");
-				return false;
-			}
-
-			if(!compile())
+			if(!compile(type, source))
 				return false;
 
 			if(!link())
 				return false;
 
 			return true;
+		}
+
+		bool restore()
+		{
+			if(!compile(type_, source_.c_str()))
+				return false;
+
+			if(!link())
+				return false;
+
+			return true;
+		}
+
+		bool operator() (GLuint type, const char *source) //(const std::string &filename)
+		{
+			cleanup();
+
+			source_ = source;
+			type_ = type;
+			return build(type, source);
 		}
 };
 

@@ -13,6 +13,7 @@ void hydrogen_install(Handle<Object> target)
 	ClassBinder<aspect::gl::engine> *binder_engine = new ClassBinder<aspect::gl::engine>(target);
 	V8_SET_CLASS_BINDER(aspect::gl::engine, binder_engine);
 	(*binder_engine)
+//		.BindMemFunc<void, &aspect::gl::engine::cleanup>("cleanup")
 		.BindMemFunc<&aspect::gl::engine::attach>("attach")
 		.BindMemFunc<&aspect::gl::engine::detach>("detach")
 		.BindMemFunc<void, bool, &aspect::gl::engine::show_engine_info>("show_engine_info")

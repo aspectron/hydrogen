@@ -25,6 +25,8 @@ namespace aspect { namespace gl {
 			void render(void);
 
 			math::vec2 map_pixel_to_view(math::vec2 const& v);
+
+			boost::shared_ptr<aspect::gl::iface>& iface(void);
 	};
 
 } } // aspect::gl

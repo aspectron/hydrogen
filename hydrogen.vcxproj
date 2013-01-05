@@ -133,6 +133,7 @@
     <ClCompile Include="src\gl.context.cpp" />
     <ClCompile Include="src\gl.engine.cpp" />
     <ClCompile Include="src\gl.entity.cpp" />
+    <ClCompile Include="src\gl.iface.cpp" />
     <ClCompile Include="src\gl.layer.cpp" />
     <ClCompile Include="src\gl.pipeline.cpp" />
     <ClCompile Include="src\gl.texture.cpp" />

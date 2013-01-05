@@ -49,6 +49,7 @@ layer::~layer()
 
 }
 
+/*
 void layer::configure(uint32_t texture_width, uint32_t texture_height, uint32_t texture_encoding)
 {
 	boost::mutex::scoped_lock lock(render_lock_);
@@ -60,13 +61,14 @@ void layer::configure(uint32_t texture_width, uint32_t texture_height, uint32_t 
 	texture_.reset(new gl::texture());
 	//			texture_->setup(1024,1024,aspect::gl::image_encoding::RGBA8);
 	//		texture_->setup(1024,1024,aspect::gl::image_encoding::BGRA8, gl::texture::PBOx2);
-	texture_->setup(texture_width,texture_height,(aspect::image::encoding)texture_encoding/*aspect::gl::image_encoding::BGRA8*/, gl::texture::PBOx2);
+	texture_->setup(texture_width,texture_height,(aspect::image::encoding)texture_encoding, gl::texture::PBOx2);
 
 	texture_->configure(GL_LINEAR, GL_CLAMP_TO_EDGE);
 
 	init_done_ = true;
 
 }
+*/
 
 void layer::render_impl( gl::render_context *context )
 {
@@ -84,7 +86,7 @@ void layer::render_impl( gl::render_context *context )
 		}
 	}
 	else
-		texture_.reset(new gl::texture());
+		texture_.reset(new gl::texture(context->engine_->iface()));
 
 	if(sink_)
 		sink_->digest(texture());

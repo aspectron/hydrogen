@@ -15,52 +15,52 @@ class iface_base
 
 	public:
 								
-		std::vector<shader *>	m_shaders;
-		GLuint				m_program;
+//		std::vector<boost::shared_ptr<shader>>	shaders_;
+//		GLuint				m_program;
 		//typedef vector<shader *>::iterator shader_iterator;
 
-		shader *load_shader(const std::string &filename) //char *filename)
-		{
-			shader *ps = new shader;
-			if(!ps->read_file(filename.c_str()))
-			{
-				delete ps;
-				return NULL;
-			}
+// 		shader *load_shader(const std::string &filename) //char *filename)
+// 		{
+// 			shader *ps = new shader;
+// 			if(!ps->read_file(filename.c_str()))
+// 			{
+// 				delete ps;
+// 				return NULL;
+// 			}
+// 
+// 			m_shaders.push_back(ps);
+// 			return ps;
+// 
+// 			// printf("loaded shader, count: %d\n",m_shaders.size());
+// 
+// 		}
 
-			m_shaders.push_back(ps);
-			return ps;
+// 		void cleanup_shaders(void)
+// 		{
+// 			// printf("cleaning up shaders\n");
+// 
+// 			shader::iterator psi;
+// 			for(psi = m_shaders.begin(); psi != m_shaders.end(); psi++)
+// 				delete *psi;
+// 
+// 			m_shaders.clear();
+// 		}
 
-			// printf("loaded shader, count: %d\n",m_shaders.size());
-
-		}
-
-		void cleanup_shaders(void)
-		{
-			// printf("cleaning up shaders\n");
-
-			shader::iterator psi;
-			for(psi = m_shaders.begin(); psi != m_shaders.end(); psi++)
-				delete *psi;
-
-			m_shaders.clear();
-		}
-
-		virtual void load_shader_files(void)
-		{
-			return; 
-
+// 		virtual void load_shader_files(void)
+// 		{
+// 			return; 
+// 
 /*			//GetModuleFileName(NULL,);
 			std::string folder;
 			aspect::get_application_folder(folder);
 			folder += "/shaders";
 			load_shader(folder + "/toon.fsl");
 */
-		}
+// 		}
 
+#if 0
 		void setup_shaders(void)
 		{
-#if 0
 
 			load_shader_files();
 
@@ -94,26 +94,39 @@ class iface_base
 //					glUseProgram(m_program);
 
 			printf("loaded and compiled %d shaders\n",(int)m_shaders.size());
+		}
 #endif
-		}
 
-		void use_shader(void)
+// 		void use_shader(void)
+// 		{
+// 			glUseProgram(m_program);
+// 		}
+// 
+// 		void reset_shader(void)
+// 		{
+// 			glUseProgram(0);
+// 		}
+
+		enum integrated_shaders
 		{
-			glUseProgram(m_program);
+			integrated_shader_YCbCr8,
+			integrated_shader_last
+		};
+
+		void setup_shaders(void);
+		void cleanup_shaders(void);
+		std::vector<boost::shared_ptr<gl::shader>> shaders_;
+		boost::shared_ptr<gl::shader> get_integrated_shader(uint32_t id) 
+		{ 
+			_aspect_assert(id < integrated_shader_last);
+			return shaders_[id]; 
 		}
-
-		void reset_shader(void)
-		{
-			glUseProgram(0);
-		}
-
-
 
 		////////////////////////////
 
 		iface_base(gui::window *pwnd)
-			: m_pwnd(pwnd),
-				m_program(NULL)
+			: m_pwnd(pwnd)//,
+				//m_program(NULL)
 		{
 
 		}

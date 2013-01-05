@@ -22,4 +22,9 @@ namespace aspect { namespace gl {
 		return engine_->map_pixel_to_view(v);
 	}
 
+	boost::shared_ptr<aspect::gl::iface>& render_context::iface( void )
+	{
+		return engine_->iface();
+	}
+
 } } // aspect::gl
