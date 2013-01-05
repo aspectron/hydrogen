@@ -181,7 +181,7 @@ void engine::main()
 		validate_iface();
 
 		glClear(GL_COLOR_BUFFER_BIT);
-		glLoadIdentity();	
+		glLoadIdentity();
 
 		render_context context(this);
 		world_->render(&context);
@@ -189,7 +189,7 @@ void engine::main()
 		if(show_engine_info_)
 		{
 			wchar_t wsz[128];
-			swprintf(wsz, L"fps: %1.2f (%1.2f) frt: %1.2f ", (float)fps_unheld_, (float)fps_, (float) frt_);
+			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f ", (float)fps_unheld_, (float)fps_, (float) frt_);
 			GLdouble black[] = {0.0,0.0,0.0,1.0};
 			//iface()->output_text(20,58,wsz);
 			iface()->output_text(engine_info_location_.x,engine_info_location_.y,wsz);

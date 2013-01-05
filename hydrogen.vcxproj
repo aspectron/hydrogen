@@ -133,6 +133,7 @@
     <ClCompile Include="src\gl.context.cpp" />
     <ClCompile Include="src\gl.engine.cpp" />
     <ClCompile Include="src\gl.entity.cpp" />
+    <ClCompile Include="src\gl.layer.cpp" />
     <ClCompile Include="src\gl.pipeline.cpp" />
     <ClCompile Include="src\gl.texture.cpp" />
     <ClCompile Include="src\hydrogen.cpp" />
@@ -142,6 +143,7 @@
     <ClInclude Include="src\gl.engine.hpp" />
     <ClInclude Include="src\gl.entity.hpp" />
     <ClInclude Include="src\gl.iface.hpp" />
+    <ClInclude Include="src\gl.layer.hpp" />
     <ClInclude Include="src\gl.pipeline.hpp" />
     <ClInclude Include="src\gl.shader.hpp" />
     <ClInclude Include="src\gl.texture.hpp" />

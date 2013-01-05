@@ -4,9 +4,10 @@
 #pragma warning (disable : 4482)
 
 namespace aspect { namespace gl {
-
-enum image_encoding
+/*
+enum aspect::image::encoding
 {
+	UNKNOWN,
 	YCbCr8,
 	Y8,
 	Cb8,
@@ -18,9 +19,9 @@ enum image_encoding
 	ARGB8,
 	BGRA8,
 	RGB10,
-	RGBA32f,
-	Unknown
+	RGBA32f
 };
+*/
 
 class HYDROGEN_API texture
 {
@@ -40,7 +41,7 @@ class HYDROGEN_API texture
 		int m_output_width;
 		int m_output_height;
 //						int m_channels;
-		image_encoding m_encoding;
+		aspect::image::encoding m_encoding;
 		GLenum m_format_components;
 		GLenum m_format_internal;
 
@@ -72,7 +73,7 @@ class HYDROGEN_API texture
 
 		texture()
 			: //m_filter(NULL),
-		m_id(0), m_pbo_buffer(NULL), m_fbo(0), m_width(0), m_height(0), m_output_width(0), m_output_height(0), m_bpp(0), m_encoding(image_encoding::Unknown), 
+		m_id(0), m_pbo_buffer(NULL), m_fbo(0), m_width(0), m_height(0), m_output_width(0), m_output_height(0), m_bpp(0), m_encoding(aspect::image::encoding::UNKNOWN), 
 			  m_trs(0.0), m_cvt(0.0),
 			  m_flags(0),
 			  m_shader(NULL),
@@ -93,9 +94,9 @@ class HYDROGEN_API texture
 
 		void configure(GLint filter, GLint wrap);
 		void _update_pixels(GLubyte* dst);
-		void setup(int width, int height, image_encoding encoding, uint32_t flags = 0);
+		void setup(int width, int height, aspect::image::encoding encoding, uint32_t flags = 0);
 		void attach(texture *t) { m_textures.push_back(t); }
-		bool accept(image_encoding encoding);
+		bool accept(aspect::image::encoding encoding);
 
 		void upload();
 
@@ -131,7 +132,7 @@ class HYDROGEN_API texture
 		int get_output_height(void) const { return m_output_height; }
 		int get_bpp(void) const { return m_bpp; }
 		int get_row_bytes(void) const { return get_width() * get_bpp(); }
-		image_encoding get_encoding(void) const { return m_encoding; }
+		aspect::image::encoding get_encoding(void) const { return m_encoding; }
 		GLuint get_format_components(void) const { return m_format_components; }
 		GLuint get_format_internal(void) const { return m_format_internal; }
 		int get_data_size(void) const { return get_height() * get_row_bytes(); }

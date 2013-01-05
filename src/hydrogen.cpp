@@ -31,6 +31,42 @@ void hydrogen_install(Handle<Object> target)
 		.BindMemFunc<&aspect::gl::entity::detach>("detach")
 		.Seal();
 
+	ClassBinder<aspect::gl::layer> *binder_layer = new ClassBinder<aspect::gl::layer>(target);
+	V8_SET_CLASS_BINDER(aspect::gl::layer, binder_layer);
+	(*binder_layer)
+		//		.BindMemFunc<void, &aspect::layer::test_function_binding>("mercury_function_layer")
+		.BindMemFunc<void, double, double, double, double, &aspect::gl::layer::set_rect>("set_rect")
+//		.BindMemFunc<&aspect::gl::layer::register_as_update_sink>("register_as_update_sink")
+		.BindMemFunc<void, bool, &aspect::gl::layer::set_fullsize>("set_fullsize")
+		.Inherit(*aspect::gl::entity::binder())
+		.Seal();
+
+	ClassBinder<aspect::gl::layer_reference> *binder_layer_reference = new ClassBinder<aspect::gl::layer_reference>(target);
+	V8_SET_CLASS_BINDER(aspect::gl::layer_reference, binder_layer_reference);
+	(*binder_layer_reference)
+		.BindMemFunc<&aspect::gl::layer_reference::assoc>("assoc")
+		.BindMemFunc<void, double, double, double, double, &aspect::gl::layer_reference::set_rect>("set_rect")
+		//.Inherit(*binder_layer)
+		.Inherit(*aspect::gl::entity::binder())
+		.Seal();
+
+
+	Handle<Object> pixel_formats = Object::New();
+	target->Set(String::New("pixel_formats"), pixel_formats);
+
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "UNKNOWN",		aspect::image::UNKNOWN);
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YCbCr8",		aspect::image::YCbCr8);
+//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Y8",			aspect::gl::Y8);
+//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Cb8",			aspect::gl::Cb8);
+//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Cr8",			aspect::gl::Cr8);
+//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "CbCr8",		aspect::gl::CbCr8);
+//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YCbCr8_v1",	aspect::gl::YCbCr8_v1);
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YCbCr10",		aspect::image::YCbCr10);
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "RGBA8",		aspect::image::RGBA8);
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "ARGB8",		aspect::image::ARGB8);
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "BGRA8",		aspect::image::BGRA8);
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "RGB10",		aspect::image::RGB10);
+//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "RGBA32f",		aspect::image::RGBA32f);
 }
 
 void hydrogen_uninstall(Handle<Object> target) 

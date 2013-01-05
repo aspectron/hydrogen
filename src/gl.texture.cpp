@@ -50,7 +50,7 @@ void texture::_update_pixels(GLubyte* dst)
 }
 
 
-void texture::setup(int width, int height, image_encoding encoding, uint32_t flags)
+void texture::setup(int width, int height, aspect::image::encoding encoding, uint32_t flags)
 {
 	m_flags |= flags;
 	m_encoding = encoding;
@@ -61,21 +61,23 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 	m_height = height;
 	m_bpp = 0;
 
-	bool bfloat = false;
+//	bool bfloat = false;
+
+	/*
 
 	switch(m_encoding)
 	{
-		case image_encoding::YCbCr8:
+		case aspect::image::encoding::YCbCr8:
 			{
 				m_shader = new shader;
 				(*m_shader)("YCbCr8.frag");
 
 				texture *textureY8 = new texture;
-				textureY8->setup(width,height,image_encoding::Y8);
+				textureY8->setup(width,height,aspect::image::encoding::Y8);
 				attach(textureY8);
 
 				texture *textureCbCr8 = new texture;
-				textureCbCr8->setup(width,height,image_encoding::CbCr8);
+				textureCbCr8->setup(width,height,aspect::image::encoding::CbCr8);
 				attach(textureCbCr8);
 
 				glUseProgram(m_shader->get_program());
@@ -87,21 +89,21 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 			} break;
 
-		case image_encoding::YCbCr10:
+		case aspect::image::encoding::YCbCr10:
 			{
 				m_shader = new shader;
 				(*m_shader)("YCbCr10.frag");
 
 				texture *textureY8 = new texture;
-				textureY8->setup(width,height,image_encoding::Y8);
+				textureY8->setup(width,height,aspect::image::encoding::Y8);
 				attach(textureY8);
 
 				texture *textureCb8 = new texture;
-				textureCb8->setup(width/2,height,image_encoding::Cb8);
+				textureCb8->setup(width/2,height,aspect::image::encoding::Cb8);
 				attach(textureCb8);
 
 				texture *textureCr8 = new texture;
-				textureCr8->setup(width/2,height,image_encoding::Cr8);
+				textureCr8->setup(width/2,height,aspect::image::encoding::Cr8);
 				attach(textureCr8);
 
 				glUseProgram(m_shader->get_program());
@@ -114,7 +116,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 			} break;
 
-		case image_encoding::CbCr8:
+		case aspect::image::encoding::CbCr8:
 			{
 				m_format_components = GL_LUMINANCE8_ALPHA8;
 				m_format_internal = GL_LUMINANCE_ALPHA;
@@ -123,9 +125,9 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 			} break;
 
-		case image_encoding::Cr8:
-		case image_encoding::Cb8:
-		case image_encoding::Y8:
+		case aspect::image::encoding::Cr8:
+		case aspect::image::encoding::Cb8:
+		case aspect::image::encoding::Y8:
 			{
 				m_format_components = GL_LUMINANCE8;
 				m_format_internal = GL_LUMINANCE;
@@ -137,7 +139,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 			} break;
 
-		case image_encoding::YCbCr8_v1:
+		case aspect::image::encoding::YCbCr8_v1:
 			{
 				m_format_components = GL_RGBA;
 				m_format_internal = GL_RGBA;
@@ -145,22 +147,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 			} break;
 
-/*
-		case image_encoding::YCbCr10:
-			{
-				m_width = width / 6 * 4;
-				m_format_components = GL_RGBA32UI_EXT;
-//										m_format_components = GL_RGBA32UI_EXT;
-				m_format_internal = GL_RGBA_INTEGER_EXT;
-
-				//m_processing = PROCESSING_FBO;
-				m_flags |= FBO;
-
-				m_bpp = 4; // ???
-
-			} break;
-*/
-		case image_encoding::RGBA8:
+		case aspect::image::encoding::RGBA8:
 			{
 				m_format_components = GL_RGBA;
 //				m_format_internal = GL_BGRA;
@@ -170,7 +157,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 			} break;
 
-		case image_encoding::BGRA8:
+		case aspect::image::encoding::BGRA8:
 			{
 				m_format_components = GL_RGBA;
 				m_format_internal = GL_BGRA;
@@ -178,7 +165,7 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 
 			} break;
 
-		case image_encoding::RGBA32f:
+		case aspect::image::encoding::RGBA32f:
 			{
 				m_format_components = GL_RGBA32F_ARB;//GL_FLOAT_RGBA32_NV;
 //				m_format_components = GL_RGBA_FLOAT32_ATI; //GL_RGBA32F_ARB;//GL_FLOAT_RGBA32_NV;
@@ -194,73 +181,93 @@ void texture::setup(int width, int height, image_encoding encoding, uint32_t fla
 				_aspect_assert(!"error - unknown texture data format selected");
 			} break;
 	}
-
-	if((m_flags & SUBTEXTURES) == 0)
+*/
+	switch(m_encoding)
 	{
-		//if(m_configuration & CONFIGURE_NORMAL_TEXTURE_PROCESSING)
+		case aspect::image::encoding::YCbCr8:
+			{
+				m_format_components = GL_RGBA;
+				m_format_internal = GL_BGRA;
+				m_bpp = 2;
+				m_output_width = m_width / 2;
+			} break;
 
-//								m_height = height;
-//							
-		// asy.10
-//								m_bpp = 4;
+		default:
+			{
+				m_format_components = GL_RGBA;
+				m_format_internal = GL_BGRA;
+				m_bpp = 4;
+				m_output_width = m_width;
+			} break;
+	}
 
-		// create texture
-		glGenTextures(1, &m_id);
+	// create texture
+	glGenTextures(1, &m_id);
 
-		void *image_data = malloc(get_data_size());
+//	scoped_ptr<void> image_data(malloc(get_data_size()));
 
-#if 1	// RESET OR NOISE
-		memset(image_data,0,get_data_size());
+//	buffer image_data
+
+	buffer image_data;
+	image_data.resize(get_data_size());
+
+
+#if 0	// RESET OR NOISE
+	memset(image_data.data(),0,get_data_size());
 #else
-		if(!bfloat)
-		{
-			int n = 0;
-			unsigned char *ptr = (unsigned char *)image_data;
-			for(int i = 0; i < m_width * m_height * m_bpp; i++)
-				ptr[i] = rand() % 255;
-		}
-		else
-		{
-			float *ptr = (float*)image_data;
-			for(int i = 0; i < m_width * m_height; i++)
-				ptr[i] = 0.175f;
-		}
+	bool is_float = false;	// TODO - support floating point textures?
+	if(!is_float)
+	{
+		int n = 0;
+		uint8_t *ptr = (uint8_t *)image_data.data();
+		for(int i = 0; i < m_width * m_height * m_bpp; i++)
+			ptr[i] = rand() % 255;
+	}
+	else
+	{
+		float *ptr = (float*)image_data.data();
+		for(int i = 0; i < m_width * m_height; i++)
+			ptr[i] = 0.175f;
+	}
 #endif 
 
-		glBindTexture(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, get_id()); 
-//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
-//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, m_width, m_height, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
-		glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, get_format_components(), m_width, m_height, 0, get_format_internal(), bfloat ? GL_FLOAT : GL_UNSIGNED_BYTE, (GLvoid*)image_data);
+	glBindTexture(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, get_id()); 
+	//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
+	//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, m_width, m_height, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
+	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, get_format_components(), m_output_width, m_height, 0, get_format_internal(), is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, (GLvoid*)image_data.data());
 
-		GLenum _err = glGetError();
-		_aspect_assert(_err == GL_NO_ERROR);
-		const GLubyte *err0 = glewGetErrorString(_err);
+	GLenum _err = glGetError();
+	_aspect_assert(_err == GL_NO_ERROR);
+	const GLubyte *err0 = glewGetErrorString(_err);
 
-		glBindTexture(GL_TEXTURE_2D, 0);
-		free(image_data);  
+	glBindTexture(GL_TEXTURE_2D, 0);
+//	free(image_data);  
 
 
-		uint32_t pbo_buffers = 0;
-		if(m_flags & PBO)
-			pbo_buffers = 1;
-		else
+	uint32_t pbo_buffers = 0;
+	if(m_flags & PBO)
+		pbo_buffers = 1;
+	else
 		if(m_flags & PBOx2)
 			pbo_buffers = 2;
 
-		for(uint32_t i = 0; i < pbo_buffers; i++)
+	for(uint32_t i = 0; i < pbo_buffers; i++)
+	{
+		GLuint pbo_id;
+		glGenBuffersARB(1, &pbo_id);
+		_aspect_assert(pbo_id && "error - unable to create pixel buffer object");
+		if(pbo_id)
 		{
-			GLuint pbo_id;
-			glGenBuffersARB(1, &pbo_id);
-			_aspect_assert(pbo_id && "error - unable to create pixel buffer object");
-			if(pbo_id)
-			{
-				pbo_.push_back(pbo_id);
-				glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_id);
-				glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_data_size(), 0, GL_STREAM_DRAW_ARB);
-				glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-			}
+			pbo_.push_back(pbo_id);
+			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_id);
+			glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_data_size(), 0, GL_STREAM_DRAW_ARB);
+			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 		}
 	}
+
+
+
+
 
 	m_flags |= SETUP;
 }
@@ -269,13 +276,13 @@ void texture::setup_shader_parameters(gl::shader *shader)
 {
 	switch(m_encoding)
 	{
-		case image_encoding::YCbCr8:
+		case aspect::image::encoding::YCbCr8:
 			{
 				glUniform1iARB(glGetUniformLocationARB(shader->get_program(),"sampler_Y"),0);
 				glUniform1iARB(glGetUniformLocationARB(shader->get_program(),"sampler_CbCr"),1);
 			} break;
 
-		case image_encoding::YCbCr10:
+		case aspect::image::encoding::YCbCr10:
 			{
 				glUniform1iARB(glGetUniformLocationARB(shader->get_program(),"sampler_Y"),0);
 				glUniform1iARB(glGetUniformLocationARB(shader->get_program(),"sampler_Cb"),1);
@@ -284,7 +291,7 @@ void texture::setup_shader_parameters(gl::shader *shader)
 	}
 }
 
-bool texture::accept(image_encoding encoding)
+bool texture::accept(aspect::image::encoding encoding)
 {
 	if(m_encoding == encoding)
 		return true;
@@ -304,8 +311,8 @@ void texture::upload()
 	if((m_flags & SETUP) == 0)
 	{
 
-//		setup(1024,1024,image_encoding::RGBA8);
-		setup(1024,1024,image_encoding::RGBA8);
+//		setup(1024,1024,aspect::image::encoding::RGBA8);
+		setup(1024,1024,aspect::image::encoding::RGBA8);
 // =>		setup(f.get_width(),f.get_height(),f.get_source_encoding()); // asy.11
 //		setup(f.get_width(),f.get_height(),av::YCbCr8); // asy.11
 	}
@@ -319,12 +326,6 @@ void texture::upload()
 
 	// FBO
 	//if(m_textures.size())
-	if(m_flags & SUBTEXTURES)
-	{
-		for(size_t i = 0; i < m_textures.size(); i++)
-			m_textures[i]->upload();
-	}
-	else
 	if(m_flags & FBO)
 	{
 //		m_cvt0 = tick_count::now();
