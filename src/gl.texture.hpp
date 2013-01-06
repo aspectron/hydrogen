@@ -1,3 +1,4 @@
+#pragma once
 #ifndef __GL_TEXTURE_HPP__
 #define __GL_TEXTURE_HPP__
 

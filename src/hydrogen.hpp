@@ -1,3 +1,4 @@
+#pragma once
 // #define BUILDING_V8_SHARED 1
 
 #include "core.hpp"

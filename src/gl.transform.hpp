@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _ASPECT_TRANSFORM_HPP_
 #define _ASPECT_TRANSFORM_HPP_
 

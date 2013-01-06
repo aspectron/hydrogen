@@ -1,3 +1,7 @@
+#pragma once
+#ifndef __GL_ENGINE_HPP__
+#define __GL_ENGINE_HPP__
+
 #include "core.hpp"
 #include "v8_core.hpp"
 
@@ -85,3 +89,5 @@ namespace aspect { namespace gl {
 #define WEAK_CLASS_TYPE aspect::gl::engine
 #define WEAK_CLASS_NAME engine
 #include <v8/juice/WeakJSClassCreator-Decl.h>
+
+#endif // __GL_ENGINE_HPP__

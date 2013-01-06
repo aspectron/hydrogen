@@ -115,7 +115,7 @@ public:
 private:
 
 	threads::concurrent_queue<callback> callbacks_;
-	bool is_terminating_; //TODO: std::atomic<bool>is_terminating_;
+	volatile bool is_terminating_; //TODO: std::atomic<bool>is_terminating_;
 
 	boost::posix_time::time_duration& update_interval_;
 };

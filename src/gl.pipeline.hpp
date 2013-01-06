@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _GL_PIPELINE_HPP_
 #define _GL_PIPELINE_HPP_
 

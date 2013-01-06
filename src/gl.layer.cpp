@@ -39,14 +39,16 @@ layer::layer()
 : init_done_(false),
 left_(0.0), top_(0.0),
 width_(0.5), height_(0.5),
-fullsize_(false)
+fullsize_(false),
+sink_(NULL)
 {
 
 }
 
 layer::~layer()
 {
-
+	printf("DELEGING GL LAYER!\n");
+	fflush(stdout);
 }
 
 /*
@@ -72,7 +74,7 @@ void layer::configure(uint32_t texture_width, uint32_t texture_height, uint32_t 
 
 void layer::render_impl( gl::render_context *context )
 {
-	if(texture_.get())
+	if(texture_.get() && (texture_->get_flags() & gl::texture::CONFIG))
 	{
 		boost::mutex::scoped_lock lock(render_lock_);
 

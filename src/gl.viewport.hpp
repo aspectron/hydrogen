@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _GL_VIEWPORT_HPP_
 #define _GL_VIEWPORT_HPP_
 
