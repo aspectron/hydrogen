@@ -185,7 +185,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 */
 	switch(m_encoding)
 	{
-		case aspect::image::encoding::YCbCr8:
+		case aspect::image::encoding::YUV8:
 			{
 				m_format_components = GL_RGBA;
 				m_format_internal = GL_BGRA;

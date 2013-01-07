@@ -56,13 +56,13 @@ void hydrogen_install(Handle<Object> target)
 	target->Set(String::New("pixel_formats"), pixel_formats);
 
 	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "UNKNOWN",		aspect::image::UNKNOWN);
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YCbCr8",		aspect::image::YCbCr8);
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YUV8",		aspect::image::YUV8);
 //	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Y8",			aspect::gl::Y8);
 //	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Cb8",			aspect::gl::Cb8);
 //	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Cr8",			aspect::gl::Cr8);
 //	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "CbCr8",		aspect::gl::CbCr8);
 //	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YCbCr8_v1",	aspect::gl::YCbCr8_v1);
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YCbCr10",		aspect::image::YCbCr10);
+	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YUV10",		aspect::image::YUV10);
 	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "RGBA8",		aspect::image::RGBA8);
 	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "ARGB8",		aspect::image::ARGB8);
 	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "BGRA8",		aspect::image::BGRA8);

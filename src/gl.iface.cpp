@@ -36,7 +36,8 @@ void iface_base::setup_shaders(void)
 		"	b = Y + 1.8556 * Cb; \n"
 
 		// Set alpha to 0.7 for partial transparency when GL_BLEND is enabled
-		"	gl_FragColor = vec4(r, g, b, 0.7); \n"
+		"	gl_FragColor = vec4(r, g, b, 1.0); \n"
+//		"	gl_FragColor = vec4(r, g, b, 0.7); \n"
 		"}\n";
 
 	shaders_.push_back(boost::shared_ptr<gl::shader>(new shader(GL_FRAGMENT_SHADER, source)));
