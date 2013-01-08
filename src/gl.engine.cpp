@@ -191,8 +191,11 @@ void engine::main()
 
 		if(show_engine_info_)
 		{
+			uint32_t w,h;
+			context.iface()->window()->get_size(&w,&h);
+
 			wchar_t wsz[128];
-			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f ", (float)fps_unheld_, (float)fps_, (float) frt_);
+			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d", (float)fps_unheld_, (float)fps_, (float) frt_, w, h);
 			GLdouble black[] = {0.0,0.0,0.0,1.0};
 			//iface()->output_text(20,58,wsz);
 			iface()->output_text(engine_info_location_.x,engine_info_location_.y,wsz);
@@ -374,8 +377,13 @@ void engine::setup_viewport(void)
 	// resolution intependent glOrtho
 //	glOrtho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
 //	glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f);
+
+#if 1
+	// YUV-BUG
 	glOrtho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
+#endif
 	//gluPerspective(45.0f, (float)nWidth / (float)nHeight, 1.0f, 100.0f);
+//	gluPerspective(45.0f, (float)1920 / (float)1080, 1.0f, 100.0f);
 
 // portrait mode
 //	if(get_flags() & flag_portrait)
@@ -390,7 +398,8 @@ void engine::setup_viewport(void)
 
 math::vec2 engine::map_pixel_to_view(math::vec2 const& v)
 {
-	return math::vec2( v.x / (double)(viewport_width_ ), v.y / (double)(viewport_height_ ));
+	return math::vec2( (v.x+0.5) / (double)(viewport_width_ ), (v.y+0.5) / (double)(viewport_height_ ));
+//	return math::vec2( (v.x+0.5) / (double)(viewport_width_ ), (v.y+0.5) / (double)(viewport_height_ ));
 //	return math::vec2( v.x / (double)viewport_width_ * 2.0 - 1.0,
 //		(1.0 - (v.y / (double)viewport_height_)) * 2.0 - 1.0);
 //	return vec2((v.x + 1.0) * 0.5 * (double)viewport_width_, (v.y + 1.0) * 0.5 * (double)viewport_height_);

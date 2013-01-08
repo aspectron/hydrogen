@@ -14,6 +14,7 @@ void iface_base::setup_shaders(void)
 		"	ty = gl_TexCoord[0].y; \n"
 
 		// The UYVY texture appears to the shader with 1/2 the true width since we used RGBA format to pass UYVY
+//		"	float true_width = textureSize(UYVYtex, 0).x * 2; \n"
 		"	int true_width = textureSize(UYVYtex, 0).x * 2; \n"
 
 		// For U0 Y0 V0 Y1 macropixel, lookup Y0 or Y1 based on whether

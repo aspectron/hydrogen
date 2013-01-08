@@ -195,6 +195,14 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 				shader_ = iface_->get_integrated_shader(iface_base::integrated_shader_YCbCr8);
 			} break;
 
+		case aspect::image::encoding::RGBA8:
+			{
+				m_format_components = GL_RGBA;
+				m_format_internal = GL_RGBA;
+				m_bpp = 4;
+				m_output_width = m_width;
+			} break;
+
 		default:
 			{
 				m_format_components = GL_RGBA;
@@ -634,6 +642,8 @@ void texture::draw(const math::vec2 &tl, const math::vec2 &br, bool cache)
 			draw_cache_list_ = glGenLists(1);
 			glNewList(draw_cache_list_, GL_COMPILE);
 			glBegin(GL_QUADS);
+
+			// YUV-BUG
 
 			glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x, tl.y);
 			glTexCoord2d(1.0, 0.0);   glVertex2d( br.x, tl.y);
