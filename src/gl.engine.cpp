@@ -196,9 +196,19 @@ void engine::main()
 
 			wchar_t wsz[128];
 			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d", (float)fps_unheld_, (float)fps_, (float) frt_, w, h);
-			GLdouble black[] = {0.0,0.0,0.0,1.0};
-			//iface()->output_text(20,58,wsz);
 			iface()->output_text(engine_info_location_.x,engine_info_location_.y,wsz);
+
+			debug_string_mutex_.lock();
+			if(debug_string_.length())
+			{
+				wchar_t wsz_debug[2048];
+				swprintf(wsz_debug, sizeof(wsz_debug)/2, L"%S", debug_string_.c_str());
+				iface()->output_text(engine_info_location_.x,engine_info_location_.y+40,wsz_debug);
+			}
+			debug_string_mutex_.unlock();
+
+//			GLdouble black[] = {0.0,0.0,0.0,1.0};
+			//iface()->output_text(20,58,wsz);
 		}
 //		iface()->output_text(0,35,wsz,black);
 
@@ -442,6 +452,12 @@ void engine::set_vsync_interval( int i )
 {
 	//iface_->set_vsync_interval(i);
 	main_loop_->schedule(boost::bind(&engine::set_vsync_interval_impl, this, i));
+}
+
+void engine::set_debug_string(std::string s)
+{
+	boost::mutex::scoped_lock lock(debug_string_mutex_);
+	debug_string_ = s;
 }
 
 } } // namespace aspect::gl

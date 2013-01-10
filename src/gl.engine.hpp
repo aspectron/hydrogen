@@ -52,6 +52,8 @@ namespace aspect { namespace gl {
 			void set_vsync_interval(int i);
 			void set_vsync_interval_impl(int i);
 
+			void set_debug_string(std::string);
+
 		private:
 
 			class main_loop;
@@ -71,6 +73,9 @@ namespace aspect { namespace gl {
 			boost::shared_ptr<aspect::gl::iface> iface_;
 			boost::shared_ptr<aspect::gui::window> window_;
 			boost::shared_ptr<entity>	world_;
+
+			std::string debug_string_;
+			boost::mutex debug_string_mutex_;
 
 			bool setup(void);
 			void cleanup(void);

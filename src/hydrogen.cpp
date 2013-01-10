@@ -21,6 +21,7 @@ void hydrogen_install(Handle<Object> target)
 		.BindMemFunc<void, double, &aspect::gl::engine::set_rendering_hold_interval>("set_rendering_hold_interval")
 		.BindMemFunc<void, bool, &aspect::gl::engine::enable_rendering_hold>("enable_rendering_hold")
 		.BindMemFunc<void, int, &aspect::gl::engine::set_vsync_interval>("set_vsync_interval")
+		.BindMemFunc<void, std::string, &aspect::gl::engine::set_debug_string>("set_debug_string")
 		.Seal();
 
 	ClassBinder<aspect::gl::entity> *binder_entity = new ClassBinder<aspect::gl::entity>(target);
