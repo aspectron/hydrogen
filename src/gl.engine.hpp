@@ -75,6 +75,7 @@ namespace aspect { namespace gl {
 			boost::shared_ptr<entity>	world_;
 
 			std::string debug_string_;
+			bool debug_string_changed_;
 			boost::mutex debug_string_mutex_;
 
 			bool setup(void);

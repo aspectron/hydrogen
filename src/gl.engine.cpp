@@ -132,7 +132,8 @@ frt_(0),
 tswp_(0),
 show_engine_info_(false),
 hold_rendering_(false),
-hold_interval_(1000.0/60.0)
+hold_interval_(1000.0/60.0),
+debug_string_changed_(false)
 {
 
 	world_ = ((new world())->shared_from_this());
@@ -201,8 +202,9 @@ void engine::main()
 			debug_string_mutex_.lock();
 			if(debug_string_.length())
 			{
-				wchar_t wsz_debug[2048];
-				swprintf(wsz_debug, sizeof(wsz_debug)/2, L"%S", debug_string_.c_str());
+				static wchar_t wsz_debug[2048];
+				if(debug_string_changed_)
+					swprintf(wsz_debug, sizeof(wsz_debug)/2, L"%S", debug_string_.c_str());
 				iface()->output_text(engine_info_location_.x,engine_info_location_.y+40,wsz_debug);
 			}
 			debug_string_mutex_.unlock();
@@ -458,6 +460,7 @@ void engine::set_debug_string(std::string s)
 {
 	boost::mutex::scoped_lock lock(debug_string_mutex_);
 	debug_string_ = s;
+	debug_string_changed_ = true;
 }
 
 } } // namespace aspect::gl
