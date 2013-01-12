@@ -86,6 +86,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;HYDROGEN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>
       </PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(JSX)/extern/openssl/x86/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,6 +152,11 @@
     <ClInclude Include="src\gl.transform.hpp" />
     <ClInclude Include="src\gl.viewport.hpp" />
     <ClInclude Include="src\hydrogen.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\image\image.vcxproj">
+      <Project>{123b7954-7897-7897-7897-6057d8e3780b}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
