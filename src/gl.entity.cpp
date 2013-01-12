@@ -24,8 +24,7 @@ namespace aspect { namespace gl {
 uint32_t global_entity_count = 0;
 
 entity::entity()
-	:	parent(NULL),
-		age_(0.0),
+	:	age_(0.0),
 		init_invoked_(false)
 {
 	global_entity_count++;
@@ -33,23 +32,24 @@ entity::entity()
 
 entity::~entity()
 {
-	delete_all_children();
+	delete_all_children();	// this causes recursive mutex lock!
+//	children_.clear();
 
-	if(parent)
-		parent->detach(self_);
+	if(parent_.get())
+		parent_->detach(self_);
 
 	global_entity_count--;
 }
 
 void entity::delete_all_children(void)
 {
-	boost::mutex::scoped_lock lock(children_mutex_);
+	boost::recursive_mutex::scoped_lock lock(children_mutex_);
 	children_.clear();
 }
 
 void entity::detach(boost::shared_ptr<entity>& e)
 {
-	boost::mutex::scoped_lock lock(children_mutex_);
+	boost::recursive_mutex::scoped_lock lock(children_mutex_);
 	std::vector<boost::shared_ptr<entity>>::iterator _ei;
 	for(_ei = children_.begin(); _ei != children_.end(); _ei++)
 	{
@@ -60,7 +60,8 @@ void entity::detach(boost::shared_ptr<entity>& e)
 		}
 	}
 
-	_aspect_assert(false);
+	parent_.reset();
+//	_aspect_assert(false);
 }
 
 v8::Handle<v8::Value> entity::attach( v8::Arguments const& args )
@@ -110,7 +111,7 @@ boost::shared_ptr<entity> entity::instance( uint32_t flags )
 	if(flags & INSTANCE_COPY_TRANSFORM)
 		target->entity_transform.copy(entity_transform);
 
-	boost::mutex::scoped_lock lock(children_mutex_);
+	boost::recursive_mutex::scoped_lock lock(children_mutex_);
 
 	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
 	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
@@ -125,7 +126,7 @@ boost::shared_ptr<entity> entity::instance( uint32_t flags )
 void entity::init( render_context *context )
 {
 	init_invoked_ = true;
-	boost::mutex::scoped_lock lock(children_mutex_);
+	boost::recursive_mutex::scoped_lock lock(children_mutex_);
 	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
 	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
 		(*child_iterator)->init(context);
@@ -136,7 +137,7 @@ void entity::update(render_context *context)
 {
 //	age += context->delta;
 
-	boost::mutex::scoped_lock lock(children_mutex_);
+	boost::recursive_mutex::scoped_lock lock(children_mutex_);
 	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
 	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
 		(*child_iterator)->update(context);
@@ -146,7 +147,7 @@ void entity::update(render_context *context)
 void entity::render( render_context *context )
 {
 //	_aspect_assert(init_invoked_);
-	boost::mutex::scoped_lock lock(children_mutex_);
+	boost::recursive_mutex::scoped_lock lock(children_mutex_);
 //	std::vector<boost::shared_ptr<entity>>::iterator child;
 //	for(child = children_.begin(); child != children_.end(); child++)
 //		(*child)->render(context);
@@ -182,7 +183,7 @@ struct entity_z_less {
 
 void entity::sort_z( void )
 {
-	boost::mutex::scoped_lock lock(children_mutex_);
+	boost::recursive_mutex::scoped_lock lock(children_mutex_);
 	std::sort(children_.begin(), children_.end(), entity_z_less());
 }
 

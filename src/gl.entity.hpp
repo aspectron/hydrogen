@@ -21,14 +21,15 @@ namespace aspect { namespace gl {
 			double age_;
 			transform	entity_transform; //m_Transform;
 
-			entity *parent;
+			//entity *parent;
+			boost::shared_ptr<entity> parent_;
 			std::vector<boost::shared_ptr<entity>> children_;
-			boost::mutex	children_mutex_;
+			boost::recursive_mutex	children_mutex_;
 
 			entity();
 			virtual ~entity();
 			
-			void attach(boost::shared_ptr<entity>& child) { children_.push_back(child); child->parent = this; }
+			void attach(boost::shared_ptr<entity>& child) { children_.push_back(child); child->parent_ = this->self(); }
 			void detach(boost::shared_ptr<entity>& child);
 
 			v8::Handle<v8::Value> attach(v8::Arguments const& args);

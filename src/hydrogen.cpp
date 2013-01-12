@@ -74,6 +74,9 @@ void hydrogen_install(Handle<Object> target)
 
 void hydrogen_uninstall(Handle<Object> target) 
 {
+	V8_DESTROY_CLASS_BINDER(aspect::gl::layer_reference);
+	V8_DESTROY_CLASS_BINDER(aspect::gl::layer);
+	V8_DESTROY_CLASS_BINDER(aspect::gl::entity);
 	V8_DESTROY_CLASS_BINDER(aspect::gl::engine);
 
 	aspect::image::cleanup();
