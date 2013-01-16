@@ -9,6 +9,9 @@
 #include "math.hpp"
 #include "oxygen.hpp"
 
+#include "boost/thread/recursive_mutex.hpp"
+#include "boost/scoped_ptr.hpp"
+
 #if OS(WINDOWS)
 //	#pragma warning ( disable : 4251 )
 #if defined(HYDROGEN_EXPORTS)

@@ -121,7 +121,7 @@ private:
 };
 
 
-engine::engine(boost::shared_ptr<aspect::gui::window>& target_window)
+engine::engine(boost::shared_ptr<aspect::gui::window> target_window)
 : window_(target_window),
 flags_(0),
 viewport_width_(0),
@@ -175,7 +175,9 @@ void engine::main()
 
 	setup();
 
+#if OS(WINDOWS)
 	aspect::threads::event holder;
+#endif
 
 	uint32_t iter = 0;
 	while(!main_loop_->is_terminating())
@@ -230,10 +232,19 @@ void engine::main()
 		{
 			double remains = hold_interval_ - delta_ts1;
 			if(remains > 0.0)
+#if OS(WINDOWS)
 				WaitForSingleObject(holder.native_handle(), (DWORD)(remains + 0.5));
+#else			// TODO - SLEEP FOR NANOSECONDS IN LINUX!
+// 				boost::this_thread::sleep(boost::posix_time::nanoseconds(remains * 1000000));
+				boost::this_thread::sleep(boost::posix_time::milliseconds(remains));
+#endif
 		}
 		else
+#if OS(WINDOWS)
 			Sleep(0);
+#else
+			boost::this_thread::yield();
+#endif
 
 		double ts2 = utils::get_ts();
 

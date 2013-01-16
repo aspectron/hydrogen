@@ -87,7 +87,7 @@ class iface_base
 				glGetProgramiv(m_program,GL_INFO_LOG_LENGTH,&size);
 				char *buffer = (char*)malloc(size);
 				glGetProgramInfoLog(m_program,size,NULL,buffer);
-				error("program link failed","\n%s\n", buffer);
+				error("program link failed\n%s\n", buffer);
 				free(buffer);
 			}
 
@@ -145,7 +145,7 @@ class iface_base
 		virtual bool is_vsync_enabled(void) = 0;
 		virtual void set_vsync_interval(int interval) = 0;
 
-		virtual void output_text(double x, double y, wchar_t *text, GLdouble *clr) = 0;
+		virtual void output_text(double x, double y, wchar_t *text, GLdouble *clr);// = 0;
 
 //				virtual void get_viewport_size(int *pwidth, int *pheight) = 0;
 
@@ -386,7 +386,7 @@ class iface : public iface_base
 		::Window		m_window;
 		GLXContext		m_glx_context;
 
-		xf86gui::window *window_xf86gui(void) { return (xf86gui::window*)window(); }
+		gui::window *window_gui(void) { return (gui::window*)window(); }
 
 
 	public:
@@ -395,25 +395,25 @@ class iface : public iface_base
 			: iface_base(pwnd),
 				m_glx_context(NULL)
 		{
-			m_window = window_xf86gui()->get_window();
+			m_window = window_gui()->get_window();
 		}
 
 		bool setup(void)
 		{
 
-			m_glx_context = glXCreateContext(xf86gui::g_display, &window_xf86gui()->get_current_visual(), glXGetCurrentContext(), true);
+			m_glx_context = glXCreateContext(gui::g_display, &window_gui()->get_current_visual(), glXGetCurrentContext(), true);
 			if (m_glx_context == NULL)
 			{
-				cerr << "Failed to create an OpenGL context for this window" << endl;
+				error("Failed to create an OpenGL context for this window");
 				return false;
 			}
 
-			glXMakeCurrent(xf86gui::g_display, m_window, m_glx_context);
+			glXMakeCurrent(gui::g_display, m_window, m_glx_context);
 
 			GLenum glew_error = glewInit();
 			if(glew_error != GLEW_OK)
 			{
-				error("glew","%s",glewGetErrorString(glew_error));
+				error("glew - %s",glewGetErrorString(glew_error));
 			}
 trace("glew initialized\n");
 char* extensions = (char*)glGetString(GL_EXTENSIONS);
@@ -430,7 +430,7 @@ printf("extensions: %s",extensions);
 		void cleanup(void)
 		{
 			if(m_glx_context)
-				glXDestroyContext(xf86gui::g_display, m_glx_context);
+				glXDestroyContext(gui::g_display, m_glx_context);
 			m_glx_context = NULL;
 
 		}
@@ -440,20 +440,20 @@ printf("extensions: %s",extensions);
 			if (active)
 			{
 				if (m_window && m_glx_context && (glXGetCurrentContext() != m_glx_context))
-					glXMakeCurrent(xf86gui::g_display, m_window, m_glx_context);
+					glXMakeCurrent(gui::g_display, m_window, m_glx_context);
 			}
 			else
 			{
 				if (glXGetCurrentContext() == m_glx_context)
-					glXMakeCurrent(xf86gui::g_display, None, NULL);
+					glXMakeCurrent(gui::g_display, None, NULL);
 			}
 		}
 
 
 		void swap_buffers(void)
 		{
-			if (window_xf86gui()->get_window() && m_glx_context)
-				glXSwapBuffers(xf86gui::g_display, window_xf86gui()->get_window());
+			if (window_gui()->get_window() && m_glx_context)
+				glXSwapBuffers(gui::g_display, window_gui()->get_window());
 
 		}
 
@@ -474,11 +474,18 @@ printf("extensions: %s",extensions);
 
 		}
 
-		void output_text(double x, double y, wchar_t *text)
+/*		void output_text(double x, double y, wchar_t *text)
 		{
 
 
 		}
+*/
+
+		virtual void output_text(double x, double y, wchar_t *text, GLdouble *clr = NULL)
+		{
+
+		}
+
 };
 
 #endif

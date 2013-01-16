@@ -49,4 +49,4 @@ set(V8_LIBRARIES v8 v8-juice)
 
 add_library(hydrogen.jsx SHARED ${SRC})
 
-target_link_libraries(hydrogen.jsx core.jsx oxygen.jsx v8 v8-juice ${BOOST_LIBRARIES} X11 Xrandr)
+target_link_libraries(hydrogen.jsx core.jsx oxygen.jsx v8 v8-juice ${BOOST_LIBRARIES} X11 Xrandr GL GLEW)

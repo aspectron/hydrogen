@@ -29,8 +29,8 @@ namespace aspect { namespace gl {
 			entity();
 			virtual ~entity();
 			
-			void attach(boost::shared_ptr<entity>& child) { children_.push_back(child); child->parent_ = this->self(); }
-			void detach(boost::shared_ptr<entity>& child);
+			void attach(boost::shared_ptr<entity> child) { children_.push_back(child); child->parent_ = this->self(); }
+			void detach(boost::shared_ptr<entity> child);
 
 			v8::Handle<v8::Value> attach(v8::Arguments const& args);
 			v8::Handle<v8::Value> detach(v8::Arguments const& args);

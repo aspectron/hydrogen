@@ -47,7 +47,7 @@ void entity::delete_all_children(void)
 	children_.clear();
 }
 
-void entity::detach(boost::shared_ptr<entity>& e)
+void entity::detach(boost::shared_ptr<entity> e)
 {
 	boost::recursive_mutex::scoped_lock lock(children_mutex_);
 	std::vector<boost::shared_ptr<entity>>::iterator _ei;

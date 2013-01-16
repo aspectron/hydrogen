@@ -21,7 +21,7 @@ namespace aspect { namespace gl {
 				FLAG_VIEWPORT_UPDATE = 0x00000002
 			};
 
-			engine(boost::shared_ptr<aspect::gui::window>& );
+			engine(boost::shared_ptr<aspect::gui::window>);
 			virtual ~engine();
 
 			/// Callback function to schedule in Berkelium
@@ -38,12 +38,12 @@ namespace aspect { namespace gl {
 			uint32_t get_flags(void) const { return flags_; }
 			void set_flags(uint32_t flags) { flags_ = flags; }
 
-			void attach(boost::shared_ptr<entity>& e) { world_->attach(e); }
-			void detach(boost::shared_ptr<entity>& e) { world_->detach(e); }
+			void attach(boost::shared_ptr<entity> e) { world_->attach(e); }
+			void detach(boost::shared_ptr<entity> e) { world_->detach(e); }
 			v8::Handle<v8::Value> attach(v8::Arguments const& args);
 			v8::Handle<v8::Value> detach(v8::Arguments const& args);
 
-			math::vec2 engine::map_pixel_to_view(math::vec2 const& v);
+			math::vec2 map_pixel_to_view(math::vec2 const& v);
 
 			void show_engine_info(bool f) { show_engine_info_ = f; }
 			void set_engine_info_location(double x, double y) { engine_info_location_ = math::vec2(x,y); }
