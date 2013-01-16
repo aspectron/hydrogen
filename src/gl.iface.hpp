@@ -7,7 +7,7 @@
 
 namespace aspect { namespace gl {
 
-class iface_base
+class HYDROGEN_API iface_base
 {
 	private:
 
@@ -145,7 +145,7 @@ class iface_base
 		virtual bool is_vsync_enabled(void) = 0;
 		virtual void set_vsync_interval(int interval) = 0;
 
-		virtual void output_text(double x, double y, wchar_t *text, GLdouble *clr);// = 0;
+		virtual void output_text(double x, double y, wchar_t *text, GLdouble *clr = NULL) = 0;
 
 //				virtual void get_viewport_size(int *pwidth, int *pheight) = 0;
 
@@ -155,7 +155,7 @@ class iface_base
 #if OS(WINDOWS)	// ---------------------------------------------------------------------------|
 
 
-class iface : public iface_base
+class HYDROGEN_API iface : public iface_base
 {
 private:
 
@@ -378,7 +378,7 @@ public:
 
 #elif OS(LINUX) // ---------------------------------------------------------------------------|
 
-class iface : public iface_base
+class HYDROGEN_API iface : public iface_base
 {
 
 	private:

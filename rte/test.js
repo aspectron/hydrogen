@@ -4,15 +4,17 @@ require("rte");
 
 var log = require("log");
 
-var oxygen = require("oxygen");
+//var oxygen = require("oxygen");
 
-//var hydrogen = require("hydrogen");
+log.info("loading hydrogen");
+var hydrogen = require("hydrogen");
+log.info("hydrogen loaded");
 
 /*
 log.info("loading oxygen");
 var oxygen = require("oxygen");
-var hydrogen = require("hydrogen");
 log.info("loading hydrogen");
+var hydrogen = require("hydrogen");
 
 log.info("Creating window...");
 
