@@ -177,6 +177,8 @@ void engine::main()
 
 	setup();
 
+	printf("done with setup() in engine::main()\n");
+
 #if OS(WINDOWS)
 	aspect::threads::event holder;
 #endif
@@ -265,12 +267,14 @@ void engine::main()
 		fps_ = (fps_ * 0.99 + total_delta_ts2 * 0.01);
 		frt_ = frt_ * 0.99 + (ts_rt-ts0) * 0.01;
 		//fps_ = total_delta;
-
+		printf("fps: %f\n",(float)fps_);
 		// TODO - 
 //		Sleep(33);
 //		Sleep(1);
 		iter++;
 	}
+
+	printf("done with engine::main() - loop\n");
 
 	main_loop_->clear_callbacks();
 
@@ -339,6 +343,8 @@ bool engine::setup(void)
 //	m_capture_receiver[0]->m_texture[0]->setup(1280,720,av::YCbCr8); // asy.12
 
 //	viewport_->bind(iface()->window());
+
+	printf("done with shaders.\n");
 
 	return true;
 }
