@@ -80,7 +80,7 @@ void layer::render_impl( gl::render_context *context )
 
 		// render current texture in GPU
 		if(fullsize_)
-			texture_->draw(context->map_pixel_to_view(math::vec2(0,0)),context->map_pixel_to_view(math::vec2(texture_->get_width(),texture_->get_height())), false);
+			texture_->draw(context->map_pixel_to_view(math::vec2(-0.5,-0.5)),context->map_pixel_to_view(math::vec2(texture_->get_width()-0.5,texture_->get_height()-0.5)), false);
 		else
 		{
 			texture_->draw(context->map_pixel_to_view(math::vec2(left_,top_)),

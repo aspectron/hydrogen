@@ -223,10 +223,10 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 	image_data.resize(get_data_size());
 
 
-#if 0	// RESET OR NOISE
+	bool is_float = false;	// TODO - support floating point textures?
+#if 1	// RESET OR NOISE
 	memset(image_data.data(),0,get_data_size());
 #else
-	bool is_float = false;	// TODO - support floating point textures?
 	if(!is_float)
 	{
 		int n = 0;

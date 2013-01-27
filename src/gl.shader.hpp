@@ -121,7 +121,7 @@ class shader
 				glGetShaderiv(id_,GL_INFO_LOG_LENGTH,&size);
 				char *buffer = (char*)malloc(size);
 				glGetShaderInfoLog(id_,size,NULL,buffer);
-				aspect::error("shader compilation failed","\n%s\n", buffer);
+				aspect::error("shader compilation failed\n%s\n", buffer);
 
 #if 0
 				std::string filename;
