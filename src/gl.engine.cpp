@@ -303,9 +303,11 @@ bool engine::setup(void)
 
 //	glShadeModel(GL_SMOOTH);					// enable smooth shading
 	glShadeModel(GL_FLAT);					// enable smooth shading
+#if OS(WINDOWS)
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// black background/clear color
-//	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);		// black background/clear color
-
+#else
+	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);		// black background/clear color
+#endif
 	// set-up the depth buffer
 //					glClearDepth(1.0f);
 	glDisable(GL_DEPTH_TEST);
