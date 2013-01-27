@@ -219,10 +219,10 @@ void engine::main()
 //			GLdouble black[] = {0.0,0.0,0.0,1.0};
 			//iface()->output_text(20,58,wsz);
 
-			static double debug_ts = 0;
+			static double debug_ts = 0.0;
 			if(ts0 - debug_ts > 1000.0)
 			{
-				printf("%S\n",wsz);
+				printf("engine: %S\n",wsz);
 				debug_ts = ts0;
 			}
 		}
@@ -267,7 +267,7 @@ void engine::main()
 		fps_ = (fps_ * 0.99 + total_delta_ts2 * 0.01);
 		frt_ = frt_ * 0.99 + (ts_rt-ts0) * 0.01;
 		//fps_ = total_delta;
-		printf("fps: %f\n",(float)fps_);
+//		printf("fps: %f\n",(float)fps_);
 		// TODO - 
 //		Sleep(33);
 //		Sleep(1);
