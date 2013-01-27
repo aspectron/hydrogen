@@ -216,6 +216,13 @@ void engine::main()
 
 //			GLdouble black[] = {0.0,0.0,0.0,1.0};
 			//iface()->output_text(20,58,wsz);
+
+			static double debug_ts = 0;
+			if(ts0 - debug_ts > 1000.0)
+			{
+				printf("%S\n",wsz);
+				debug_ts = ts0;
+			}
 		}
 //		iface()->output_text(0,35,wsz,black);
 

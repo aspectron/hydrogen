@@ -418,8 +418,8 @@ class HYDROGEN_API iface : public iface_base
 trace("glew initialized\n");
 char* extensions = (char*)glGetString(GL_EXTENSIONS);
 char* version = (char*)glGetString(GL_VERSION);
-printf("version: %s",version);
-printf("extensions: %s",extensions);
+printf("version: %s\n",version);
+printf("extensions: %s\n",extensions);
 
 
 			set_vsync_interval(1);
