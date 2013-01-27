@@ -5,7 +5,8 @@ namespace aspect { namespace gl {
 void iface_base::setup_shaders(void)
 {
 	const char*	source =
-		"#version 130 \n"
+		"#version 120 \n"
+//		"#version 130 \n"
 		"uniform sampler2D UYVYtex; \n"		// UYVY macropixel texture passed as RGBA format
 		"void main(void) \n"
 		"{\n"
