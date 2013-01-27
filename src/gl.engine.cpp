@@ -168,6 +168,8 @@ void engine::main()
 	// main thread
 	aspect::utils::set_thread_name("hydrogen::engine");
 
+	printf("hydrogen::engine::main()\n");
+
 //	iface_.reset(boost::make_shared<aspect::gl::iface>(new aspect::gl::iface(window_.get())));
 	iface_ = boost::make_shared<aspect::gl::iface>(window_.get());
 	iface_->setup();

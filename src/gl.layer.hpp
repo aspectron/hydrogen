@@ -140,9 +140,6 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 
 		void set_fullsize(bool flag) { fullsize_ = flag; }
 
-	//	virtual void on_paint(istorage::shared_bitmap &);
-//		void layer::on_paint(Berkelium::Window* wini, const unsigned char *bitmap_in, const Berkelium::Rect &bitmap_rect, size_t num_copy_rects, const Berkelium::Rect *copy_rects, int dx, int dy, const Berkelium::Rect &scroll_rect, istorage::shared_bitmap &istorage_bitmap, thorium_delegate *tdelegate);
-
 		gl::texture *texture(void) { return texture_.get(); }
 
 		void register_texture_update_sink(texture_update_sink *sink) { sink_  = sink; }
@@ -157,29 +154,11 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 
 	private:
 
-//		thorium_delegate	*delegate_;
 		boost::scoped_ptr<gl::texture>	texture_;//[2];
 		bool				init_done_;
-//		uint32_t			rendering_idx_;
-
 		texture_update_sink	*sink_;
-
 		bool fullsize_;
-
-//		std::vector<uint8_t> scroll_buffer_;
-
-//		istorage::shared_bitmap bitmap_;
-//		threads::concurrent_queue<image_rect>	update_queue_;
-//		image_rect_update_queue update_queue_;
-//		std::vector<image_rect> updates_;
-//		boost::mutex updates_lock_;
-		
 		boost::mutex render_lock_;
-
-//		uint32_t texture_width_;
-//		uint32_t texture_height_;
-//		image_encoding texture_encoding_;
-
 		double test_delay_;
 };
 
