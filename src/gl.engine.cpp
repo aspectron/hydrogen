@@ -228,6 +228,8 @@ void engine::main()
 		}
 //		iface()->output_text(0,35,wsz,black);
 
+//		double ts_rt = utils::get_ts();
+
 		glFlush();
 
 		double ts_rt = utils::get_ts();

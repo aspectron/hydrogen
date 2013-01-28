@@ -416,13 +416,19 @@ class HYDROGEN_API iface : public iface_base
 				error("glew - %s",glewGetErrorString(glew_error));
 			}
 trace("glew initialized\n");
-char* extensions = (char*)glGetString(GL_EXTENSIONS);
-char* version = (char*)glGetString(GL_VERSION);
+const char* extensions = (char*)glGetString(GL_EXTENSIONS);
+const char* version = (char*)glGetString(GL_VERSION);
 printf("version: %s\n",version);
 printf("extensions: %s\n",extensions);
 
 
-			set_vsync_interval(1);
+extensions = glXQueryExtensionsString(gui::g_display, gui::g_screen);
+if(extensions)
+	printf("GLX extensions: %s\n",extensions);
+
+
+//			set_vsync_interval(1);
+			set_vsync_interval(0);
 
 			return true;
 		}
