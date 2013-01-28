@@ -470,14 +470,30 @@ if(extensions)
 
 		void set_vsync_interval(int interval)
 		{
-			const GLubyte* ProcAddress = reinterpret_cast<const GLubyte*>("glXSwapIntervalSGI");
-			PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = reinterpret_cast<PFNGLXSWAPINTERVALSGIPROC>(glXGetProcAddress(ProcAddress));
-			if (glXSwapIntervalSGI)
+#if 1
+			const GLubyte* ProcAddress = reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA");
+			PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalMESA = reinterpret_cast<PFNGLXSWAPINTERVALSGIPROC>(glXGetProcAddress(ProcAddress));
+			if (glXSwapIntervalMESA)
 			{
-				glXSwapIntervalSGI(interval); //Enabled ? 1 : 0);
-				printf("vsync interval is set to: %d\n",interval);
+				glXSwapIntervalMESA(interval); //Enabled ? 1 : 0);
+				printf("[MESA] setting vsync interval to: %d\n",interval);
 			}
+			else
+			{
+				const GLubyte* ProcAddress = reinterpret_cast<const GLubyte*>("glXSwapIntervalSGI");
+				PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = reinterpret_cast<PFNGLXSWAPINTERVALSGIPROC>(glXGetProcAddress(ProcAddress));
+				if (glXSwapIntervalSGI)
+				{
+					glXSwapIntervalSGI(interval); //Enabled ? 1 : 0);
+					printf("[SGI] setting vsync interval to: %d\n",interval);
+				}
+			}
+#else
 
+//			printf("setting vsync interval to: %d\n",interval);
+//			glXSwapIntervalMESA(interval);
+
+#endif
 		}
 
 /*		void output_text(double x, double y, wchar_t *text)
