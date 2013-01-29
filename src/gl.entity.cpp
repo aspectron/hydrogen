@@ -73,7 +73,7 @@ v8::Handle<v8::Value> entity::attach( v8::Arguments const& args )
 	if(!e)
 		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
 
-	attach(e->shared_from_this());
+	attach(e->self());
 
 	return convert::CastToJS(this);
 }
@@ -87,7 +87,7 @@ v8::Handle<v8::Value> entity::detach( v8::Arguments const& args )
 	if(!e)
 		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
 
-	detach(e->shared_from_this());
+	detach(e->self());
 
 	return convert::CastToJS(this);
 }
