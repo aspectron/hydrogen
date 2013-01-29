@@ -416,13 +416,19 @@ class HYDROGEN_API iface : public iface_base
 				error("glew - %s",glewGetErrorString(glew_error));
 			}
 trace("glew initialized\n");
-char* extensions = (char*)glGetString(GL_EXTENSIONS);
-char* version = (char*)glGetString(GL_VERSION);
+const char* extensions = (char*)glGetString(GL_EXTENSIONS);
+const char* version = (char*)glGetString(GL_VERSION);
 printf("version: %s\n",version);
 printf("extensions: %s\n",extensions);
 
 
-			set_vsync_interval(1);
+extensions = glXQueryExtensionsString(gui::g_display, gui::g_screen);
+if(extensions)
+	printf("GLX extensions: %s\n",extensions);
+
+
+//			set_vsync_interval(1);
+			set_vsync_interval(0);
 
 			return true;
 		}
@@ -464,14 +470,30 @@ printf("extensions: %s\n",extensions);
 
 		void set_vsync_interval(int interval)
 		{
-			const GLubyte* ProcAddress = reinterpret_cast<const GLubyte*>("glXSwapIntervalSGI");
-			PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = reinterpret_cast<PFNGLXSWAPINTERVALSGIPROC>(glXGetProcAddress(ProcAddress));
-			if (glXSwapIntervalSGI)
+#if 1
+			const GLubyte* ProcAddress = reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA");
+			PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalMESA = reinterpret_cast<PFNGLXSWAPINTERVALSGIPROC>(glXGetProcAddress(ProcAddress));
+			if (glXSwapIntervalMESA)
 			{
-				glXSwapIntervalSGI(interval); //Enabled ? 1 : 0);
-				printf("vsync interval is set to: %d\n",interval);
+				glXSwapIntervalMESA(interval); //Enabled ? 1 : 0);
+				printf("[MESA] setting vsync interval to: %d\n",interval);
 			}
+			else
+			{
+				const GLubyte* ProcAddress = reinterpret_cast<const GLubyte*>("glXSwapIntervalSGI");
+				PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = reinterpret_cast<PFNGLXSWAPINTERVALSGIPROC>(glXGetProcAddress(ProcAddress));
+				if (glXSwapIntervalSGI)
+				{
+					glXSwapIntervalSGI(interval); //Enabled ? 1 : 0);
+					printf("[SGI] setting vsync interval to: %d\n",interval);
+				}
+			}
+#else
 
+//			printf("setting vsync interval to: %d\n",interval);
+//			glXSwapIntervalMESA(interval);
+
+#endif
 		}
 
 /*		void output_text(double x, double y, wchar_t *text)
