@@ -168,16 +168,12 @@ void engine::main()
 	// main thread
 	aspect::utils::set_thread_name("hydrogen::engine");
 
-	printf("hydrogen::engine::main()\n");
-
 //	iface_.reset(boost::make_shared<aspect::gl::iface>(new aspect::gl::iface(window_.get())));
 	iface_ = boost::make_shared<aspect::gl::iface>(window_.get());
 	iface_->setup();
 	iface_->set_active(true);
 
 	setup();
-
-	printf("done with setup() in engine::main()\n");
 
 #if OS(WINDOWS)
 	aspect::threads::event holder;
@@ -278,8 +274,6 @@ void engine::main()
 		iter++;
 	}
 
-	printf("done with engine::main() - loop\n");
-
 	main_loop_->clear_callbacks();
 
 	world_->delete_all_children();
@@ -349,8 +343,6 @@ bool engine::setup(void)
 //	m_capture_receiver[0]->m_texture[0]->setup(1280,720,av::YCbCr8); // asy.12
 
 //	viewport_->bind(iface()->window());
-
-	printf("done with shaders.\n");
 
 	return true;
 }

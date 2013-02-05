@@ -157,6 +157,15 @@
     <ProjectReference Include="..\image\image.vcxproj">
       <Project>{123b7954-7897-7897-7897-6057d8e3780b}</Project>
     </ProjectReference>
+    <ProjectReference Include="extern\bullet\build\vs2010\BulletCollision.vcxproj">
+      <Project>{54ae91c7-48d4-9c49-a5b1-0ced554cadfa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="extern\bullet\build\vs2010\BulletDynamics.vcxproj">
+      <Project>{28d36a0f-b790-d748-bc8c-8fb422e45492}</Project>
+    </ProjectReference>
+    <ProjectReference Include="extern\bullet\build\vs2010\BulletSoftBody.vcxproj">
+      <Project>{87f29c2a-5cf1-a740-84f3-a44cfc3c9946}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

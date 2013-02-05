@@ -1,6 +1,11 @@
 #ifndef _ASPECT_ENTITY_HPP_
 #define _ASPECT_ENTITY_HPP_
 
+#define BT_NO_PROFILE
+#include "btBulletDynamicsCommon.h"
+#include "bulletsoftbody/btSoftRigidDynamicsWorld.h"
+#include "bulletsoftbody/btSoftBodyRigidBodyCollisionConfiguration.h"
+#include "bulletsoftbody/btSoftBody.h"
 
 namespace aspect { namespace gl {
 
