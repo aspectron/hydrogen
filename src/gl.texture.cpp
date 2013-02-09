@@ -187,7 +187,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 	{
 		case aspect::image::encoding::YUV8:
 			{
-				m_format_components = GL_RGBA;
+				m_format_components = GL_RGBA8;
 				m_format_internal = GL_BGRA;
 				m_bpp = 2;
 				m_output_width = m_width / 2;
@@ -197,7 +197,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 
 		case aspect::image::encoding::RGBA8:
 			{
-				m_format_components = GL_RGBA;
+				m_format_components = GL_RGBA8;
 				m_format_internal = GL_RGBA;
 				m_bpp = 4;
 				m_output_width = m_width;
@@ -205,7 +205,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 
 		default:
 			{
-				m_format_components = GL_RGBA;
+				m_format_components = GL_RGBA8;
 				m_format_internal = GL_BGRA;
 				m_bpp = 4;
 				m_output_width = m_width;
@@ -245,6 +245,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 	glBindTexture(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, get_id()); 
 	//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
 	//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, m_width, m_height, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
+//	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, get_format_internal(), m_output_width, m_height, 0, get_format_components(), is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, (GLvoid*)image_data.data());
 	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, get_format_components(), m_output_width, m_height, 0, get_format_internal(), is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, (GLvoid*)image_data.data());
 
 	GLenum _err = glGetError();
@@ -629,7 +630,7 @@ void texture::cleanup(void)
 	m_flags = 0;
 }
 
-void texture::draw(const math::vec2 &tl, const math::vec2 &br, bool cache)
+void texture::draw(const math::vec2 &tl, const math::vec2 &br, bool cache, bool flip)
 {
 	bind();
 
@@ -644,11 +645,20 @@ void texture::draw(const math::vec2 &tl, const math::vec2 &br, bool cache)
 			glBegin(GL_QUADS);
 
 			// YUV-BUG
-
-			glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x, tl.y);
-			glTexCoord2d(1.0, 0.0);   glVertex2d( br.x, tl.y);
-			glTexCoord2d(1.0, 1.0);   glVertex2d( br.x,  br.y);
-			glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x,  br.y);
+			if(flip)
+			{
+				glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
+				glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
+				glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
+				glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
+			}
+			else
+			{
+				glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x, tl.y);
+				glTexCoord2d(1.0, 0.0);   glVertex2d( br.x, tl.y);
+				glTexCoord2d(1.0, 1.0);   glVertex2d( br.x,  br.y);
+				glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x,  br.y);
+			}
 
 /*
 glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
@@ -666,10 +676,21 @@ glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
 	{
 		glBegin(GL_QUADS);
 		glNormal3f(0, 0, 1);
-		glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x, tl.y);
-		glTexCoord2d(1.0, 0.0);   glVertex2d( br.x, tl.y);
-		glTexCoord2d(1.0, 1.0);   glVertex2d( br.x,  br.y);
-		glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x,  br.y);
+
+		if(flip)
+		{
+			glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
+			glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
+			glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
+			glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
+		}
+		else
+		{
+			glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x, tl.y);
+			glTexCoord2d(1.0, 0.0);   glVertex2d( br.x, tl.y);
+			glTexCoord2d(1.0, 1.0);   glVertex2d( br.x,  br.y);
+			glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x,  br.y);
+		}
 
 /*
 glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
@@ -684,6 +705,56 @@ glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
 
 	unbind();
 }
+
+void texture::draw_sprite(const math::vec2 &size, bool cache)
+{
+	bind();
+
+	math::vec2 p = size / math::vec2(2.0,2.0);
+
+	if(cache)
+	{
+		if(draw_cache_list_)
+			glCallList(draw_cache_list_);
+		else
+		{
+			draw_cache_list_ = glGenLists(1);
+			glNewList(draw_cache_list_, GL_COMPILE);
+			glBegin(GL_QUADS);
+
+			glTexCoord2d(0.0, 1.0);   glVertex2d(-p.x, -p.y);
+			glTexCoord2d(1.0, 1.0);   glVertex2d( p.x, -p.y);
+			glTexCoord2d(1.0, 0.0);   glVertex2d( p.x,  p.y);
+			glTexCoord2d(0.0, 0.0);   glVertex2d(-p.x,  p.y);
+
+			glEnd();
+			glEndList();
+		}
+	}
+	else
+	{
+		glBegin(GL_QUADS);
+		glNormal3f(0, 0, 1);
+
+		glTexCoord2d(0.0, 1.0);   glVertex2d(-p.x, -p.y);
+		glTexCoord2d(1.0, 1.0);   glVertex2d( p.x, -p.y);
+		glTexCoord2d(1.0, 0.0);   glVertex2d( p.x,  p.y);
+		glTexCoord2d(0.0, 0.0);   glVertex2d(-p.x,  p.y);
+
+		/*
+		glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
+		glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
+		glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
+		glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
+
+		*/
+
+		glEnd();
+	}
+
+	unbind();
+}
+
 
 /*void texture::create_YCbCr8_shader(void)
 {

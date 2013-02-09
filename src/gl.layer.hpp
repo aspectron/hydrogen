@@ -126,6 +126,8 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 		layer();
 		virtual ~layer();
 
+		void set_flip(bool flip) { flip_ = flip; }
+
 		void configure(uint32_t width, uint32_t height, uint32_t encoding);
 
 		virtual void render_impl(gl::render_context *ctx);
@@ -139,6 +141,7 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 		v8::Handle<v8::Value>	register_as_update_sink(v8::Arguments const&);
 
 		void set_fullsize(bool flag) { fullsize_ = flag; }
+		void set_as_hud(bool flag) { is_hud_ = flag; }
 
 		gl::texture *texture(void) { return texture_.get(); }
 
@@ -158,6 +161,8 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 		bool				init_done_;
 		texture_update_sink	*sink_;
 		bool fullsize_;
+		bool is_hud_;
+		bool flip_;
 		boost::mutex render_lock_;
 		double test_delay_;
 };

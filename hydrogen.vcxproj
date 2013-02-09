@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\gl.camera.cpp" />
     <ClCompile Include="src\gl.context.cpp" />
     <ClCompile Include="src\gl.engine.cpp" />
     <ClCompile Include="src\gl.entity.cpp" />
@@ -139,8 +140,11 @@
     <ClCompile Include="src\gl.pipeline.cpp" />
     <ClCompile Include="src\gl.texture.cpp" />
     <ClCompile Include="src\hydrogen.cpp" />
+    <ClCompile Include="src\physics.bullet.cpp" />
+    <ClCompile Include="src\physics.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\gl.camera.hpp" />
     <ClInclude Include="src\gl.context.hpp" />
     <ClInclude Include="src\gl.engine.hpp" />
     <ClInclude Include="src\gl.entity.hpp" />
@@ -152,6 +156,8 @@
     <ClInclude Include="src\gl.transform.hpp" />
     <ClInclude Include="src\gl.viewport.hpp" />
     <ClInclude Include="src\hydrogen.hpp" />
+    <ClInclude Include="src\physics.bullet.hpp" />
+    <ClInclude Include="src\physics.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\image\image.vcxproj">
@@ -165,6 +171,9 @@
     </ProjectReference>
     <ProjectReference Include="extern\bullet\build\vs2010\BulletSoftBody.vcxproj">
       <Project>{87f29c2a-5cf1-a740-84f3-a44cfc3c9946}</Project>
+    </ProjectReference>
+    <ProjectReference Include="extern\bullet\build\vs2010\LinearMath.vcxproj">
+      <Project>{58d08522-c69f-904c-a7ed-733da229f1ba}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -4,7 +4,7 @@ namespace aspect { namespace gl {
 
 	void render_context::reset_pipeline( void )
 	{
-//		pipeline.reset(active_camera);
+		pipeline.reset(get_camera());
 	}
 
 	void render_context::register_entity( boost::shared_ptr<entity> e, bool force )
@@ -25,6 +25,16 @@ namespace aspect { namespace gl {
 	boost::shared_ptr<aspect::gl::iface>& render_context::iface( void )
 	{
 		return engine_->iface();
+	}
+
+	void render_context::set_camera( camera *cam )
+	{
+		camera_ = cam->self();
+	}
+
+	camera * render_context::get_camera( void )
+	{
+		return (camera*)camera_.get();
 	}
 
 } } // aspect::gl

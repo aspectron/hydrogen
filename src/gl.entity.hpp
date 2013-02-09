@@ -23,6 +23,66 @@ namespace aspect { namespace gl {
 				INSTANCE_COPY_TRANSFORM = 0x00000001
 			};
 			
+
+			enum
+			{
+				BOUNDING_NONE,
+				BOUNDING_CONVEX_HULL,
+				BOUNDING_GEOMETRY,
+				BOUNDING_BOX,
+				BOUNDING_SPHERE,
+				BOUNDING_SPHERE_HULL,
+				BOUNDING_CYLINDER,
+
+			};
+
+
+			class _physics_data
+			{
+				public:
+
+					uint32_t bounding_type;
+					double radius;
+					math::vec3 dimension;
+					math::vec2 damping;
+					math::vec3 linear_factor;
+					math::vec3 angular_factor;
+					double mass;
+					double margin;
+					btRigidBody *rigid_body;
+					btSoftBody *soft_body;
+					btTriangleMesh *triangle_mesh;
+					btConvexHullShape *convex_hull;
+
+					_physics_data()
+//						: bounding_type(BOUNDING_NONE),
+						: bounding_type(BOUNDING_SPHERE),
+						radius(100.0f), 
+						dimension(0.0f,0.0f,0.0f), 
+						damping(0.0f,0.0f),
+						linear_factor(1.0f,1.0f,1.0f),
+						angular_factor(1.0f,1.0f,1.0f),
+						mass(1.0f), 
+						margin(0.0f), 
+						rigid_body(NULL), 
+						soft_body(NULL), 
+						triangle_mesh(NULL), 
+						convex_hull(NULL)
+					{
+					}
+
+					void copy(const _physics_data &src);
+
+					// void serialize_xml(TiXmlElement *);
+					// void serialize_in(resource_container*);
+					// void serialize_out(resource_container*);
+
+			} physics_data_;
+
+
+			uint32_t entity_type_;
+			uint32_t collision_candidates_;
+
 			double age_;
 			transform	entity_transform; //m_Transform;
 
@@ -41,6 +101,9 @@ namespace aspect { namespace gl {
 			v8::Handle<v8::Value> detach(v8::Arguments const& args);
 			void delete_all_children(void);
 
+			void show(void) { hidden_ = false; }
+			void hide(void) { hidden_ = true; }
+
 			// transform
 			transform *get_transform_ptr(void) { return &entity_transform; }
 			aspect::math::matrix *get_transform_matrix_ptr(void);
@@ -49,6 +112,7 @@ namespace aspect { namespace gl {
 			void acquire_transform(entity *src) { set_transform_matrix(src->get_transform_matrix()); }
 			void _set_location(const math::vec3 &loc) { entity_transform.set_location(loc); }
 			void get_location(math::vec3 &loc) { entity_transform.get_matrix().get_translation(loc); }
+			v8::Handle<v8::Value> get_location(void);
 			void _set_orientation(const math::quat &q) { entity_transform.set_orientation(q); }
 			void get_orientation(math::quat &q) { entity_transform.get_matrix().get_orientation(q); }
 			void _set_scale(const math::vec3 &scale) { entity_transform.set_scale(scale); }
@@ -60,13 +124,50 @@ namespace aspect { namespace gl {
 			virtual boost::shared_ptr<entity> instance(uint32_t flags = 0);
 			virtual void init(render_context *context);
 			virtual void render(render_context *context);
-			
 			virtual void update(render_context *context);
 
 			// ---
 
 			void sort_z(void);
-			void set_location(double,double,double);
+			void set_location(const math::vec3&);//double,double,double);
+
+			// collision
+			void set_entity_type(uint32_t type) { entity_type_ = type; }
+			uint32_t get_entity_type(void) const { return entity_type_; }
+			uint32_t get_collision_candidates(void) const { return collision_candidates_; }
+			void set_collision_properties(uint32_t type, uint32_t candidates) { entity_type_ = type; collision_candidates_ = candidates; }
+
+
+			// physics collision
+			void set_bounding_type(unsigned int _bounding_type) { physics_data_.bounding_type = _bounding_type; }
+			unsigned int get_bounding_type(void) const { return physics_data_.bounding_type; }
+			void set_dimension(const math::vec3 &_dimension) { physics_data_.dimension = _dimension; }
+			void set_radius(double _radius) { physics_data_.radius = _radius; }
+			void set_margin(double margin) { physics_data_.margin = margin; }
+			double get_margin(void) { return physics_data_.margin; }
+			void set_mass(double mass) { physics_data_.mass = mass; }
+			double get_mass(void) { return physics_data_.mass; }
+			void disable_contact_response(void);
+
+			// physics manipulation
+			void set_damping(double _linear, double _angular);
+			void set_linear_factor(const math::vec3 &factor);
+			void set_angular_factor(const math::vec3 &factor);
+			void apply_impulse(const math::vec3 &impulse, const math::vec3 &rel_pos);
+			//			void apply_torque(const math::vec3 &torque);
+			void apply_force(const math::vec3 &force, const math::vec3 &rel_pos);
+			//void _apply_force(math::vec3 force, math::vec3 rel_pos) { apply_force(force,rel_pos); }
+			void calculate_relative_vector(const math::vec3 &absolute_vector, math::vec3 &relative_vector);
+			void apply_relative_force(const math::vec3 &relative_force);
+			//void _apply_relative_force(math::vec3 relative_force) { apply_relative_force(relative_force); }
+
+			void apply_relative_impulse(const math::vec3 &relative_force);
+			//void _apply_relative_impulse(math::vec3 relative_force) { apply_relative_impulse(relative_force); }
+			void apply_absolute_impulse(const math::vec3 &relative_force);
+			//void _apply_absolute_impulse
+			void set_linear_velocity(const math::vec3 &absolute_velocity);
+			//void _set_linear_velocity(math::vec3 absolute_velocity) { set_linear_velocity(absolute_velocity); }
+
 
 		protected:
 
@@ -75,6 +176,7 @@ namespace aspect { namespace gl {
 		private:
 
 			bool init_invoked_;
+			bool hidden_;
 	};
 
 	extern uint32_t global_entity_count;

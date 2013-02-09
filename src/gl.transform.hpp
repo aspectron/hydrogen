@@ -33,13 +33,13 @@ namespace aspect
 				::memcpy(this,&src,sizeof(transform));
 			}
 
-			void set_location(const aspect::math::vec3 &loc) { location = loc; flags &= ~TRANSFORM_CACHE; }
+			void set_location(const aspect::math::vec3 &loc) { location = loc; flags &= ~TRANSFORM_CACHE; bind(true); }
 //			void get_location(math::vec3 &loc) {  _aspect_assert((flags & TRANSFORM_BIND_DISABLED) == 0); loc = location; }
 //			void set_rotation(const aspect::math::vec3 &rot) { rotation = rot; flags &= ~TRANSFORM_CACHE; }
-			void set_orientation(const aspect::math::quat &orient) { orientation = orient; flags &= ~TRANSFORM_CACHE; }
+			void set_orientation(const aspect::math::quat &orient) { orientation = orient; flags &= ~TRANSFORM_CACHE; bind(true); }
 //			void get_orientation(math::quat &orient) {  _aspect_assert((flags & TRANSFORM_BIND_DISABLED) == 0); orient = orientation; }
 //			math::quat& get_orientation(void) {  _aspect_assert((flags & TRANSFORM_BIND_DISABLED) == 0); return orientation; }
-			void set_scale(const aspect::math::vec3 &scl) { scale = scl; flags &= ~TRANSFORM_CACHE; }
+			void set_scale(const aspect::math::vec3 &scl) { scale = scl; flags &= ~TRANSFORM_CACHE; bind(true); }
 //			void get_scale(math::vec3 &scl) { scl = scale; _aspect_assert((flags & TRANSFORM_BIND_DISABLED) == 0); }
 //			math::vec3& get_scale(void) {  _aspect_assert((flags & TRANSFORM_BIND_DISABLED) == 0); return scale; }
 //			void set_direction(aspect::math::vec3 &dir) { m_direction = dir; m_flags &= ~TRANSFORM_CACHE; }
@@ -49,9 +49,9 @@ namespace aspect
 			aspect::math::matrix *get_matrix_ptr(void) { bind(); return &transform_matrix; }
 			math::matrix &get_matrix(void) { bind(); return transform_matrix; }
 
-			void bind(void)
+			void bind(bool force = false)
 			{
-				if(flags & TRANSFORM_BIND_DISABLED)
+				if((flags & TRANSFORM_BIND_DISABLED) && !force)
 					return;
 
 				if((flags & TRANSFORM_CACHE) == 0)

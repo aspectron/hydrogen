@@ -34,6 +34,8 @@
 #include <GL/glew.h>
 #endif
 
+#include "gl.color.hpp"
+
 #include "gl.shader.hpp"
 #include "gl.iface.hpp"
 #include "gl.texture.hpp"
@@ -44,7 +46,12 @@
 #include "gl.context.hpp"
 #include "gl.entity.hpp"
 #include "gl.viewport.hpp"
+#include "gl.camera.hpp"
 #include "gl.layer.hpp"
+
+// #define BT_USE_DOUBLE_PRECISION
+#include "physics.hpp"
+#include "physics.bullet.hpp"
 
 #include "gl.engine.hpp"
 

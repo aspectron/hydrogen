@@ -54,6 +54,10 @@ namespace aspect { namespace gl {
 
 			void set_debug_string(std::string);
 
+			void set_camera(camera *cam);
+
+			void set_physics(physics::bullet *bullet) { bullet_ = bullet->self(); }
+
 		private:
 
 			class main_loop;
@@ -73,6 +77,9 @@ namespace aspect { namespace gl {
 			boost::shared_ptr<aspect::gl::iface> iface_;
 			boost::shared_ptr<aspect::gui::window> window_;
 			boost::shared_ptr<entity>	world_;
+			// render_pipeline	pipeline_;
+			render_context context_;
+			boost::shared_ptr<physics::bullet> bullet_;
 
 			std::string debug_string_;
 			bool debug_string_changed_;

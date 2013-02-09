@@ -16,7 +16,7 @@ aspect::gl::engine * WeakJSClassCreatorOps<aspect::gl::engine>::Ctor( v8::Argume
 	if(!window)
 		throw std::runtime_error("oxygen::engine() - constructor argument is not a window");
 
-	return new aspect::gl::engine(window->shared_from_this());
+	return new aspect::gl::engine(window->self());
 }
 
 void WeakJSClassCreatorOps<aspect::gl::engine>::Dtor( aspect::gl::engine *o )
@@ -133,10 +133,11 @@ tswp_(0),
 show_engine_info_(false),
 hold_rendering_(false),
 hold_interval_(1000.0/60.0),
-debug_string_changed_(false)
+debug_string_changed_(false),
+context_(this)
 {
 
-	world_ = ((new world())->shared_from_this());
+	world_ = ((new world())->self());
 //	viewport_ = boost::make_shared<viewport>();
 
 	task_queue_.reset(new async_queue("HYDROGEN",1));
@@ -168,6 +169,8 @@ void engine::main()
 	// main thread
 	aspect::utils::set_thread_name("hydrogen::engine");
 
+	SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
+
 //	iface_.reset(boost::make_shared<aspect::gl::iface>(new aspect::gl::iface(window_.get())));
 	iface_ = boost::make_shared<aspect::gl::iface>(window_.get());
 	iface_->setup();
@@ -179,6 +182,8 @@ void engine::main()
 	aspect::threads::event holder;
 #endif
 
+	double last_physics_ts = 0.0;
+
 	uint32_t iter = 0;
 	while(!main_loop_->is_terminating())
 	{
@@ -188,15 +193,67 @@ void engine::main()
 		validate_iface();
 
 		glClear(GL_COLOR_BUFFER_BIT);
-		glLoadIdentity();
+		//glLoadIdentity();
 
+#if 0
 		render_context context(this);
 		world_->render(&context);
+#else
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+#if 0
+
+		glMatrixMode(GL_PROJECTION);
+//		glLoadIdentity();
+//		glMatrixMode(GL_MODELVIEW);
+
+		camera *current_camera = context_.get_camera();
+		if(current_camera)
+		{
+//			glLoadMatrixd((GLdouble*)current_camera->get_projection_matrix_ptr());
+			glLoadMatrixd((GLdouble*)current_camera->get_modelview_matrix_ptr());
+		}
+		else
+		{
+			//glLoadIdentity();
+			glOrtho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+		}
+#endif
+		//glOrtho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+
+		if(bullet_.get())
+		{
+			if(last_physics_ts == 0.0)
+				last_physics_ts = utils::get_ts();
+			double physics_ts = utils::get_ts();
+			double physics_ts_delta = physics_ts - last_physics_ts;
+//			double physics_ts_delta = ts0 - last_physics_ts;
+			
+			bullet_->render(hold_interval_/1000.0, 10);//, 1.0/60.0);
+//			bullet_->render(1.0/60.0, 10);//, 1.0/60.0);
+//			bullet_->render(physics_ts_delta / 1000.0, 10);//, 1.0/60.0);
+			// bullet_->render(physics_ts_delta / 1000, 7);
+			last_physics_ts = physics_ts;
+//			last_physics_ts = ts0; //physics_ts;
+		}
+
+
+		//render_context context(this);
+		// context_.reset
+		context_.reset_pipeline();
+		world_->update(&context_);
+		context_.render();
+#endif
 
 		if(show_engine_info_)
 		{
 			uint32_t w,h;
-			context.iface()->window()->get_size(&w,&h);
+			context_.iface()->window()->get_size(&w,&h);
 
 			wchar_t wsz[128];
 			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d", (float)fps_unheld_, (float)fps_, (float) frt_, w, h);
@@ -228,13 +285,20 @@ void engine::main()
 
 //		double ts_rt = utils::get_ts();
 
-		glFlush();
+//		glFlush();
+
+		if(bullet_.get())
+		{
+//			bullet_->debug_draw();
+		}
 
 		double ts_rt = utils::get_ts();
 
 		iface()->swap_buffers();	
 
 		main_loop_->execute_callbacks();
+
+
 
 		double ts1 = utils::get_ts();
 
@@ -324,7 +388,8 @@ bool engine::setup(void)
 
 	// use backface culling (this is 2D, so we'll never see the back faces anyway)
 	glFrontFace(GL_CW);
-	glCullFace(GL_BACK);
+	glCullFace(GL_NONE);
+//	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 
 	// perspective calculations
@@ -415,12 +480,13 @@ void engine::setup_viewport(void)
 //	glOrtho(-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f);
 //	glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f);
 
-#if 1
+#if 0
 	// YUV-BUG
 	glOrtho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f);
 #endif
 	//gluPerspective(45.0f, (float)nWidth / (float)nHeight, 1.0f, 100.0f);
 //	gluPerspective(45.0f, (float)1920 / (float)1080, 1.0f, 100.0f);
+//	glScaled(1.0,-1.0,1.0);
 
 // portrait mode
 //	if(get_flags() & flag_portrait)
@@ -451,7 +517,7 @@ v8::Handle<v8::Value> engine::attach( v8::Arguments const& args )
 	if(!e)
 		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
 
-	attach(e->shared_from_this());
+	attach(e->self());
 
 	return convert::CastToJS(this);
 }
@@ -465,7 +531,7 @@ v8::Handle<v8::Value> engine::detach( v8::Arguments const& args )
 	if(!e)
 		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
 
-	detach(e->shared_from_this());
+	detach(e->self());
 
 	return convert::CastToJS(this);
 }
@@ -486,6 +552,11 @@ void engine::set_debug_string(std::string s)
 	boost::mutex::scoped_lock lock(debug_string_mutex_);
 	debug_string_ = s;
 	debug_string_changed_ = true;
+}
+
+void engine::set_camera(camera *cam)
+{
+	context_.set_camera(cam);
 }
 
 } } // namespace aspect::gl

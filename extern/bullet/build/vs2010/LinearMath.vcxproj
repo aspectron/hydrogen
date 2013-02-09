@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Release|Win32">
@@ -62,15 +62,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\lib\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">obj\x32\Release\LinearMath\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">LinearMath_vs2010</TargetName>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(JSX)\bin\$(Configuration) $(PlatformName)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(JSX)\obj\$(Configuration) $(PlatformName)\$(ProjectName)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)</TargetName>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\lib\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">obj\x64\Release\LinearMath\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">LinearMath_vs2010_x64_release</TargetName>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\lib\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">obj\x32\Debug\LinearMath\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">LinearMath_vs2010_debug</TargetName>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(JSX)\bin\$(Configuration) $(PlatformName)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(JSX)\obj\$(Configuration) $(PlatformName)\$(ProjectName)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)</TargetName>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\lib\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">obj\x64\Debug\LinearMath\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">LinearMath_vs2010_x64_debug</TargetName>
@@ -85,21 +85,23 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-    <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-  <Lib>
-    <OutputFile>$(OutDir)LinearMath_vs2010.lib</OutputFile>
-    <TargetMachine>MachineX86</TargetMachine>
-  </Lib>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -117,21 +119,23 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-    <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-  <Lib>
-    <OutputFile>$(OutDir)LinearMath_vs2010_x64_release.lib</OutputFile>
-    <TargetMachine>MachineX64</TargetMachine>
-  </Lib>
+    <Lib>
+      <OutputFile>$(OutDir)LinearMath_vs2010_x64_release.lib</OutputFile>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Lib>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -149,9 +153,10 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-    <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <FloatingPointModel>Fast</FloatingPointModel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -161,10 +166,10 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-  <Lib>
-    <OutputFile>$(OutDir)LinearMath_vs2010_debug.lib</OutputFile>
-    <TargetMachine>MachineX86</TargetMachine>
-  </Lib>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -180,9 +185,10 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-    <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <FloatingPointModel>Fast</FloatingPointModel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -192,10 +198,10 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-  <Lib>
-    <OutputFile>$(OutDir)LinearMath_vs2010_x64_debug.lib</OutputFile>
-    <TargetMachine>MachineX64</TargetMachine>
-  </Lib>
+    <Lib>
+      <OutputFile>$(OutDir)LinearMath_vs2010_x64_debug.lib</OutputFile>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Lib>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>

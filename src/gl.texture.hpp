@@ -150,7 +150,8 @@ class HYDROGEN_API texture
 
 		// ~~ aux helper functions
 
-		void draw(const math::vec2 &tl, const math::vec2 &br, bool cache);
+		void draw(const math::vec2 &tl, const math::vec2 &br, bool cache = false, bool flip = false);
+		void draw_sprite(const math::vec2 &size, bool cache);
 	
 };
 

@@ -3,7 +3,8 @@
 #define _GL_PIPELINE_HPP_
 
 namespace aspect { namespace gl {
-//	class camera;
+
+	class camera;
 	class entity;
 	class render_context;
 
@@ -27,8 +28,9 @@ namespace aspect { namespace gl {
 		public:
 
 //			camera *_camera;
-//			math::vec3 _camera_pos;
-//			float _range;
+			boost::shared_ptr<entity>	camera_;
+			math::vec3 camera_pos_;
+			double range_;
 
 			std::vector<pipeline_entry>	pipeline_data_;
 
@@ -42,7 +44,8 @@ namespace aspect { namespace gl {
 			}
 
 			pipeline_entry& operator [] (int i) { return pipeline_data_[i]; }
-			void reset();
+//			void reset();
+			void render_pipeline::reset( camera *_c );
 			void register_entity(boost::shared_ptr<entity> e, bool force_rendering);
 			void render(render_context *context);
 	};

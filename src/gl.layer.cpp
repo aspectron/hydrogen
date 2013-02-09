@@ -40,7 +40,9 @@ layer::layer()
 left_(0.0), top_(0.0),
 width_(0.5), height_(0.5),
 fullsize_(false),
-sink_(NULL)
+sink_(NULL),
+is_hud_(false),
+flip_(false)
 {
 
 }
@@ -78,13 +80,55 @@ void layer::render_impl( gl::render_context *context )
 	{
 		boost::mutex::scoped_lock lock(render_lock_);
 
-		// render current texture in GPU
-		if(fullsize_)
-			texture_->draw(context->map_pixel_to_view(math::vec2(-0.5,-0.5)),context->map_pixel_to_view(math::vec2(texture_->get_width()-0.5,texture_->get_height()-0.5)), false);
-		else
+		
+		gl::camera *current_camera = context->get_camera();
+		if(current_camera && current_camera->get_projection() == camera::PERSPECTIVE)// && !is_hud_)
 		{
-			texture_->draw(context->map_pixel_to_view(math::vec2(left_,top_)),
-				context->map_pixel_to_view(math::vec2(left_+width_,top_+height_)), false);
+			math::matrix m;// = current_camera->get_transform_matrix();// * get_transform_matrix();
+			m.invert(current_camera->get_transform_matrix());
+			m = m * current_camera->get_projection_matrix();
+			glMatrixMode(GL_PROJECTION);
+			glLoadMatrixd((GLdouble*)&m);
+
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixd((GLdouble*)get_transform_matrix_ptr());
+
+			texture_->draw(math::vec2(0.0,0.0),math::vec2(texture_->get_width(),texture_->get_height()), false);
+		}
+		else
+
+		{
+//  			if(is_hud_)
+//  			{
+//  				glMatrixMode(GL_PROJECTION);
+//  				glPushMatrix();
+//  				glOrtho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+//  			}
+//  			else
+			{
+				glMatrixMode(GL_MODELVIEW);
+				glLoadMatrixd((GLdouble*)get_transform_matrix_ptr());
+			}
+
+//			glMatrixMode(GL_MODELVIEW);
+//			glLoadMatrixd((GLdouble*)get_transform_matrix_ptr());
+
+			// render current texture in GPU
+			if(fullsize_)
+				texture_->draw(context->map_pixel_to_view(math::vec2(-0.5,-0.5)),context->map_pixel_to_view(math::vec2(texture_->get_width()-0.5,texture_->get_height()-0.5)), false, flip_);
+			else
+			{
+				texture_->draw(context->map_pixel_to_view(math::vec2(left_,top_)),
+					context->map_pixel_to_view(math::vec2(left_+width_,top_+height_)), false, flip_);
+			}
+			
+//  			if(is_hud_)
+//  			{
+//  				glMatrixMode(GL_PROJECTION);
+//  				glPopMatrix();
+//  				glMatrixMode(GL_MODELVIEW);
+//  			}
+			
 		}
 	}
 	else
@@ -117,7 +161,7 @@ v8::Handle<v8::Value> layer_reference::assoc( v8::Arguments const& args)
 		if(!l)
 			throw std::invalid_argument("layer_reference::assoc() argument is not a layer");
 
-		layer_ = l->shared_from_this();
+		layer_ = l->self();
 	}
 
 	return Undefined();
