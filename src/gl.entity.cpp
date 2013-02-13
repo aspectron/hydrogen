@@ -185,6 +185,20 @@ void entity::update(render_context *context)
 	if(hidden_)
 		return;
 
+	if(fade_ts_ != 0.0)
+	{
+		double ts = utils::get_ts();
+		double delta = (ts - fade_ts_) / fade_duration_;
+		if(delta > 1.0)
+		{
+			fade_ts_ = 0.0;
+			transparency_ = transparency_targets_[1];
+		}
+
+		transparency_ = transparency_targets_[0] * (1.0 - delta) - transparency_targets_[1] * delta;
+	}
+
+
 	context->register_entity(self());
 
 	boost::recursive_mutex::scoped_lock lock(children_mutex_);
@@ -357,6 +371,19 @@ void entity::calculate_relative_vector( const math::vec3 &_relative_vector, math
 	btVector3 _absolute_vector = rotation_matrix * relative_force;
 	absolute_vector = math::vec3(_absolute_vector.x(),_absolute_vector.y(),_absolute_vector.z());
 }
+
+/*
+math::vec3 entity::calculate_relative_vector( const math::vec3 &_relative_vector )
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	//	_aspect_assert(physics_data_.rigid_body && "physics_data has not been defined");
+	btVector3 relative_force = math2bt(_relative_vector); 
+	btMatrix3x3 &rotation_matrix = physics_data_.rigid_body->getWorldTransform().getBasis();
+	btVector3 _absolute_vector = rotation_matrix * relative_force;
+	math::vec3 absolute_vector = math::vec3(_absolute_vector.x(),_absolute_vector.y(),_absolute_vector.z());
+	return absolute_vector;
+}
+*/
 
 void entity::apply_relative_force( const math::vec3 &_relative_force )
 {

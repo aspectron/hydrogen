@@ -13,7 +13,7 @@ namespace aspect
 				enum
 				{
 					ORTHOGRAPHIC = 0,
-					PERSPECTIVE = 1
+					PERSPECTIVE = 1,
 				};
 
 
@@ -43,15 +43,23 @@ namespace aspect
 					gl::viewport::set_orthographic_projection(left,right,bottom,top,near_plane,far_plane);
 				}
 
+				math::vec3 project_mouse(gl::entity *, double x, double y);
+
 				double get_fov(void) { return fov_; }
+
+				void set_target(entity *e) { target_ = e->self(); }
+				void reset_target(void) { target_.reset(); }
 
 				void render(render_context *context);
 
 			private:
 
 				math::matrix modelview_matrix_;
+				math::matrix look_at_;
 //				double fov_;
 				uint32_t	projection_;
+
+				boost::shared_ptr<entity>	target_;
 
 		};
 	}

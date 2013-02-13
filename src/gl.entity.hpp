@@ -104,6 +104,9 @@ namespace aspect { namespace gl {
 			void show(void) { hidden_ = false; }
 			void hide(void) { hidden_ = true; }
 
+			void fade_in(double msec) { fade_ts_ = utils::get_ts(); transparency_targets_[0] = 0.0; transparency_targets_[1] = 1.0; fade_duration_ = msec; }
+			void fade_out(double msec) {  fade_ts_ = utils::get_ts(); transparency_targets_[0] = 1.0; transparency_targets_[1] = 0.0; fade_duration_ = msec; }
+
 			// transform
 			transform *get_transform_ptr(void) { return &entity_transform; }
 			aspect::math::matrix *get_transform_matrix_ptr(void);
@@ -158,6 +161,7 @@ namespace aspect { namespace gl {
 			void apply_force(const math::vec3 &force, const math::vec3 &rel_pos);
 			//void _apply_force(math::vec3 force, math::vec3 rel_pos) { apply_force(force,rel_pos); }
 			void calculate_relative_vector(const math::vec3 &absolute_vector, math::vec3 &relative_vector);
+			// math::vec3 entity::calculate_relative_vector( const math::vec3 &_relative_vector );
 			void apply_relative_force(const math::vec3 &relative_force);
 			//void _apply_relative_force(math::vec3 relative_force) { apply_relative_force(relative_force); }
 
@@ -177,6 +181,12 @@ namespace aspect { namespace gl {
 
 			bool init_invoked_;
 			bool hidden_;
+
+			double fade_ts_;
+			double fade_duration_;
+			double transparency_targets_[2];
+			double transparency_;
+
 	};
 
 	extern uint32_t global_entity_count;

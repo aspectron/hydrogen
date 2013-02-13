@@ -27,7 +27,7 @@ namespace aspect { namespace gl {
 			/// Callback function to schedule in Berkelium
 			typedef boost::function<void ()> callback;
 
-			/// Schedule function call in Berkelium
+			/// Schedule function call in the main engine thread
 			bool schedule(callback cb);
 
 			void main();
@@ -57,6 +57,10 @@ namespace aspect { namespace gl {
 			void set_camera(camera *cam);
 
 			void set_physics(physics::bullet *bullet) { bullet_ = bullet->self(); }
+
+			void capture_screen_gl(v8::Persistent<v8::Function> *cb);
+			void capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function> *cb);
+			v8::Handle<v8::Value> capture(const v8::Arguments& args);
 
 		private:
 

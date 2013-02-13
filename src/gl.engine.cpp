@@ -559,4 +559,50 @@ void engine::set_camera(camera *cam)
 	context_.set_camera(cam);
 }
 
+void engine::capture_screen_gl(Persistent<Function> *cb)
+{
+	image::shared_bitmap b = boost::make_shared<image::bitmap>();
+	b->resize(viewport_width_,viewport_height_,image::BGRA8);
+	// image.
+	glReadPixels(0,0,viewport_width_,viewport_height_, GL_BGRA, GL_UNSIGNED_BYTE, (GLvoid*)b->data());
+
+	runtime::main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb));
+
+}
+
+void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function> *cb)
+{
+
+//	v8_core::buffer
+	Handle<Object> self = convert::CastToJS(this)->ToObject();
+	
+	Handle<Value> args[] = { convert::StdStringToJS("complete") };
+	
+	TryCatch try_catch;
+	Handle<Value> result = (*cb)->Call(self, 1, args);
+	if ( try_catch.HasCaught() )
+		v8_core::report_exception(try_catch);
+
+	cb->Dispose();
+	cb->Clear();
+	delete cb;
+}
+
+Handle<Value> engine::capture(const v8::Arguments& args)
+{
+	if(!args.Length() || !args[0]->IsFunction())
+		throw std::invalid_argument("capture requires function callback");
+
+	Persistent<Function> *cb = new Persistent<Function>(Handle<Function>::Cast(args[0]));
+
+	schedule(boost::bind(&engine::capture_screen_gl, this, cb));
+}
+
+bool engine::schedule( callback cb )
+{
+	return main_loop_.get() ? main_loop_->schedule(cb) : false;
+}
+
+
+
 } } // namespace aspect::gl

@@ -11,50 +11,50 @@ namespace aspect
 			public:
 
 				viewport()
-					: aspect_ratio(0.0f), width(0.0f), height(0.0f), pixel_size(0.0f,0.0f), fov_(0.0f)
+					: aspect_ratio_(0.0f), width_(0.0f), height_(0.0f), pixel_size_(0.0f,0.0f), fov_(0.0f)
 				{
-					projection_matrix.set_identity();
+					projection_matrix_.set_identity();
 				}
 
 				void set_perspective_projection_fov( double _width, double _height, double near_plane, double far_plane, double fov)
 				{
-					width = _width;
-					height = _height;
-					pixel_size.x = 2.0f / width;
-					pixel_size.y = 2.0f / height;
-					aspect_ratio = width / height;
+					width_ = _width;
+					height_ = _height;
+					pixel_size_.x = 2.0f / width_;
+					pixel_size_.y = 2.0f / height_;
+					aspect_ratio_ = width_ / height_;
 
-					generate_perspective_projection_fov(projection_matrix, fov, near_plane, far_plane, aspect_ratio);
+					generate_perspective_projection_fov(projection_matrix_, fov, near_plane, far_plane, aspect_ratio_);
 				}
 
 				void set_frustum_projection(double left, double right, double bottom, double top, double zNear, double zFar)
 				{
-					generate_frustum_projection(projection_matrix, left, right, bottom, top, zNear, zFar);
+					generate_frustum_projection(projection_matrix_, left, right, bottom, top, zNear, zFar);
 				}
 
 				void set_orthographic_projection(double left, double right, double bottom, double top, double zNear, double zFar)
 				{
-					generate_orthographic_projection(projection_matrix, left, right, bottom, top, zNear, zFar);
+					generate_orthographic_projection(projection_matrix_, left, right, bottom, top, zNear, zFar);
 				}
 
-				double  get_aspect_ratio(void) const { return aspect_ratio; }
-				double  get_width(void) const { return width; }
-				double  get_height(void) const { return height; }
-				const math::vec2& get_pixel_size(void) const { return pixel_size; }
+				double  get_aspect_ratio(void) const { return aspect_ratio_; }
+				double  get_width(void) const { return width_; }
+				double  get_height(void) const { return height_; }
+				const math::vec2& get_pixel_size(void) const { return pixel_size_; }
 				double  get_fov(void) const { return fov_; }
 
-				math::matrix *get_projection_matrix_ptr(void) { return &projection_matrix; }
-				math::matrix &get_projection_matrix(void) { return projection_matrix; }
+				math::matrix *get_projection_matrix_ptr(void) { return &projection_matrix_; }
+				math::matrix &get_projection_matrix(void) { return projection_matrix_; }
 
 				virtual math::matrix *get_modelview_matrix_ptr(void) = 0;
 				virtual math::matrix &get_modelview_matrix(void) = 0;
 
 			protected:
 
-				math::matrix projection_matrix;
-				double 	aspect_ratio;
-				double 	width, height;
-				math::vec2 pixel_size;
+				math::matrix projection_matrix_;
+				double 	aspect_ratio_;
+				double 	width_, height_;
+				math::vec2 pixel_size_;
 				double 	fov_;
 
 				void generate_frustum_projection(math::matrix &m, double left, double right, double bottom, double top, double zNear, double zFar)
@@ -116,8 +116,8 @@ namespace aspect
 #else
 					fov_ = _fov;
 					double size = near_plane * tan(math::deg_to_rad(fov_) / 2.0); 
-					generate_frustum_projection( m, -size * _aspect_ratio, size * _aspect_ratio, -size , size , near_plane, far_plane);
-//					generate_frustum_projection( m, -size, size, -size / _aspect_ratio, size / _aspect_ratio, near_plane, far_plane);
+//					generate_frustum_projection( m, -size * _aspect_ratio, size * _aspect_ratio, -size , size , near_plane, far_plane);
+					generate_frustum_projection( m, -size, size, -size / _aspect_ratio, size / _aspect_ratio, near_plane, far_plane);
 
 
 #endif

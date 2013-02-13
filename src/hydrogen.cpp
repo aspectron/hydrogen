@@ -76,6 +76,7 @@ void hydrogen_install(Handle<Object> target)
 		.BindMemFunc<void, std::string, &aspect::gl::engine::set_debug_string>("set_debug_string")
 		.BindMemFunc<void, aspect::gl::camera*, &aspect::gl::engine::set_camera>("set_camera")
 		.BindMemFunc<void, aspect::physics::bullet*, &aspect::gl::engine::set_physics>("set_physics")
+		.BindMemFunc<&aspect::gl::engine::capture>("capture")
 		.Seal();
 
 	ClassBinder<aspect::gl::entity> *binder_entity = new ClassBinder<aspect::gl::entity>(target);
@@ -86,6 +87,12 @@ void hydrogen_install(Handle<Object> target)
 		.BindMemFunc<void, &aspect::gl::entity::sort_z>("sort_z")
 		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::set_location>("set_location")
 		.BindMemFunc<Handle<Value>, &aspect::gl::entity::get_location>("get_location")
+
+		.BindMemFunc<void, double, &aspect::gl::entity::fade_in>("fade_in")
+		.BindMemFunc<void, double, &aspect::gl::entity::fade_out>("fade_out")
+		.BindMemFunc<void, &aspect::gl::entity::show>("show")
+		.BindMemFunc<void, &aspect::gl::entity::hide>("hide")
+
 
 		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::set_dimension>("set_dimension")
 		.BindMemFunc<void, double, &aspect::gl::entity::set_radius>("set_radius")
@@ -114,6 +121,8 @@ void hydrogen_install(Handle<Object> target)
 //		.BindMemFunc<&aspect::gl::layer::register_as_update_sink>("register_as_update_sink")
 //		.BindMemFunc<void, bool, &aspect::gl::layer::set_fullsize>("set_fullsize")
 		.BindMemFunc<double, &aspect::gl::camera::get_fov>("get_fov")
+		.BindMemFunc<void, aspect::gl::entity*, &aspect::gl::camera::set_target>("set_target")
+		.BindMemFunc<void, &aspect::gl::camera::reset_target>("reset_target")
 		.Inherit(*aspect::gl::entity::binder())
 		.Seal();
 
