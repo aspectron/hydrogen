@@ -134,9 +134,9 @@ show_engine_info_(false),
 hold_rendering_(false),
 hold_interval_(1000.0/60.0),
 debug_string_changed_(false),
-context_(this)
+context_(self())
 {
-
+//	context_(self)
 	world_ = ((new world())->self());
 //	viewport_ = boost::make_shared<viewport>();
 
@@ -386,11 +386,19 @@ bool engine::setup(void)
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+
+	GLenum _err = glGetError();
+	_aspect_assert(_err == GL_NO_ERROR);
+
 	// use backface culling (this is 2D, so we'll never see the back faces anyway)
 	glFrontFace(GL_CW);
-	glCullFace(GL_NONE);
-//	glCullFace(GL_BACK);
+//	glCullFace(GL_NONE);
+	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
+
+	_err = glGetError();
+	_aspect_assert(_err == GL_NO_ERROR);
+
 
 	// perspective calculations
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
@@ -596,6 +604,8 @@ Handle<Value> engine::capture(const v8::Arguments& args)
 	Persistent<Function> *cb = new Persistent<Function>(Handle<Function>::Cast(args[0]));
 
 	schedule(boost::bind(&engine::capture_screen_gl, this, cb));
+
+	return convert::CastToJS(this);
 }
 
 bool engine::schedule( callback cb )

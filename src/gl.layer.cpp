@@ -132,7 +132,7 @@ void layer::render_impl( gl::render_context *context )
 		}
 	}
 	else
-		texture_.reset(new gl::texture(context->engine_->iface()));
+		texture_.reset(new gl::texture(context->engine_));//->iface()));
 
 	if(sink_)
 		sink_->digest(texture());

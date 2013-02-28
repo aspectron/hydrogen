@@ -5,6 +5,7 @@ namespace aspect { namespace gl {
 
 	class entity;
 	class camera;
+	class engine;
 
 	class HYDROGEN_API render_context
 	{
@@ -15,12 +16,13 @@ namespace aspect { namespace gl {
 
 			render_pipeline pipeline;
 
-			class engine *engine_;
+			//class engine *engine_;
+			boost::shared_ptr<engine> engine_;
 
 			boost::shared_ptr<entity>	camera_;
 
-			render_context(engine *e)
-				: engine_(e)
+			render_context(boost::shared_ptr<engine> _engine)//engine *e)
+				: engine_(_engine)
 			{
 
 			}

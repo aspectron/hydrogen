@@ -24,20 +24,22 @@ enum aspect::image::encoding
 };
 */
 
-class HYDROGEN_API texture
+class engine;
+
+class HYDROGEN_API texture : public boost::enable_shared_from_this<texture>
 {
 	public:
 
 //		std::vector<texture*> m_textures;
 //		typedef std::vector<texture*>::iterator iterator;
 
-		boost::shared_ptr<aspect::gl::iface>	iface_;
-
+		//boost::shared_ptr<aspect::gl::iface>	iface_;
+		boost::shared_ptr<aspect::gl::engine>	engine_;
 		GLuint  id_;
 		std::vector<GLuint>	pbo_;
 		unsigned char *pbo_buffer_;
 		uint32_t mapped_pbo_idx_;
-		GLuint	m_fbo;
+		GLuint	fbo_;
 		int m_width;
 		int m_height;
 		int m_bpp;
@@ -55,6 +57,47 @@ class HYDROGEN_API texture
 
 		GLuint	draw_cache_list_;
 
+		class texture_cleanup_info 
+		{
+			public:
+
+				std::vector<GLuint> pbo_;
+				//unsigned char *pbo_buffer_;
+				GLuint fbo_;
+				GLuint draw_cache_list_;
+				GLuint id_;
+
+
+				texture_cleanup_info (texture *t)
+				{
+					pbo_.resize(t->pbo_.size());
+					memcpy(&pbo_[0], &t->pbo_[0], sizeof(GLuint)*t->pbo_.size());
+					t->pbo_.clear();
+
+					//pbo_buffer_ = t->pbo_buffer_;
+					//t->pbo_buffer_ = NULL;
+
+					//mapped_pbo_idx_ = t->mapped_pbo_idx_;
+
+
+					fbo_ = t->fbo_;
+					t->fbo_ = 0;
+
+					draw_cache_list_ = t->draw_cache_list_;
+					t->draw_cache_list_ = 0;
+
+					id_ = t->id_;
+					t->id_ = 0;
+
+					//draw_cache_list_ = 0;
+					//pbo_buffer_ = 0;
+					//fbo_ = 0;
+					//id_ = 0;
+					// t->shader_.reset();
+
+				}
+		};
+
 		enum texture_processing
 		{
 			SETUP		= 0x00000001,
@@ -66,7 +109,7 @@ class HYDROGEN_API texture
 			INTERLACED	= 0x00000040,
 		};
 
-		unsigned int m_flags;
+		unsigned int flags_;
 
 
 
@@ -77,43 +120,49 @@ class HYDROGEN_API texture
 
 
 
-		texture(boost::shared_ptr<aspect::gl::iface>& _iface)
+		texture(boost::shared_ptr<aspect::gl::engine>& _engine) //boost::shared_ptr<aspect::gl::iface>& _iface)
 			: //m_filter(NULL),
-		iface_(_iface),
-		id_(0), pbo_buffer_(NULL), m_fbo(0), m_width(0), m_height(0), m_output_width(0), m_output_height(0), m_bpp(0), m_encoding(aspect::image::encoding::UNKNOWN), 
+//		iface_(_iface),
+		engine_(_engine),
+		id_(0), pbo_buffer_(NULL), fbo_(0), m_width(0), m_height(0), m_output_width(0), m_output_height(0), m_bpp(0), m_encoding(aspect::image::encoding::UNKNOWN), 
 			  m_trs(0.0), m_cvt(0.0),
-			  m_flags(0),
+			  flags_(0),
 			  draw_cache_list_(0),
 			  mapped_pbo_idx_(0)
 		{
 
 		}
 
-		~texture()
+		virtual ~texture()
 		{
-			cleanup();
+			 cleanup_async();
+			//async_cleanup();
 		}
 
 		// ~~~
 
-		unsigned int get_flags(void) const { return m_flags; }
+		unsigned int get_flags(void) const { return flags_; }
 
 		void configure(GLint filter, GLint wrap);
 		void _update_pixels(GLubyte* dst);
-		void setup(int width, int height, aspect::image::encoding encoding, uint32_t flags = 0);
+		void setup(/*boost::shared_ptr<engine> _engine, */int width, int height, aspect::image::encoding encoding, uint32_t flags = 0);
+
 		//void attach(texture *t) { m_textures.push_back(t); }
 //		bool accept(aspect::image::encoding encoding);
 
-		void upload();
+		void upload(void);//boost::shared_ptr<engine> _engine);
 
-		bool is_pbo_mapped(void) const { return m_flags & PBO ? true : false; }
+		bool is_pbo_mapped(void) const { return flags_ & PBO ? true : false; }
 		unsigned char *get_pbo_buffer(void) { return pbo_buffer_; }
 
 		bool map_pbo(uint32_t idx = 0);
 		void unmap_pbo(uint32_t idx = 0);
 		void bind(void);//gl::shader *custom_shader = NULL);
 		void unbind(void);//gl::shader *custom_shader = NULL);
-		void cleanup(void);
+		void cleanup_async(void);
+		void cleanup_sync(void);
+		static void cleanup_async_proc(boost::shared_ptr<texture_cleanup_info> tci);
+
 //		void setup_shader_parameters(gl::shader *shader);
 
 		static uint32_t bitmap_flags_to_texture_flags(uint32_t flags)
@@ -152,7 +201,10 @@ class HYDROGEN_API texture
 
 		void draw(const math::vec2 &tl, const math::vec2 &br, bool cache = false, bool flip = false);
 		void draw_sprite(const math::vec2 &size, bool cache);
-	
+
+		private:
+
+
 };
 
 

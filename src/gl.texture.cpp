@@ -25,7 +25,7 @@ void texture::configure(GLint filter, GLint wrap)
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	m_flags |= CONFIG;
+	flags_ |= CONFIG;
 }
 
 void texture::_update_pixels(GLubyte* dst)
@@ -51,9 +51,13 @@ void texture::_update_pixels(GLubyte* dst)
 }
 
 
-void texture::setup(int width, int height, aspect::image::encoding encoding, uint32_t flags)
+void texture::setup(/*boost::shared_ptr<gl::engine> _engine,*/ int width, int height, aspect::image::encoding encoding, uint32_t flags)
 {
-	m_flags |= flags;
+	/*
+	if(!engine_.get())
+		engine_ = _engine; */
+
+	flags_ |= flags;
 	m_encoding = encoding;
 	m_output_width = width;
 	m_output_height = height;
@@ -86,7 +90,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 				glUniform1iARB(glGetUniformLocationARB(m_shader->get_program(),"sampler_CbCr"),1);
 				glUseProgram(0);
 
-				m_flags |= SUBTEXTURES;
+				flags_ |= SUBTEXTURES;
 
 			} break;
 
@@ -113,7 +117,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 				glUniform1iARB(glGetUniformLocationARB(m_shader->get_program(),"sampler_Cr"),2);
 				glUseProgram(0);
 
-				m_flags |= SUBTEXTURES;
+				flags_ |= SUBTEXTURES;
 
 			} break;
 
@@ -192,7 +196,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 				m_bpp = 2;
 				m_output_width = m_width / 2;
 //				create_YCbCr8_shader();
-				shader_ = iface_->get_integrated_shader(iface_base::integrated_shader_YCbCr8);
+				shader_ = engine_->iface()->get_integrated_shader(iface_base::integrated_shader_YCbCr8);
 			} break;
 
 		case aspect::image::encoding::RGBA8:
@@ -215,6 +219,8 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 	// create texture
 	glGenTextures(1, &id_);
 
+	GLenum _err = glGetError();
+	_aspect_assert(_err == GL_NO_ERROR);
 //	scoped_ptr<void> image_data(malloc(get_data_size()));
 
 //	buffer image_data
@@ -243,12 +249,15 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 #endif 
 
 	glBindTexture(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, get_id()); 
+	_err = glGetError();
+	_aspect_assert(_err == GL_NO_ERROR);
+
 	//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
 	//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, m_width, m_height, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, (GLvoid*)image_data);
 //	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, get_format_internal(), m_output_width, m_height, 0, get_format_components(), is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, (GLvoid*)image_data.data());
 	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, get_format_components(), m_output_width, m_height, 0, get_format_internal(), is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, (GLvoid*)image_data.data());
 
-	GLenum _err = glGetError();
+	_err = glGetError();
 	_aspect_assert(_err == GL_NO_ERROR);
 	const GLubyte *err0 = glewGetErrorString(_err);
 
@@ -257,10 +266,10 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 
 
 	uint32_t pbo_buffers = 0;
-	if(m_flags & PBO)
+	if(flags_ & PBO)
 		pbo_buffers = 1;
 	else
-		if(m_flags & PBOx2)
+		if(flags_ & PBOx2)
 			pbo_buffers = 2;
 
 	for(uint32_t in = 0; in < pbo_buffers; in++)
@@ -281,7 +290,7 @@ void texture::setup(int width, int height, aspect::image::encoding encoding, uin
 
 
 
-	m_flags |= SETUP;
+	flags_ |= SETUP;
 }
 
 /*
@@ -320,9 +329,12 @@ bool texture::accept(aspect::image::encoding encoding)
 */
 
 #if 1
-void texture::upload()
+void texture::upload(void)//boost::shared_ptr<engine> e)
 {
-	if((m_flags & SETUP) == 0)
+//	if(!engine_.get())
+//		engine_ = e;
+
+	if((flags_ & SETUP) == 0)
 	{
 
 //		setup(1024,1024,aspect::image::encoding::RGBA8);
@@ -340,7 +352,7 @@ void texture::upload()
 
 	// FBO
 	//if(m_textures.size())
-	if(m_flags & FBO)
+	if(flags_ & FBO)
 	{
 //		m_cvt0 = tick_count::now();
 //		for(size_t i = 0; i < m_textures.size(); i++)
@@ -350,9 +362,9 @@ void texture::upload()
 
 		// FBO
 
-		if(!m_fbo)
-			glGenFramebuffersEXT(1,&m_fbo);
-		_aspect_assert(m_fbo && "error - unable to create fbo (frame buffer object)");
+		if(!fbo_)
+			glGenFramebuffersEXT(1,&fbo_);
+		_aspect_assert(fbo_ && "error - unable to create fbo (frame buffer object)");
 
 
 		glBindTexture(GL_TEXTURE_2D,get_id());
@@ -362,7 +374,7 @@ void texture::upload()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-		glBindFramebufferEXT(GL_FRAMEBUFFER,m_fbo);
+		glBindFramebufferEXT(GL_FRAMEBUFFER,fbo_);
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, get_id(), 0);
 
 		glPushAttrib(GL_VIEWPORT_BIT);
@@ -547,7 +559,7 @@ bool texture::map_pbo(uint32_t idx)
 
 	if(pbo_buffer_)
 	{
-		m_flags |= PBO;
+		flags_ |= PBO;
 		return true;
 	}
 
@@ -596,17 +608,70 @@ void texture::unbind(void) // gl::shader *custom_shader)
 		glUseProgram(0);
 }
 
+void texture::cleanup_async(void)
+{
+	_aspect_assert(engine_.get());
 
-void texture::cleanup(void)
+	_aspect_assert(pbo_buffer_ == NULL);
+
+	boost::shared_ptr<texture_cleanup_info> tci = boost::make_shared<texture_cleanup_info>(this);
+	engine_->schedule(boost::bind(&texture::cleanup_async_proc, tci));
+
+	shader_.reset();
+	flags_ = 0;
+	// ---
+
+
+}
+
+void texture::cleanup_async_proc(boost::shared_ptr<texture_cleanup_info> tci)
+{
+	printf("DOING TEXTURE CLEANUP ASYNCHRONOUSLY!!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+	if(tci->draw_cache_list_)
+		glDeleteLists(tci->draw_cache_list_,1);
+
+//	if(tci->pbo_buffer_)
+//		unmap_pbo(tci->mapped_pbo_idx_);
+
+	
+//	if(shader_)
+//		shader_.reset();
+
+	if(tci->pbo_.size())
+	{
+		for(size_t i = 0; i < tci->pbo_.size(); i++)
+			glDeleteBuffersARB(1, &tci->pbo_[i]);
+		tci->pbo_.clear();
+	}
+
+	if(tci->fbo_)
+	{
+		glDeleteFramebuffersEXT(1,&tci->fbo_);
+		tci->fbo_ = 0;
+	}
+
+	if(tci->id_)
+	{
+		glDeleteTextures(1, &tci->id_); 
+		tci->id_ = 0;
+	}
+
+	// flags_ = 0;
+}
+
+
+void texture::cleanup_sync(void)
 {
 	if(draw_cache_list_)
 		glDeleteLists(draw_cache_list_,1);
 
-	if(pbo_buffer_)
-		unmap_pbo(mapped_pbo_idx_);
+	//	if(tci->pbo_buffer_)
+	//		unmap_pbo(tci->mapped_pbo_idx_);
 
-	if(shader_)
-		shader_.reset();
+
+	//	if(shader_)
+	//		shader_.reset();
 
 	if(pbo_.size())
 	{
@@ -615,10 +680,10 @@ void texture::cleanup(void)
 		pbo_.clear();
 	}
 
-	if(m_fbo)
+	if(fbo_)
 	{
-		glDeleteFramebuffersEXT(1,&m_fbo);
-		m_fbo = 0;
+		glDeleteFramebuffersEXT(1,&fbo_);
+		fbo_ = 0;
 	}
 
 	if(id_)
@@ -627,7 +692,7 @@ void texture::cleanup(void)
 		id_ = 0;
 	}
 
-	m_flags = 0;
+	// flags_ = 0;
 }
 
 void texture::draw(const math::vec2 &tl, const math::vec2 &br, bool cache, bool flip)

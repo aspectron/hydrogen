@@ -68,7 +68,7 @@ class HYDROGEN_API image_rect_update_queue
 
 				v.push_back(rect_update(rc,dest_offset));
 				dest_offset += rc.width*rc.height*4;
-				dest_offset = (dest_offset +31) & ~31;
+				//dest_offset = (dest_offset +31) & ~31;
 			}
 
 			if(size)

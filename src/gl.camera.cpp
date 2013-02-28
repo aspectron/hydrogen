@@ -153,6 +153,19 @@ namespace aspect { namespace gl {
 
 	math::vec3 camera::project_mouse(gl::entity *e, double x, double y)
 	{
+
+		math::matrix m;
+		m.invert(get_modelview_matrix());
+
+		math::vec3 pt_near(x,y,0.0);
+		math::vec3 pt_far(x,y,1.0);
+
+		pt_near = pt_near * m;
+		pt_far = pt_far * m;
+
+
+
+		/*
 		math::matrix m;
 		m.invert(e->get_transform_matrix());
 
@@ -198,6 +211,9 @@ namespace aspect { namespace gl {
 		pt.y = world_pos.y+direction.y*s;
 		pt.z = 0;
 
+		return pt;
+		*/
+		math::vec3 pt(0.0,0.0);
 		return pt;
 	}
 
