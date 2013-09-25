@@ -25,15 +25,15 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalOptions>/Zm392 /MP %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>../IMAGE/src;../MATH/src;../OXYGEN/src;$(JSX)/extern/berkelium/include;$(THORIUM)/src;$(SolutionDir)extern/airsend;../thorium/src;../thorium/extern/berkelium/include;$(JSX)/extern;$(JSX)/sdk/core/src;$(JSX)/extern/boost/include;$(JSX)/extern/tbb/include;$(JSX)/extern/v8/include;$(JSX)/extern/uuid;$(JSX)/extern/libjson;$(JSX)/sdk/libuuh/src;$(JSX)/extern/pion-net/common/include;$(JSX)/extern/pion-net/net/include;$(JSX)/extern/libcurl/include;$(JSX)/extern/zlib;$(JSX)/extern/cryptopp;$(JSX)/extern/openssl/include;$(JSX)/extern/v8-juice/src/include;$(JSX)/extern/googleurl/src;$(JSX)/extern/googleurl;$(ProjectDir)/extern;$(ProjectDir)/extern/bullet/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WIN32;_WIN32_WINNT=0x0601;WIN32;NOMINMAX;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>../IMAGE/src;../MATH/src;../OXYGEN/src;$(JSX)/extern/berkelium/include;$(THORIUM)/src;$(SolutionDir)extern/airsend;../thorium/src;../thorium/extern/berkelium/include;$(JSX)/extern;$(JSX)/sdk/core/src;$(JSX)/extern/boost/include;$(JSX)/extern/tbb/include;$(JSX)/extern/v8/include;$(JSX)/extern/uuid;$(JSX)/extern/libjson;$(JSX)/sdk/libuuh/src;$(JSX)/extern/pion-net/common/include;$(JSX)/extern/pion-net/net/include;$(JSX)/extern/libcurl/include;$(JSX)/extern/zlib;$(JSX)/extern/cryptopp;$(JSX)/extern/openssl/include;$(JSX)/extern/googleurl/src;$(JSX)/extern/googleurl;$(ProjectDir)/extern;$(ProjectDir)/extern/bullet/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN32;_WIN32_WINNT=0x0601;WIN32;NOMINMAX;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;V8_USE_UNSAFE_HANDLES;V8_DISABLE_DEPRECATIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4275;4351;4503;4510;4512;4610;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32.lib;OpenGL32.lib;GLU32.lib;oxygen.lib;math.lib;thorium.lib;math.lib;jsx.lib;v8-juice.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;OpenGL32.lib;GLU32.lib;oxygen.lib;math.lib;thorium.lib;math.lib;jsx.lib;v8.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
