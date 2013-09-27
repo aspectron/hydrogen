@@ -1,24 +1,6 @@
 #include "hydrogen.hpp"
 
 using namespace v8;
-using namespace v8::juice;
-
-V8_IMPLEMENT_CLASS_BINDER(aspect::gl::camera, aspect_camera);
-
-namespace v8 { namespace juice {
-
-	aspect::gl::camera * WeakJSClassCreatorOps<aspect::gl::camera>::Ctor( v8::Arguments const & args, std::string & exceptionText )
-	{
-		return new aspect::gl::camera();
-	}
-
-	void WeakJSClassCreatorOps<aspect::gl::camera>::Dtor( aspect::gl::camera *o )
-	{
-		o->release();
-	}
-
-}} // ::v8::juice
-
 
 namespace aspect { namespace gl {
 

@@ -3,23 +3,6 @@
 #define _jsx_assert(condition, msg) if(!(condition) && runtime::is_v8_thread()) throw std::runtime_error(msg); else if(!(condition)) { _aspect_assert(condition && ##msg); }
 
 using namespace v8;
-using namespace v8::juice;
-
-V8_IMPLEMENT_CLASS_BINDER(aspect::gl::entity, aspect_entity);
-
-namespace v8 { namespace juice {
-
-aspect::gl::entity * WeakJSClassCreatorOps<aspect::gl::entity>::Ctor( v8::Arguments const & args, std::string & exceptionText )
-{
-	return new aspect::gl::entity();
-}
-
-void WeakJSClassCreatorOps<aspect::gl::entity>::Dtor( aspect::gl::entity *o )
-{
-	o->release();
-}
-
-}} // ::v8::juice
 
 namespace aspect { namespace gl {
 
@@ -69,84 +52,67 @@ void entity::detach(boost::shared_ptr<entity> e)
 //	_aspect_assert(false);
 }
 
-v8::Handle<v8::Value> entity::attach( v8::Arguments const& args )
+v8::Handle<v8::Value> entity::attach_v8(v8::Arguments const& args)
 {
-	if(!args.Length())
-		throw std::invalid_argument("engine::attach() requires entity as an argument");
-
-	entity *e = convert::CastFromJS<entity>(args[0]);
-	if(!e)
-		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
+	entity* e = v8pp::from_v8<entity*>(args[0]);
+	if (!e)
+	{
+		throw std::invalid_argument("engine::attach() requires entity object as an argument");
+	}
 
 	attach(e->self());
 
-	return convert::CastToJS(this);
+	return v8pp::to_v8(this);
 }
 
-v8::Handle<v8::Value> entity::detach( v8::Arguments const& args )
+v8::Handle<v8::Value> entity::detach_v8(v8::Arguments const& args)
 {
-	if(!args.Length())
-		throw std::invalid_argument("engine::attach() requires entity as an argument");
-
-	entity *e = convert::CastFromJS<entity>(args[0]);
-	if(!e)
-		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
+	entity* e = v8pp::from_v8<entity*>(args[0]);
+	if (!e)
+	{
+		throw std::invalid_argument("engine::detach() requires entity object as an argument");
+	}
 
 	detach(e->self());
 
-	return convert::CastToJS(this);
+	return v8pp::to_v8(this);
 }
 
-aspect::math::matrix * entity::get_transform_matrix_ptr( void )
+aspect::math::matrix& entity::get_transform_matrix()
 {
-//	if(physics_data_.rigid_body && physics_data_.rigid_body->getMotionState())
-//	{
-//		physics_data_.rigid_body->getMotionState()->m_graphicsWorldTrans.getOpenGLMatrix((btScalar*)entity_transform.get_matrix_ptr());
-		//		entity_transform.flags = transform::TRANSFORM_BIND_DISABLED;
-//	}
-	if(physics_data_.rigid_body)
+	if (physics_data_.rigid_body)
 	{
 		entity_transform.flags = transform::TRANSFORM_BIND_DISABLED;
 
-		float m[16];
-//		physics_data_.rigid_body->getWorldTransform().getOpenGLMatrix((btScalar*)entity_transform.get_matrix_ptr());
-		physics_data_.rigid_body->getWorldTransform().getOpenGLMatrix((btScalar*)m);//entity_transform.get_matrix_ptr());
-		double *ptr = (double*)entity_transform.get_matrix_ptr();
-		for(int i = 0; i < 16; i++)
-			ptr[i] = (double)m[i];
-//			entity_transform
-		//		entity_transform.flags = transform::TRANSFORM_BIND_DISABLED;
+		btScalar m[16];
+		physics_data_.rigid_body->getWorldTransform().getOpenGLMatrix(m);
+		std::copy(std::begin(m), std::end(m), entity_transform.transform_matrix.v);
 	}
 
-	return entity_transform.get_matrix_ptr();
+	return entity_transform.get_matrix();
 }
 
 
-void entity::set_transform_matrix( const math::matrix &_transform )
+void entity::set_transform_matrix(math::matrix const& transform)
 {
-	if(physics_data_.rigid_body)
+	if (physics_data_.rigid_body)
 	{
-		float m[16];
-		double *src = (double*)&_transform;
-		for(int i = 0; i < 16; i++)
-			m[i] = src[i];
+		btScalar m[16];
+		std::copy(std::begin(transform.v), std::end(transform.v), m);
 
-		//		physics_data_.rigid_body->getWorldTransform().setFromOpenGLMatrix((const btScalar*)&_transform);
-//		physics_data_.rigid_body->getWorldTransform().setFromOpenGLMatrix((const btScalar*)m);
 		btTransform t;
 		t.setIdentity();
-		t.setFromOpenGLMatrix((const btScalar*)m);
-		
+		t.setFromOpenGLMatrix(m);
+
 		physics_data_.rigid_body->setWorldTransform(t);
-		if(physics_data_.rigid_body->getMotionState())
+		if (physics_data_.rigid_body->getMotionState())
 			physics_data_.rigid_body->getMotionState()->setWorldTransform(t);
 	}
 	else
 	{
-		entity_transform.transform_matrix = _transform;
+		entity_transform.transform_matrix = transform;
 		entity_transform.flags = transform::TRANSFORM_BIND_DISABLED;
 	}
-
 }
 
 boost::shared_ptr<entity> entity::instance( uint32_t flags )
@@ -238,9 +204,9 @@ void entity::apply_rotation( const math::quat &q )
 struct entity_z_less {
 	bool operator ()(boost::shared_ptr<entity> const& a, boost::shared_ptr<entity> const& b) const {
 
-		math::vec3 v1,v2;
-		a->get_location(v1);
-		b->get_location(v2);
+		math::vec3 const v1 = a->get_location();
+		math::vec3 const v2 = b->get_location();
+
 		if (v1.z < v2.z) return true;
 		if (v1.z > v2.z) return false;
 
@@ -334,7 +300,8 @@ void entity::_physics_data::copy( const _physics_data &src )
 // 	{
 // 		return btVector3(vec.x, vec.y, vec.z);
 // 	}
-// };
+// };
+
 // inline btVector3& operator = (btVector3 &dst, const math::vec3& src)
 // //inline operator btVector3 (btVector3 &dst, const math::vec3& src)
 // {
@@ -434,19 +401,6 @@ void entity::set_linear_velocity( const math::vec3 &_absolute_velocity )
 	physics_data_.rigid_body->setLinearVelocity(absolute_velocity);
 }
 
-v8::Handle<v8::Value> entity::get_location( void )
-{
-
-	math::vec3 loc;
-	get_location(loc);
-
-	Handle<Object> o = Object::New();
-	o->Set(String::NewSymbol("x"), convert::DoubleToJS(loc.x));
-	o->Set(String::NewSymbol("y"), convert::DoubleToJS(loc.y));
-	o->Set(String::NewSymbol("z"), convert::DoubleToJS(loc.z));
-
-	return o;
-}
 
 /*
 void entity::execute_physics_action( const action &_a )

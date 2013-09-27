@@ -1,30 +1,8 @@
 #include "hydrogen.hpp"
 
+#include "v8_buffer.hpp"
+
 using namespace v8;
-using namespace v8::juice;
-
-V8_IMPLEMENT_CLASS_BINDER(aspect::gl::engine, aspect_engine);
-
-namespace v8 { namespace juice {
-
-aspect::gl::engine * WeakJSClassCreatorOps<aspect::gl::engine>::Ctor( v8::Arguments const & args, std::string & exceptionText )
-{
-	if(!args.Length())
-		throw std::runtime_error("oxygen::engine() requires hydrogen::window object");
-
-	aspect::gui::window *window = convert::CastFromJS<aspect::gui::window>(args[0]);
-	if(!window)
-		throw std::runtime_error("oxygen::engine() - constructor argument is not a window");
-
-	return new aspect::gl::engine(window->self());
-}
-
-void WeakJSClassCreatorOps<aspect::gl::engine>::Dtor( aspect::gl::engine *o )
-{
-	o->release();
-}
-
-}} // ::v8::juice
 
 namespace aspect { namespace gl {
 
@@ -121,8 +99,8 @@ private:
 };
 
 
-engine::engine(boost::shared_ptr<aspect::gui::window> target_window)
-: window_(target_window),
+engine::engine(aspect::gui::window& window)
+: window_(window),
 flags_(0),
 viewport_width_(0),
 viewport_height_(0),
@@ -136,6 +114,8 @@ hold_interval_(1000.0/60.0),
 debug_string_changed_(false),
 context_(self())
 {
+	window_v8_ = v8::Persistent<v8::Value>::New(v8pp::to_v8(window_));
+
 //	context_(self)
 	world_ = ((new world())->self());
 //	viewport_ = boost::make_shared<viewport>();
@@ -146,6 +126,8 @@ context_(self())
 
 	main_loop_.reset(new main_loop(interval));
 	thread_ = boost::thread(&engine::main, this);
+
+	set_engine_info_location(0, 12);
 }
 
 
@@ -161,6 +143,7 @@ engine::~engine()
 	world_.reset();
 
 	iface_.reset();
+	window_v8_.Dispose();
 }
 
 
@@ -172,7 +155,7 @@ void engine::main()
 	SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
 
 //	iface_.reset(boost::make_shared<aspect::gl::iface>(new aspect::gl::iface(window_.get())));
-	iface_ = boost::make_shared<aspect::gl::iface>(window_.get());
+	iface_ = boost::make_shared<aspect::gl::iface>(window_);
 	iface_->setup();
 	iface_->set_active(true);
 
@@ -252,11 +235,12 @@ void engine::main()
 
 		if(show_engine_info_)
 		{
-			uint32_t w,h;
-			context_.iface()->window()->get_size(&w,&h);
+			uint32_t const width = context_.iface()->window().width();
+			uint32_t const height = context_.iface()->window().height();
 
 			wchar_t wsz[128];
-			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d", (float)fps_unheld_, (float)fps_, (float) frt_, w, h);
+			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
+				(float)fps_unheld_, (float)fps_, (float) frt_, width, height);
 			iface()->output_text(engine_info_location_.x,engine_info_location_.y,wsz);
 
 			debug_string_mutex_.lock();
@@ -426,11 +410,9 @@ void engine::cleanup(void)
 	iface_->cleanup();
 }
 
-void engine::validate_iface(void)
+void engine::validate_iface()
 {
-	uint32_t width,height;
-	iface()->window()->get_size(&width,&height);
-	if(width != viewport_width_ || height != viewport_height_)
+	if (iface()->window().width() != viewport_width_ || iface()->window().height() != viewport_height_)
 	{
 		update_viewport();
 		setup_viewport();
@@ -442,11 +424,10 @@ void engine::validate_iface(void)
 	}
 }
 
-void engine::update_viewport(void)
+void engine::update_viewport()
 {
-	iface()->window()->get_size(&viewport_width_,&viewport_height_);
-	if(viewport_width_ < 1) viewport_width_ = 1;
-	if(viewport_height_ < 1) viewport_height_ = 1;
+	viewport_width_ = std::max(1u, iface()->window().width());
+	viewport_height_ = std::max(1u, iface()->window().height());
 	glViewport(0, 0, viewport_width_, viewport_height_);
 //	printf("updating viewport: %d %d\n",viewport_width_,viewport_height_);
 }
@@ -469,13 +450,13 @@ void engine::get_viewport_units(double *x, double *y)
 	*y = 2.0 / (double)height;
 }
 
-void engine::_setup_viewport(void)
+void engine::_setup_viewport()
 {
 	update_viewport();
 	setup_viewport();
 }
 
-void engine::setup_viewport(void)
+void engine::setup_viewport()
 {
 	// reset the projection matrix
 	glMatrixMode(GL_PROJECTION);
@@ -516,32 +497,30 @@ math::vec2 engine::map_pixel_to_view(math::vec2 const& v)
 //	return vec2((v.x + 1.0) * 0.5 * (double)viewport_width_, (v.y + 1.0) * 0.5 * (double)viewport_height_);
 }
 
-v8::Handle<v8::Value> engine::attach( v8::Arguments const& args )
+v8::Handle<v8::Value> engine::attach_v8(v8::Arguments const& args)
 {
-	if(!args.Length())
-		throw std::invalid_argument("engine::attach() requires entity as an argument");
-
-	entity *e = convert::CastFromJS<entity>(args[0]);
-	if(!e)
-		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
+	entity* e = v8pp::from_v8<entity*>(args[0]);
+	if (!e)
+	{
+		throw std::invalid_argument("engine::attach() requires entity object as an argument");
+	}
 
 	attach(e->self());
 
-	return convert::CastToJS(this);
+	return v8pp::to_v8(this);
 }
 
-v8::Handle<v8::Value> engine::detach( v8::Arguments const& args )
+v8::Handle<v8::Value> engine::detach_v8(v8::Arguments const& args)
 {
-	if(!args.Length())
-		throw std::invalid_argument("engine::attach() requires entity as an argument");
-
-	entity *e = convert::CastFromJS<entity>(args[0]);
-	if(!e)
-		throw std::invalid_argument("engine::attach() - object is not an entity (unable to convert object to entity)");
+	entity* e = v8pp::from_v8<entity*>(args[0]);
+	if (!e)
+	{
+		throw std::invalid_argument("engine::detach() requires entity object as an argument");
+	}
 
 	detach(e->self());
 
-	return convert::CastToJS(this);
+	return v8pp::to_v8(this);
 }
 
 void engine::set_vsync_interval_impl( int i )
@@ -567,52 +546,50 @@ void engine::set_camera(camera *cam)
 	context_.set_camera(cam);
 }
 
-void engine::capture_screen_gl(Persistent<Function> *cb)
+void engine::capture_screen_gl(Persistent<Function> cb)
 {
-	image::shared_bitmap b = boost::make_shared<image::bitmap>();
-	b->resize(viewport_width_,viewport_height_,image::BGRA8);
-	// image.
-	glReadPixels(0,0,viewport_width_,viewport_height_, GL_BGRA, GL_UNSIGNED_BYTE, (GLvoid*)b->data());
+	image::shared_bitmap b = boost::make_shared<image::bitmap>(viewport_width_, viewport_height_, image::BGRA8);
+
+	glReadPixels(0, 0,viewport_width_, viewport_height_, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
 
 	runtime::main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb));
-
 }
 
-void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function> *cb)
+void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function> cb)
 {
+	HandleScope scope;
 
-//	v8_core::buffer
-	Handle<Object> self = convert::CastToJS(this)->ToObject();
-	
-	Handle<Value> args[] = { convert::StdStringToJS("complete") };
+	//TODO: move data from shared_bitmap to buffer
+	v8_core::buffer* buf = new v8_core::buffer((char const*)b->data(),b->data_size());
+	Handle<Value> buf_value = v8_core::buffer::js_class::import_external(buf);
+
+	Handle<Value> args[] = { v8pp::to_v8("complete"), buf_value };
 	
 	TryCatch try_catch;
-	Handle<Value> result = (*cb)->Call(self, 1, args);
+	Handle<Value> result = cb->Call(v8pp::to_v8(this)->ToObject(), 1, args);
 	if ( try_catch.HasCaught() )
+	{
 		v8_core::report_exception(try_catch);
-
-	cb->Dispose();
-	cb->Clear();
-	delete cb;
+	}
+	cb.Dispose();
 }
 
 Handle<Value> engine::capture(const v8::Arguments& args)
 {
-	if(!args.Length() || !args[0]->IsFunction())
+	Persistent<Function> cb = Persistent<Function>::New(args[0].As<Function>());
+	if (cb.IsEmpty())
+	{
 		throw std::invalid_argument("capture requires function callback");
-
-	Persistent<Function> *cb = new Persistent<Function>(Handle<Function>::Cast(args[0]));
+	}
 
 	schedule(boost::bind(&engine::capture_screen_gl, this, cb));
 
-	return convert::CastToJS(this);
+	return v8pp::to_v8(this);
 }
 
-bool engine::schedule( callback cb )
+bool engine::schedule(callback cb)
 {
-	return main_loop_.get() ? main_loop_->schedule(cb) : false;
+	return main_loop_ && main_loop_->schedule(cb);
 }
 
-
-
-} } // namespace aspect::gl
+}} // namespace aspect::gl

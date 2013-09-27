@@ -1,13 +1,6 @@
 #ifndef _PHYSICS_BULLET_HPP_
 #define _PHYSICS_BULLET_HPP_
 
-#include <vector>
-
-//#include "types.hpp"
-//#include "math.vector.hpp"
-//#include "math.matrix.hpp"
-// #include "gl.color.hpp"
-
 namespace aspect
 {
 
@@ -18,8 +11,7 @@ namespace aspect
 		class HYDROGEN_API bullet : public shared_ptr_object<bullet>
 		{
 			public:
-
-				V8_DECLARE_CLASS_BINDER(bullet);
+				typedef v8pp::class_<bullet, v8pp::v8_args_factory> js_class;
 
 				enum
 				{
@@ -200,8 +192,19 @@ namespace aspect
 } // aspect
 
 
-#define WEAK_CLASS_TYPE aspect::physics::bullet
-#define WEAK_CLASS_NAME bullet
-#include <v8/juice/WeakJSClassCreator-Decl.h>
+
+namespace v8pp {
+
+aspect::physics::bullet * v8_args_factory::instance<aspect::physics::bullet>::create(v8::Arguments const& args)
+{
+	return new aspect::physics::bullet();
+}
+
+void v8_args_factory::instance<aspect::physics::bullet>::destroy( aspect::physics::bullet *o )
+{
+	o->release();
+}
+
+} //v8pp
 
 #endif // _PHYSICS_BULLET_HPP_

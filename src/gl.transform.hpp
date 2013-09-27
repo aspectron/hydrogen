@@ -75,5 +75,3 @@ namespace aspect
 } // aspect
 
 #endif // _ASPECT_TRANSFORM_HPP_
-
-

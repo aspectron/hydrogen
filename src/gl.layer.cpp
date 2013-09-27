@@ -2,35 +2,6 @@
 #include "library.hpp"
 
 using namespace v8;
-using namespace v8::juice;
-
-V8_IMPLEMENT_CLASS_BINDER(aspect::gl::layer, aspect_layer);
-V8_IMPLEMENT_CLASS_BINDER(aspect::gl::layer_reference, aspect_layer_reference);
-
-namespace v8 { namespace juice {
-
-aspect::gl::layer * WeakJSClassCreatorOps<aspect::gl::layer>::Ctor( v8::Arguments const & args, std::string & exceptionText )
-{
-	return new aspect::gl::layer();
-}
-
-void WeakJSClassCreatorOps<aspect::gl::layer>::Dtor( aspect::gl::layer *o )
-{
-//	delete o;
-	o->release();
-}
-
-aspect::gl::layer_reference * WeakJSClassCreatorOps<aspect::gl::layer_reference>::Ctor( v8::Arguments const & args, std::string & exceptionText )
-{
-	return new aspect::gl::layer_reference();
-}
-
-void WeakJSClassCreatorOps<aspect::gl::layer_reference>::Dtor( aspect::gl::layer_reference *o )
-{
-	o->release();
-}
-
-}} // ::v8::juice
 
 namespace aspect { namespace gl {
 
@@ -91,7 +62,7 @@ void layer::render_impl( gl::render_context *context )
 			glLoadMatrixd((GLdouble*)&m);
 
 			glMatrixMode(GL_MODELVIEW);
-			glLoadMatrixd((GLdouble*)get_transform_matrix_ptr());
+			glLoadMatrixd(get_transform_matrix().v);
 
 			texture_->draw(math::vec2(0.0,0.0),math::vec2(texture_->get_width(),texture_->get_height()), false);
 		}
@@ -107,7 +78,7 @@ void layer::render_impl( gl::render_context *context )
 //  			else
 			{
 				glMatrixMode(GL_MODELVIEW);
-				glLoadMatrixd((GLdouble*)get_transform_matrix_ptr());
+				glLoadMatrixd(get_transform_matrix().v);
 			}
 
 //			glMatrixMode(GL_MODELVIEW);
@@ -157,11 +128,12 @@ v8::Handle<v8::Value> layer_reference::assoc( v8::Arguments const& args)
 	}
 	else
 	{
-		layer *l = convert::CastFromJS<layer>(args[0]);
-		if(!l)
+		layer* new_layer = v8pp::from_v8<layer*>(args[0]);
+		if (!new_layer)
+		{
 			throw std::invalid_argument("layer_reference::assoc() argument is not a layer");
-
-		layer_ = l->self();
+		}
+		layer_ = new_layer->self();
 	}
 
 	return Undefined();

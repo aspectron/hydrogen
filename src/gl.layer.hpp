@@ -118,11 +118,7 @@ class HYDROGEN_API texture_update_sink
 class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update_bitmap_sink
 {
 	public:
-
-		V8_DECLARE_CLASS_BINDER(layer);
-		
-//		void test_function_binding(void) { printf("TEST FUNCTION BINDING INVOKED!\n"); }
-
+		typedef v8pp::class_<layer, v8pp::v8_args_factory> js_class;
 		layer();
 		virtual ~layer();
 
@@ -170,8 +166,7 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 class HYDROGEN_API layer_reference : public layer
 {
 	public:
-
-		V8_DECLARE_CLASS_BINDER(layer_reference);
+		typedef v8pp::class_<gl::layer_reference, v8pp::v8_args_factory> js_class;
 
 		v8::Handle<v8::Value>	assoc(v8::Arguments const&);
 
@@ -187,12 +182,27 @@ class HYDROGEN_API layer_reference : public layer
 
 } } // aspect::gl
 
-#define WEAK_CLASS_TYPE aspect::gl::layer
-#define WEAK_CLASS_NAME layer
-#include <v8/juice/WeakJSClassCreator-Decl.h>
+namespace v8pp {
 
+aspect::gl::layer * v8_args_factory::instance<aspect::gl::layer>::create(v8::Arguments const& args)
+{
+	return new aspect::gl::layer();
+}
 
-#define WEAK_CLASS_TYPE aspect::gl::layer_reference
-#define WEAK_CLASS_NAME layer_reference
-#include <v8/juice/WeakJSClassCreator-Decl.h>
+void v8_args_factory::instance<aspect::gl::layer>::destroy( aspect::gl::layer *o )
+{
+//	delete o;
+	o->release();
+}
 
+aspect::gl::layer_reference * v8_args_factory::instance<aspect::gl::layer_reference>::create(v8::Arguments const& args)
+{
+	return new aspect::gl::layer_reference();
+}
+
+void v8_args_factory::instance<aspect::gl::layer_reference>::destroy( aspect::gl::layer_reference *o )
+{
+	o->release();
+}
+
+} // v8pp

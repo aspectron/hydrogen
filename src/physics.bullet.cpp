@@ -12,23 +12,6 @@
 
 
 using namespace v8;
-using namespace v8::juice;
-
-V8_IMPLEMENT_CLASS_BINDER(aspect::physics::bullet, aspect_bullet);
-
-namespace v8 { namespace juice {
-
-	aspect::physics::bullet * WeakJSClassCreatorOps<aspect::physics::bullet>::Ctor( v8::Arguments const & args, std::string & exceptionText )
-	{
-		return new aspect::physics::bullet();
-	}
-
-	void WeakJSClassCreatorOps<aspect::physics::bullet>::Dtor( aspect::physics::bullet *o )
-	{
-		o->release();
-	}
-
-}} // ::v8::juice
 
 namespace aspect
 {
@@ -131,9 +114,9 @@ namespace aspect
 			{
 			case gl::entity::BOUNDING_BOX:
 				{
-					pbtCollisionShape = new btBoxShape( btVector3( _entity->physics_data_.dimension.x * _entity->get_transform_ptr()->scale.x,
-						_entity->physics_data_.dimension.y * _entity->get_transform_ptr()->scale.y,
-						_entity->physics_data_.dimension.z * _entity->get_transform_ptr()->scale.z ) );
+					pbtCollisionShape = new btBoxShape( btVector3( _entity->physics_data_.dimension.x * _entity->get_transform().scale.x,
+						_entity->physics_data_.dimension.y * _entity->get_transform().scale.y,
+						_entity->physics_data_.dimension.z * _entity->get_transform().scale.z ) );
 
 				} break;
 

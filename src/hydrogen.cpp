@@ -1,181 +1,148 @@
 #include "hydrogen.hpp"
 #include "library.hpp"
 
-using namespace aspect;
+#include "math.hpp"
+
 using namespace v8;
-using namespace v8::juice;
+
+namespace aspect {
 
 DECLARE_LIBRARY_ENTRYPOINTS(hydrogen_install, hydrogen_uninstall);
 
-namespace v8 { namespace juice { namespace convert {
-	template <>
-	struct JSToNative<const math::vec3&>
-	{
-		typedef const math::vec3 ResultType;
-		ResultType operator()( v8::Handle<v8::Value> const & h ) const
-		{
-			math::vec3 vec;
-			if(h->IsArray())
-			{
-				Handle<Array> ha = Handle<Array>::Cast(h);
-				if(ha->Length() != 3)
-					throw std::invalid_argument("array must contain 3 coordinates");
-				vec.x = JSToDouble(ha->Get(0));
-				vec.y = JSToDouble(ha->Get(1));
-				vec.z = JSToDouble(ha->Get(2));
-			}
-			else
-			if(h->IsObject())
-			{
-				Handle<Object> o = h->ToObject();
-				vec.x = JSToDouble(o->Get(String::NewSymbol("x")));
-				vec.y = JSToDouble(o->Get(String::NewSymbol("y")));
-				vec.z = JSToDouble(o->Get(String::NewSymbol("z")));
-			}
-			else
-				throw std::invalid_argument("expecting object(x,y,z) or array[3]");
+static Persistent<Value> image_module;
 
-			return vec;
-		}
-	};
-
-//	static const JSToNative<math::vec3> JSToVec3 = JSToNative<math::vec3>();
-
-}}}
-
-void hydrogen_install(Handle<Object> target)
+Handle<Value> hydrogen_install()
 {
 	using namespace aspect::gl;
 	using namespace aspect::physics;
 
-//	HandleScope scope;
-	aspect::image::init();
+	image_module= Persistent<Value>::New(load_library("image"));
 
-	ClassBinder<aspect::physics::bullet> *binder_bullet = new ClassBinder<aspect::physics::bullet>(target);
-	V8_SET_CLASS_BINDER(aspect::physics::bullet, binder_bullet);
-	(*binder_bullet)
-		.BindMemFunc<bool, entity*, &bullet::add>("add")
-		.BindMemFunc<void, entity*, &bullet::remove>("remove")
-		.BindMemFunc<void, &bullet::play>("play")
-		.BindMemFunc<void, &bullet::stop>("stop")
-		.BindMemFunc<void, double, double, double, &bullet::set_gravity>("set_gravity")
-		.BindMemFunc<void, double, double, double, double, double, double, &bullet::set_densities>("set_densities")
-	.Seal();
+	v8pp::module hydrogen_module;
 
-	ClassBinder<aspect::gl::engine> *binder_engine = new ClassBinder<aspect::gl::engine>(target);
-	V8_SET_CLASS_BINDER(aspect::gl::engine, binder_engine);
-	(*binder_engine)
-//		.BindMemFunc<void, &aspect::gl::engine::cleanup>("cleanup")
-		.BindMemFunc<&aspect::gl::engine::attach>("attach")
-		.BindMemFunc<&aspect::gl::engine::detach>("detach")
-		.BindMemFunc<void, bool, &aspect::gl::engine::show_engine_info>("show_engine_info")
-		.BindMemFunc<void, double, double, &aspect::gl::engine::set_engine_info_location>("set_engine_info_location")
-		.BindMemFunc<void, double, &aspect::gl::engine::set_rendering_hold_interval>("set_rendering_hold_interval")
-		.BindMemFunc<void, bool, &aspect::gl::engine::enable_rendering_hold>("enable_rendering_hold")
-		.BindMemFunc<void, int, &aspect::gl::engine::set_vsync_interval>("set_vsync_interval")
-		.BindMemFunc<void, std::string, &aspect::gl::engine::set_debug_string>("set_debug_string")
-		.BindMemFunc<void, aspect::gl::camera*, &aspect::gl::engine::set_camera>("set_camera")
-		.BindMemFunc<void, aspect::physics::bullet*, &aspect::gl::engine::set_physics>("set_physics")
-		.BindMemFunc<&aspect::gl::engine::capture>("capture")
-		.Seal();
+	physics::bullet::js_class bullet_class;
+	bullet_class
+		.set("add", &bullet::add)
+		.set("remove", &bullet::remove)
+		.set("play", &bullet::play)
+		.set("stop", &bullet::stop)
+		.set("set_gravity", &bullet::set_gravity)
+		.set("set_densities", &bullet::set_densities)
+		;
+	hydrogen_module.set("bullet",  bullet_class);
 
-	ClassBinder<aspect::gl::entity> *binder_entity = new ClassBinder<aspect::gl::entity>(target);
-	V8_SET_CLASS_BINDER(aspect::gl::entity, binder_entity);
-	(*binder_entity)
-		.BindMemFunc<&aspect::gl::entity::attach>("attach")
-		.BindMemFunc<&aspect::gl::entity::detach>("detach")
-		.BindMemFunc<void, &aspect::gl::entity::sort_z>("sort_z")
-		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::set_location>("set_location")
-		.BindMemFunc<Handle<Value>, &aspect::gl::entity::get_location>("get_location")
+	gl::engine::js_class engine_class;
+	engine_class
+		.set("attach", &engine::attach_v8)
+		.set("detach", &engine::detach_v8)
+		.set("show_engine_info", &engine::show_engine_info)
+		.set("set_engine_info_location", &engine::set_engine_info_location)
+		.set("set_rendering_hold_interval", &engine::set_rendering_hold_interval)
+		.set("enable_rendering_hold", &engine::enable_rendering_hold)
+		.set("set_vsync_interval", &engine::set_vsync_interval)
+		.set("set_debug_string", &engine::set_debug_string)
+		.set("set_camera", &engine::set_camera)
+		.set("set_physics", &engine::set_physics)
+		.set("capture", &engine::capture)
+		;
+	hydrogen_module.set("engine", engine_class);
 
-		.BindMemFunc<void, double, &aspect::gl::entity::fade_in>("fade_in")
-		.BindMemFunc<void, double, &aspect::gl::entity::fade_out>("fade_out")
-		.BindMemFunc<void, &aspect::gl::entity::show>("show")
-		.BindMemFunc<void, &aspect::gl::entity::hide>("hide")
+	gl::entity::js_class entity_class;
+	entity_class
+		.set("attach", &entity::attach_v8)
+		.set("detach", &entity::detach_v8)
+		.set("sort_z", &entity::sort_z)
+		.set("set_location", &entity::set_location)
+		.set("get_location", &entity::get_location)
+//		.set("location", v8pp::property(&entity::get_location, &entity::set_location))
+		.set("fade_in", &entity::fade_in)
+		.set("fade_out", &entity::fade_out)
+		.set("show", &entity::show)
+		.set("hide", &entity::hide)
 
+		.set("set_dimension", &entity::set_dimension)
+		.set("set_radius", &entity::set_radius)
+		.set("get_radius", &entity::get_radius)
+//		.set("radius", v8pp::property(&entity::get_radius, &entity::set_radius))
+		.set("set_margin", &entity::set_margin)
+		.set("get_margin", &entity::get_margin)
+		.set("margin", v8pp::property(&entity::get_margin, &entity::set_margin))
+		.set("set_mass", &entity::set_mass)
+		.set("get_mass", &entity::get_mass)
+//		.set("mass", v8pp::property(&entity::get_mass, &entity::set_mass))
 
-		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::set_dimension>("set_dimension")
-		.BindMemFunc<void, double, &aspect::gl::entity::set_radius>("set_radius")
-		.BindMemFunc<void, double, &aspect::gl::entity::set_margin>("set_margin")
-//		.BindMemFunc<double, &aspect::gl::entity::get_radius>("get_radius")
-		.BindMemFunc<void, double, &aspect::gl::entity::set_mass>("set_mass")
-		.BindMemFunc<double, &aspect::gl::entity::get_mass>("get_mass")
+		.set("set_damping", &entity::set_damping)
+		.set("set_linear_factor", &entity::set_linear_factor)
+		.set("set_angular_factor", &entity::set_angular_factor)
+		.set("apply_impulse", &entity::apply_impulse)
+		.set("apply_force", &entity::apply_force)
+		.set("apply_relative_force", &entity::apply_relative_force)
+		.set("apply_relative_impulse", &entity::apply_relative_impulse)
+		.set("apply_absolute_impulse", &entity::apply_absolute_impulse)
+		.set("set_linear_velocity", &entity::set_linear_velocity)
+		;
+	hydrogen_module.set("entity", entity_class);
 
-		.BindMemFunc<void, double, double, &aspect::gl::entity::set_damping>("set_damping")
-		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::set_linear_factor>("set_linear_factor")
-		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::set_angular_factor>("set_angular_factor")
-		.BindMemFunc<void, const math::vec3&, const math::vec3&, &aspect::gl::entity::apply_impulse>("apply_impulse")
-		.BindMemFunc<void, const math::vec3&, const math::vec3&, &aspect::gl::entity::apply_force>("apply_force")
-		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::apply_relative_force>("apply_relative_force")
-		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::apply_relative_impulse>("apply_relative_impulse")
-		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::apply_absolute_impulse>("apply_absolute_impulse")
-		.BindMemFunc<void, const math::vec3&, &aspect::gl::entity::set_linear_velocity>("set_linear_velocity")
-		.Seal();
+	gl::camera::js_class camera_class(entity_class);
+	camera_class
+		.set("set_perspective_projection_fov", &camera::set_perspective_projection_fov)
+		.set("set_orthographic_projection", &camera::set_orthographic_projection)
+		.set("get_fov", &camera::get_fov)
+		.set("fov", v8pp::property(&camera::get_fov))
+		.set("set_target", &camera::set_target)
+		.set("reset_target", &camera::reset_target)
+		;
+	hydrogen_module.set("camera", camera_class);
 
-	ClassBinder<aspect::gl::camera> *binder_camera = new ClassBinder<aspect::gl::camera>(target);
-	V8_SET_CLASS_BINDER(aspect::gl::camera, binder_camera);
-	(*binder_camera)
-		//		.BindMemFunc<void, &aspect::layer::test_function_binding>("mercury_function_layer")
-		.BindMemFunc<void, double, double, double, double, double, &aspect::gl::camera::set_perspective_projection_fov>("set_perspective_projection_fov")
-		.BindMemFunc<void, double, double, double, double, double, double, &aspect::gl::camera::set_orthographic_projection>("set_orthographic_projection")
-//		.BindMemFunc<&aspect::gl::layer::register_as_update_sink>("register_as_update_sink")
-//		.BindMemFunc<void, bool, &aspect::gl::layer::set_fullsize>("set_fullsize")
-		.BindMemFunc<double, &aspect::gl::camera::get_fov>("get_fov")
-		.BindMemFunc<void, aspect::gl::entity*, &aspect::gl::camera::set_target>("set_target")
-		.BindMemFunc<void, &aspect::gl::camera::reset_target>("reset_target")
-		.Inherit(*aspect::gl::entity::binder())
-		.Seal();
+	gl::layer::js_class layer_class(entity_class);
+	layer_class
+//		.set("register_as_update_sink", &layer::register_as_update_sink)
+		.set("set_fullsize", &layer::set_fullsize)
+		.set("set_as_hud", &layer::set_as_hud)
+		.set("set_flip", &layer::set_flip)
+		;
+	hydrogen_module.set("layer", layer_class);
 
-	ClassBinder<aspect::gl::layer> *binder_layer = new ClassBinder<aspect::gl::layer>(target);
-	V8_SET_CLASS_BINDER(aspect::gl::layer, binder_layer);
-	(*binder_layer)
-		//		.BindMemFunc<void, &aspect::layer::test_function_binding>("mercury_function_layer")
-		.BindMemFunc<void, double, double, double, double, &aspect::gl::layer::set_rect>("set_rect")
-		//		.BindMemFunc<&aspect::gl::layer::register_as_update_sink>("register_as_update_sink")
-		.BindMemFunc<void, bool, &aspect::gl::layer::set_fullsize>("set_fullsize")
-		.BindMemFunc<void, bool, &aspect::gl::layer::set_as_hud>("set_as_hud")
-		.BindMemFunc<void, bool, &aspect::gl::layer::set_flip>("set_flip")
-		.Inherit(*aspect::gl::entity::binder())
-		.Seal();
+	gl::layer_reference::js_class layer_reference_class(entity_class);
+	layer_reference_class
+		.set("assoc", &layer_reference::assoc)
+		.set("set_rect", &layer_reference::set_rect)
+		;
+	hydrogen_module.set("layer_reference", layer_reference_class);
 
-	ClassBinder<aspect::gl::layer_reference> *binder_layer_reference = new ClassBinder<aspect::gl::layer_reference>(target);
-	V8_SET_CLASS_BINDER(aspect::gl::layer_reference, binder_layer_reference);
-	(*binder_layer_reference)
-		.BindMemFunc<&aspect::gl::layer_reference::assoc>("assoc")
-		.BindMemFunc<void, double, double, double, double, &aspect::gl::layer_reference::set_rect>("set_rect")
-		//.Inherit(*binder_layer)
-		.Inherit(*aspect::gl::entity::binder())
-		.Seal();
+	v8pp::module pixel_formats;
+#define SET_IMAGE_CONST(name) pixel_formats.set_const(#name, image::name)
+#define SET_GL_CONST(name) pixel_formats.set_const(#name, gl::name)
+	SET_IMAGE_CONST(UNKNOWN);
+	SET_IMAGE_CONST(YUV8);
+	SET_IMAGE_CONST(YUV10);
+	SET_IMAGE_CONST(RGBA8);
+	SET_IMAGE_CONST(ARGB8);
+	SET_IMAGE_CONST(BGRA8);
+	SET_IMAGE_CONST(RGB10);
+//	SET_IMAGE_CONST(RGBA32f);
+//	SET_GL_CONST(Y8);
+//	SET_GL_CONST(Cb8);
+//	SET_GL_CONST(Cr8);
+//	SET_GL_CONST(CbCr8);
+//	SET_GL_CONST(YCbCr8_v1);
+#undef SET_GL_CONST
+#undef SET_IMAGE_CONST
+	hydrogen_module.set("pixel_formats", pixel_formats);
 
-
-	Handle<Object> pixel_formats = Object::New();
-	target->Set(String::New("pixel_formats"), pixel_formats);
-
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "UNKNOWN",		aspect::image::UNKNOWN);
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YUV8",		aspect::image::YUV8);
-//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Y8",			aspect::gl::Y8);
-//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Cb8",			aspect::gl::Cb8);
-//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "Cr8",			aspect::gl::Cr8);
-//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "CbCr8",		aspect::gl::CbCr8);
-//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YCbCr8_v1",	aspect::gl::YCbCr8_v1);
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "YUV10",		aspect::image::YUV10);
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "RGBA8",		aspect::image::RGBA8);
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "ARGB8",		aspect::image::ARGB8);
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "BGRA8",		aspect::image::BGRA8);
-	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "RGB10",		aspect::image::RGB10);
-//	V8_DECLARE_NAMED_CONSTANT(pixel_formats, "RGBA32f",		aspect::image::RGBA32f);
-
+	return hydrogen_module.new_instance();
 }
 
-void hydrogen_uninstall(Handle<Object> target) 
+void hydrogen_uninstall(Handle<Value> library)
 {
-	V8_DESTROY_CLASS_BINDER(aspect::gl::layer_reference);
-	V8_DESTROY_CLASS_BINDER(aspect::gl::layer);
-	V8_DESTROY_CLASS_BINDER(aspect::gl::camera);
-	V8_DESTROY_CLASS_BINDER(aspect::gl::entity);
-	V8_DESTROY_CLASS_BINDER(aspect::gl::engine);
-	V8_DESTROY_CLASS_BINDER(aspect::physics::bullet);
+	aspect::gl::layer_reference::js_class::destroy_objects();
+	aspect::gl::layer::js_class::destroy_objects();
+	aspect::gl::camera::js_class::destroy_objects();
+	aspect::gl::entity::js_class::destroy_objects();
+	gl::engine::js_class::destroy_objects();
+	aspect::physics::bullet::js_class::destroy_objects();
 
-	aspect::image::cleanup();
+	image_module.Dispose();
 }
 
+} // aspect

@@ -11,7 +11,7 @@ class HYDROGEN_API iface_base
 {
 	private:
 
-		gui::window	*m_pwnd;
+		gui::window& window_;
 
 	public:
 								
@@ -124,8 +124,8 @@ class HYDROGEN_API iface_base
 
 		////////////////////////////
 
-		iface_base(gui::window *pwnd)
-			: m_pwnd(pwnd)//,
+		explicit iface_base(gui::window& window)
+			: window_(window)//,
 				//m_program(NULL)
 		{
 
@@ -136,7 +136,7 @@ class HYDROGEN_API iface_base
 			cleanup_shaders();
 		}
 
-		gui::window *window(void) const { return m_pwnd; }
+		gui::window& window() { return window_; }
 
 		virtual bool setup(void) = 0;
 		virtual void cleanup(void) = 0;
@@ -160,7 +160,6 @@ class HYDROGEN_API iface : public iface_base
 private:
 
 	HGLRC m_hglrc;
-	//				gui::window *m_pwnd;
 	HDC				m_hdc;
 	PIXELFORMATDESCRIPTOR m_pfd;
 	int m_pixel_format;
@@ -175,13 +174,10 @@ private:
 
 	int m_font_base;
 
-
-//	gui::window *window_wingui(void) { return (gui::window*)window(); }
-
 public:
 
-	iface(gui::window *pwnd)
-		: iface_base(pwnd),
+	iface(gui::window& window)
+		: iface_base(window),
 		m_hglrc(NULL),
 		m_hdc(NULL),
 		m_pixel_format(0),
@@ -195,7 +191,7 @@ public:
 
 	bool setup(void)
 	{
-		m_hdc = ::GetDC(*window());
+		m_hdc = ::GetDC(window());
 
 
 		PIXELFORMATDESCRIPTOR pfd = {
@@ -263,7 +259,7 @@ public:
 	{
 		::wglMakeCurrent(NULL,NULL);
 		if(m_hglrc) ::wglDeleteContext(m_hglrc);
-		if(m_hdc) ::ReleaseDC(*window(),m_hdc);
+		if(m_hdc) ::ReleaseDC(window(),m_hdc);
 	}
 
 	void set_active(bool active) const
@@ -333,6 +329,7 @@ public:
 
 	void output_text(double x, double y, wchar_t *text, GLdouble *clr = NULL)
 	{
+		//y+= 10;
 		double default_color[] = {1.0,1.0,1.0,1.0};
 		if(!clr)
 			clr = default_color;
@@ -344,8 +341,8 @@ public:
 
 		//////////////////////////////////////////////////////////////////////////
 
-		uint32_t width,height;
-		window()->get_size(&width,&height);
+		uint32_t const width = window().width();
+		uint32_t const height = window().height();
 
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
@@ -383,32 +380,27 @@ class HYDROGEN_API iface : public iface_base
 
 	private:
 
-		::Window		m_window;
 		GLXContext		m_glx_context;
-
-		gui::window *window_gui(void) { return (gui::window*)window(); }
-
 
 	public:
 
-		iface(gui::window *pwnd)
-			: iface_base(pwnd),
+		iface(gui::window& window)
+			: iface_base(window),
 				m_glx_context(NULL)
 		{
-			m_window = window_gui()->get_window();
 		}
 
 		bool setup(void)
 		{
 
-			m_glx_context = glXCreateContext(gui::g_display, &window_gui()->get_current_visual(), glXGetCurrentContext(), true);
+			m_glx_context = glXCreateContext(gui::g_display, &window().current_visual(), glXGetCurrentContext(), true);
 			if (m_glx_context == NULL)
 			{
 				error("Failed to create an OpenGL context for this window");
 				return false;
 			}
 
-			glXMakeCurrent(gui::g_display, m_window, m_glx_context);
+			glXMakeCurrent(gui::g_display, window(), m_glx_context);
 
 			GLenum glew_error = glewInit();
 			if(glew_error != GLEW_OK)
@@ -445,8 +437,8 @@ if(extensions)
 		{
 			if (active)
 			{
-				if (m_window && m_glx_context && (glXGetCurrentContext() != m_glx_context))
-					glXMakeCurrent(gui::g_display, m_window, m_glx_context);
+				if (window() && m_glx_context && (glXGetCurrentContext() != m_glx_context))
+					glXMakeCurrent(gui::g_display, window(), m_glx_context);
 			}
 			else
 			{
@@ -458,8 +450,8 @@ if(extensions)
 
 		void swap_buffers(void)
 		{
-			if (window_gui()->get_window() && m_glx_context)
-				glXSwapBuffers(gui::g_display, window_gui()->get_window());
+			if (window() && m_glx_context)
+				glXSwapBuffers(gui::g_display, window());
 
 		}
 

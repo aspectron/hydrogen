@@ -9,15 +9,13 @@ namespace aspect
 		class HYDROGEN_API camera : public entity, public gl::viewport
 		{
 			public:
+				typedef v8pp::class_<camera, v8pp::v8_args_factory> js_class;
 
 				enum
 				{
 					ORTHOGRAPHIC = 0,
 					PERSPECTIVE = 1,
 				};
-
-
-				V8_DECLARE_CLASS_BINDER(camera);
 
 				camera();
 
@@ -45,10 +43,10 @@ namespace aspect
 
 				math::vec3 project_mouse(gl::entity *, double x, double y);
 
-				double get_fov(void) { return fov_; }
+				double get_fov() const { return fov_; }
 
 				void set_target(entity *e) { target_ = e->self(); }
-				void reset_target(void) { target_.reset(); }
+				void reset_target() { target_.reset(); }
 
 				void render(render_context *context);
 
@@ -66,8 +64,19 @@ namespace aspect
 
 } // aspect
 
-#define WEAK_CLASS_TYPE aspect::gl::camera
-#define WEAK_CLASS_NAME camera
-#include <v8/juice/WeakJSClassCreator-Decl.h>
+namespace v8pp {
+
+aspect::gl::camera* v8_args_factory::instance<aspect::gl::camera>::create(v8::Arguments const& args)
+{
+	return new aspect::gl::camera();
+}
+
+void v8_args_factory::instance<aspect::gl::camera>::destroy( aspect::gl::camera *o )
+{
+	o->release();
+}
+
+} // v8pp
+
 
 #endif // _ASPECT_CAMERA_HPP_

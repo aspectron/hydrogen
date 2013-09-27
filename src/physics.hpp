@@ -1,10 +1,6 @@
 #ifndef _PHYSICS_HPP_
 #define _PHYSICS_HPP_
 
-// #include "math.vector.hpp"
-// #include "math.matrix.hpp"
-// #define BT_USE_DOUBLE_PRECISION 1
-
 namespace aspect
 {
 	namespace gl {	class entity;	}

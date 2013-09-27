@@ -15,9 +15,7 @@ namespace aspect { namespace gl {
 	class HYDROGEN_API entity : public shared_ptr_object<entity> //boost::enable_shared_from_this<entity>
 	{
 		public:
-
-			V8_DECLARE_CLASS_BINDER(entity);
-
+			typedef v8pp::class_<gl::entity, v8pp::v8_args_factory> js_class;
 			enum
 			{
 				INSTANCE_COPY_TRANSFORM = 0x00000001
@@ -97,8 +95,8 @@ namespace aspect { namespace gl {
 			void attach(boost::shared_ptr<entity> child) { children_.push_back(child); child->parent_ = this->self(); }
 			void detach(boost::shared_ptr<entity> child);
 
-			v8::Handle<v8::Value> attach(v8::Arguments const& args);
-			v8::Handle<v8::Value> detach(v8::Arguments const& args);
+			v8::Handle<v8::Value> attach_v8(v8::Arguments const& args);
+			v8::Handle<v8::Value> detach_v8(v8::Arguments const& args);
 			void delete_all_children(void);
 
 			void show(void) { hidden_ = false; }
@@ -107,20 +105,36 @@ namespace aspect { namespace gl {
 			void fade_in(double msec) { fade_ts_ = utils::get_ts(); transparency_targets_[0] = 0.0; transparency_targets_[1] = 1.0; fade_duration_ = msec; }
 			void fade_out(double msec) {  fade_ts_ = utils::get_ts(); transparency_targets_[0] = 1.0; transparency_targets_[1] = 0.0; fade_duration_ = msec; }
 
-			// transform
-			transform *get_transform_ptr(void) { return &entity_transform; }
-			aspect::math::matrix *get_transform_matrix_ptr(void);
-			aspect::math::matrix &get_transform_matrix(void) { return *get_transform_matrix_ptr(); }
+			transform& get_transform() { return entity_transform; }
+
+			aspect::math::matrix& get_transform_matrix();
 			void set_transform_matrix(const math::matrix &transform);
 			void acquire_transform(entity *src) { set_transform_matrix(src->get_transform_matrix()); }
+
 			void _set_location(const math::vec3 &loc) { entity_transform.set_location(loc); }
-			void get_location(math::vec3 &loc) { entity_transform.get_matrix().get_translation(loc); }
-			v8::Handle<v8::Value> get_location(void);
+			math::vec3 get_location()
+			{
+				math::vec3 loc;
+				entity_transform.get_matrix().get_translation(loc);
+				return loc;
+			}
+
 			void _set_orientation(const math::quat &q) { entity_transform.set_orientation(q); }
-			void get_orientation(math::quat &q) { entity_transform.get_matrix().get_orientation(q); }
+			math::quat get_orientation()
+			{
+				math::quat q;
+				entity_transform.get_matrix().get_orientation(q);
+				return q;
+			}
+
 			void _set_scale(const math::vec3 &scale) { entity_transform.set_scale(scale); }
-			void get_scale(math::vec3 &scale) { entity_transform.get_matrix().get_scale(scale); }
-			
+			math::vec3 get_scale()
+			{
+				math::vec3 sc;
+				entity_transform.get_matrix().get_scale(sc);
+				return sc;
+			}
+
 			void apply_rotation(const math::quat &q);
 			
 			// main stuff
@@ -146,10 +160,11 @@ namespace aspect { namespace gl {
 			unsigned int get_bounding_type(void) const { return physics_data_.bounding_type; }
 			void set_dimension(const math::vec3 &_dimension) { physics_data_.dimension = _dimension; }
 			void set_radius(double _radius) { physics_data_.radius = _radius; }
+			double get_radius() const { return physics_data_.radius; }
 			void set_margin(double margin) { physics_data_.margin = margin; }
-			double get_margin(void) { return physics_data_.margin; }
+			double get_margin() const { return physics_data_.margin; }
 			void set_mass(double mass) { physics_data_.mass = mass; }
-			double get_mass(void) { return physics_data_.mass; }
+			double get_mass() const { return physics_data_.mass; }
 			void disable_contact_response(void);
 
 			// physics manipulation
@@ -206,9 +221,18 @@ namespace aspect { namespace gl {
 
 } } // namespace aspect::gl
 
+namespace v8pp {
 
-#define WEAK_CLASS_TYPE aspect::gl::entity
-#define WEAK_CLASS_NAME entity
-#include <v8/juice/WeakJSClassCreator-Decl.h>
+aspect::gl::entity * v8_args_factory::instance<aspect::gl::entity>::create(v8::Arguments const& args)
+{
+	return new aspect::gl::entity();
+}
+
+void v8_args_factory::instance<aspect::gl::entity>::destroy( aspect::gl::entity *o )
+{
+	o->release();
+}
+
+} // v8pp
 
 #endif // _ASPECT_ENTITY_HPP_
