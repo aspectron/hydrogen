@@ -7,8 +7,8 @@
   </PropertyGroup>
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir>$(SolutionDir)$(JSX)\bin\$(Configuration) $(PlatformName)\</OutDir>
-    <IntDir>$(SolutionDir)$(JSX)\obj\$(Configuration) $(PlatformName)\$(ProjectName)\</IntDir>
+    <OutDir>$(JSX)\bin\$(Configuration) $(PlatformName)\</OutDir>
+    <IntDir>$(JSX)\obj\$(Configuration) $(PlatformName)\$(ProjectName)\</IntDir>
     <_PropertySheetDisplayName>common</_PropertySheetDisplayName>
   </PropertyGroup>
   <ItemGroup>
