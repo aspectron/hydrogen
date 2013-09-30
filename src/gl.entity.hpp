@@ -16,6 +16,8 @@ namespace aspect { namespace gl {
 	{
 		public:
 			typedef v8pp::class_<gl::entity, v8pp::v8_args_factory> js_class;
+			static js_class* js_binding;
+
 			enum
 			{
 				INSTANCE_COPY_TRANSFORM = 0x00000001

@@ -11,12 +11,18 @@ DECLARE_LIBRARY_ENTRYPOINTS(hydrogen_install, hydrogen_uninstall);
 
 static Persistent<Value> image_module;
 
+gl::entity::js_class* gl::entity::js_binding = nullptr;
+
 Handle<Value> hydrogen_install()
 {
 	using namespace aspect::gl;
 	using namespace aspect::physics;
 
-	image_module= Persistent<Value>::New(load_library("image"));
+	image_module = Persistent<Value>::New(load_library("image"));
+	if (image_module.IsEmpty())
+	{
+		return v8pp::throw_ex("image module required");
+	}
 
 	v8pp::module hydrogen_module;
 
@@ -47,8 +53,8 @@ Handle<Value> hydrogen_install()
 		;
 	hydrogen_module.set("engine", engine_class);
 
-	gl::entity::js_class entity_class;
-	entity_class
+	gl::entity::js_binding = new gl::entity::js_class;
+	(*gl::entity::js_binding)
 		.set("attach", &entity::attach_v8)
 		.set("detach", &entity::detach_v8)
 		.set("sort_z", &entity::sort_z)
@@ -81,9 +87,9 @@ Handle<Value> hydrogen_install()
 		.set("apply_absolute_impulse", &entity::apply_absolute_impulse)
 		.set("set_linear_velocity", &entity::set_linear_velocity)
 		;
-	hydrogen_module.set("entity", entity_class);
+	hydrogen_module.set("entity", *gl::entity::js_binding);
 
-	gl::camera::js_class camera_class(entity_class);
+	gl::camera::js_class camera_class(*gl::entity::js_binding);
 	camera_class
 		.set("set_perspective_projection_fov", &camera::set_perspective_projection_fov)
 		.set("set_orthographic_projection", &camera::set_orthographic_projection)
@@ -94,7 +100,7 @@ Handle<Value> hydrogen_install()
 		;
 	hydrogen_module.set("camera", camera_class);
 
-	gl::layer::js_class layer_class(entity_class);
+	gl::layer::js_class layer_class(*gl::entity::js_binding);
 	layer_class
 //		.set("register_as_update_sink", &layer::register_as_update_sink)
 		.set("set_fullsize", &layer::set_fullsize)
@@ -103,7 +109,7 @@ Handle<Value> hydrogen_install()
 		;
 	hydrogen_module.set("layer", layer_class);
 
-	gl::layer_reference::js_class layer_reference_class(entity_class);
+	gl::layer_reference::js_class layer_reference_class(*gl::entity::js_binding);
 	layer_reference_class
 		.set("assoc", &layer_reference::assoc)
 		.set("set_rect", &layer_reference::set_rect)
@@ -142,6 +148,7 @@ void hydrogen_uninstall(Handle<Value> library)
 	gl::engine::js_class::destroy_objects();
 	aspect::physics::bullet::js_class::destroy_objects();
 
+	delete gl::entity::js_binding; gl::entity::js_binding = nullptr;
 	image_module.Dispose();
 }
 

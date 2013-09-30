@@ -142,7 +142,7 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 		gl::texture *texture(void) { return texture_.get(); }
 
 		void register_texture_update_sink(texture_update_sink *sink) { sink_  = sink; }
-		void reset_texture_update_sink(void) { sink_ = NULL; }
+		void reset_texture_update_sink() { sink_ = nullptr; }
 
 	protected:
 
