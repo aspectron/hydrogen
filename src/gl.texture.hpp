@@ -71,7 +71,10 @@ class HYDROGEN_API texture : public boost::enable_shared_from_this<texture>
 				texture_cleanup_info (texture *t)
 				{
 					pbo_.resize(t->pbo_.size());
-					memcpy(&pbo_[0], &t->pbo_[0], sizeof(GLuint)*t->pbo_.size());
+					if (!pbo_.empty())
+					{
+						memcpy(&pbo_[0], &t->pbo_[0], sizeof(GLuint)*t->pbo_.size());
+					}
 					t->pbo_.clear();
 
 					//pbo_buffer_ = t->pbo_buffer_;
