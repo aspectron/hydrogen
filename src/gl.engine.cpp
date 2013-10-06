@@ -211,25 +211,19 @@ void engine::main()
 		glLoadIdentity();
 
 
-		if(bullet_.get())
+		if (bullet_)
 		{
-			if(last_physics_ts == 0.0)
+			if (last_physics_ts == 0.0)
+			{
 				last_physics_ts = utils::get_ts();
-			double physics_ts = utils::get_ts();
-			double physics_ts_delta = physics_ts - last_physics_ts;
-//			double physics_ts_delta = ts0 - last_physics_ts;
-			
-			bullet_->render(hold_interval_/1000.0, 10);//, 1.0/60.0);
-//			bullet_->render(1.0/60.0, 10);//, 1.0/60.0);
-//			bullet_->render(physics_ts_delta / 1000.0, 10);//, 1.0/60.0);
-			// bullet_->render(physics_ts_delta / 1000, 7);
+			}
+			double const physics_ts = utils::get_ts();
+			double const physics_ts_delta = physics_ts - last_physics_ts;
+	
+			bullet_->render(hold_interval_ / 1000.0f, 10);//, 1.0/60.0);
 			last_physics_ts = physics_ts;
-//			last_physics_ts = ts0; //physics_ts;
 		}
 
-
-		//render_context context(this);
-		// context_.reset
 		context_.reset_pipeline();
 		world_->update(context_);
 		context_.render();
@@ -273,7 +267,7 @@ void engine::main()
 
 //		glFlush();
 
-		if(bullet_.get())
+		if (bullet_)
 		{
 //			bullet_->debug_draw();
 		}

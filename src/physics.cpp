@@ -14,87 +14,53 @@
 #include "physics.hpp"
 #include "physics.bullet.hpp"
 
-namespace aspect
+namespace aspect { namespace physics {
+
+boost::scoped_ptr<bullet> g_bullet;
+
+void startup()
 {
-	namespace physics
-	{
-		bullet *g_bullet = NULL;
-		axDebugDraw *g_debug_drawer = NULL;
+	g_bullet.reset(new bullet);
+}
 
-		void startup(void)
-		{
-			g_bullet = new bullet;
-			g_debug_drawer = new axDebugDraw;
+void shutdown()
+{
+	g_bullet.reset();
+}
 
-			g_bullet->set_debug_drawer(g_debug_drawer);
-		}
+void configure(configuration const& config)
+{
+	g_bullet->configure(config);
+}
 
-		void shutdown(void)
-		{
-			delete g_bullet;
-			g_bullet = NULL;
-			delete g_debug_drawer;
-			g_debug_drawer = NULL;
-		}
+bool register_entity(gl::entity& e)
+{
+	return g_bullet->add(e);
+}
 
-		void configure(configuration &config)
-		{
-			g_bullet->configure(config);
-		}
+void unregister_entity(gl::entity& e)
+{
+	g_bullet->remove(e);
+}
 
-		bool register_entity(gl::entity *_entity)
-		{
-			return g_bullet->add(_entity);
-		}
+void render(float timestep, int sub_steps)
+{
+	g_bullet->render(timestep, sub_steps);
+}
 
-		void unregister_entity(gl::entity *_entity)
-		{
-			g_bullet->remove(_entity);
-		}
+void debug_draw()
+{
+	g_bullet->debug_draw();
+}
 
-		void render(float timestep, int sub_steps)
-		{
-			g_bullet->render(timestep,sub_steps);
-		}
+void debug_draw_init()
+{
+	g_bullet->debug_draw_init();
+}
 
-		void debug_draw(void)
-		{
-			g_debug_drawer->reset();
-			g_bullet->debug_draw();
-		}
+void register_collision_callback(collision_callback& cc)
+{
+	g_bullet->register_collision_callback(cc);
+}
 
-		void debug_draw_init(void)
-		{
-			g_debug_drawer->reset();
-			// g_bullet->debug_draw();
-		}
-
-
-		void *get_debug_data(void)
-		{
-			if(!g_debug_drawer->m_points.size())
-				return NULL;
-			return (void*)&g_debug_drawer->m_points[0];
-		}
-
-		size_t get_debug_data_count(void)
-		{
-			return g_debug_drawer->m_points.size();
-		}
-
-		void register_collision_callback(collision_callback *ptr)
-		{
-			g_bullet->register_collision_callback(ptr);
-		}
-
-		void physics_tick_callback(const btDynamicsWorld *world, btScalar time_step)
-		{
-//			printf("the world has ticked %f seconds\n",time_step);
-
-			bullet *_bullet = static_cast<bullet*>(world->getWorldUserInfo());
-			_bullet->tick_callback(time_step);
-		}
-
-	} // physics
-
-} // aspect
+}} // aspect::physics
