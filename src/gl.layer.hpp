@@ -99,7 +99,8 @@ class HYDROGEN_API image_rect_update_queue
 		}*/
 };
 
-class HYDROGEN_API layer;
+class layer;
+class texture;
 
 class HYDROGEN_API texture_update_sink
 {
@@ -118,7 +119,8 @@ class HYDROGEN_API texture_update_sink
 class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update_bitmap_sink
 {
 	public:
-		typedef v8pp::class_<layer, v8pp::v8_args_factory> js_class;
+		typedef v8pp::class_<layer> js_class;
+
 		layer();
 		virtual ~layer();
 
@@ -126,8 +128,8 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 
 		void configure(uint32_t width, uint32_t height, uint32_t encoding);
 
-		virtual void render_impl(gl::render_context *ctx);
-		virtual void render(gl::render_context *ctx);
+		virtual void render_impl(gl::render_context& ctx);
+		virtual void render(gl::render_context& ctx);
 
 		void set_rect(double l, double t, double w, double h)
 		{
@@ -153,7 +155,7 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 
 	private:
 
-		boost::scoped_ptr<gl::texture>	texture_;//[2];
+		boost::scoped_ptr<gl::texture> texture_;
 		bool				init_done_;
 		texture_update_sink	*sink_;
 		bool fullsize_;
@@ -166,43 +168,17 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 class HYDROGEN_API layer_reference : public layer
 {
 	public:
-		typedef v8pp::class_<gl::layer_reference, v8pp::v8_args_factory> js_class;
+		typedef v8pp::class_<gl::layer_reference> js_class;
 
 		v8::Handle<v8::Value>	assoc(v8::Arguments const&);
 
-		virtual void render(gl::render_context *ctx);
+		virtual void render(gl::render_context& ctx);
 
 		void set_rect(double l, double t, double w, double h) { left_ = l; top_ = t; width_ = w; height_ = h; }
 
 	private:
 
-		boost::shared_ptr<gl::entity>	layer_;
+		v8pp::persistent_ptr<gl::layer> layer_;
 };
 
-
-} } // aspect::gl
-
-namespace v8pp {
-
-aspect::gl::layer * v8_args_factory::instance<aspect::gl::layer>::create(v8::Arguments const& args)
-{
-	return new aspect::gl::layer();
-}
-
-void v8_args_factory::instance<aspect::gl::layer>::destroy( aspect::gl::layer *o )
-{
-//	delete o;
-	o->release();
-}
-
-aspect::gl::layer_reference * v8_args_factory::instance<aspect::gl::layer_reference>::create(v8::Arguments const& args)
-{
-	return new aspect::gl::layer_reference();
-}
-
-void v8_args_factory::instance<aspect::gl::layer_reference>::destroy( aspect::gl::layer_reference *o )
-{
-	o->release();
-}
-
-} // v8pp
+}} // aspect::gl

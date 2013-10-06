@@ -1,6 +1,8 @@
 #ifndef _ASPECT_CAMERA_HPP_
 #define _ASPECT_CAMERA_HPP_
 
+#include "gl.entity.hpp"
+
 namespace aspect
 {
 	namespace gl
@@ -9,7 +11,7 @@ namespace aspect
 		class HYDROGEN_API camera : public entity, public gl::viewport
 		{
 			public:
-				typedef v8pp::class_<camera, v8pp::v8_args_factory> js_class;
+				typedef v8pp::class_<camera> js_class;
 
 				enum
 				{
@@ -45,7 +47,7 @@ namespace aspect
 
 				double get_fov() const { return fov_; }
 
-				void set_target(entity *e) { target_ = e->self(); }
+				void set_target(entity& e) { target_.reset(&e); }
 				void reset_target() { target_.reset(); }
 
 				void render(render_context *context);
@@ -57,26 +59,11 @@ namespace aspect
 //				double fov_;
 				uint32_t	projection_;
 
-				boost::shared_ptr<entity>	target_;
+				entity_ptr target_;
 
 		};
 	}
 
 } // aspect
-
-namespace v8pp {
-
-aspect::gl::camera* v8_args_factory::instance<aspect::gl::camera>::create(v8::Arguments const& args)
-{
-	return new aspect::gl::camera();
-}
-
-void v8_args_factory::instance<aspect::gl::camera>::destroy( aspect::gl::camera *o )
-{
-	o->release();
-}
-
-} // v8pp
-
 
 #endif // _ASPECT_CAMERA_HPP_

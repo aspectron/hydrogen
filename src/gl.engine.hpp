@@ -10,17 +10,17 @@
 
 namespace aspect { namespace gl {
 
-	class HYDROGEN_API engine : public shared_ptr_object<engine>
+	class HYDROGEN_API engine
 	{
 		public:
-			typedef v8pp::class_<engine, v8pp::v8_args_factory> js_class;
+			typedef v8pp::class_<engine, v8pp::factory<gui::window*>> js_class;
 
 			enum flags
 			{
 				FLAG_VIEWPORT_UPDATE = 0x00000002
 			};
 
-			explicit engine(aspect::gui::window& window);
+			explicit engine(gui::window* window);
 			~engine();
 
 			/// Callback function to schedule in Berkelium
@@ -31,16 +31,14 @@ namespace aspect { namespace gl {
 
 			void main();
 
-			boost::shared_ptr<aspect::gl::iface>& iface(void) { return iface_; }
-			aspect::gui::window& window() { return window_; }
+			gl::iface& iface() { _aspect_assert(iface_); return *iface_; }
+			aspect::gui::window& window() { _aspect_assert(window_); return *window_; }
 		
 			uint32_t get_flags(void) const { return flags_; }
 			void set_flags(uint32_t flags) { flags_ = flags; }
 
-			void attach(boost::shared_ptr<entity> e) { world_->attach(e); }
-			void detach(boost::shared_ptr<entity> e) { world_->detach(e); }
-			v8::Handle<v8::Value> attach_v8(v8::Arguments const& args);
-			v8::Handle<v8::Value> detach_v8(v8::Arguments const& args);
+			engine& attach(entity& e) { world_->attach(e); return *this; }
+			engine& detach(entity& e) { world_->detach(e); return *this; }
 
 			math::vec2 map_pixel_to_view(math::vec2 const& v);
 
@@ -55,7 +53,7 @@ namespace aspect { namespace gl {
 
 			void set_camera(camera *cam);
 
-			void set_physics(physics::bullet *bullet) { bullet_ = bullet->self(); }
+			void set_physics(physics::bullet& bullet) { bullet_.reset(&bullet); }
 
 			void capture_screen_gl(v8::Persistent<v8::Function> cb);
 			void capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function> cb);
@@ -77,11 +75,11 @@ namespace aspect { namespace gl {
 			uint32_t viewport_width_;
 			uint32_t viewport_height_;
 			double fps_,fps_unheld_,frt_,tswp_;
-			boost::shared_ptr<aspect::gl::iface> iface_;
-			boost::shared_ptr<entity>	world_;
+			boost::scoped_ptr<gl::iface> iface_;
+			entity_ptr world_;
 			// render_pipeline	pipeline_;
 			render_context context_;
-			boost::shared_ptr<physics::bullet> bullet_;
+			v8pp::persistent_ptr<physics::bullet> bullet_;
 
 			std::string debug_string_;
 			bool debug_string_changed_;
@@ -97,30 +95,10 @@ namespace aspect { namespace gl {
 			void setup_viewport();
 
 	private:
-		aspect::gui::window& window_;
-		v8::Persistent<v8::Value> window_v8_;
+		v8pp::persistent_ptr<gui::window> window_;
 	};
 
 
 } } // aspect::gl
-
-namespace v8pp {
-
-aspect::gl::engine* v8_args_factory::instance<aspect::gl::engine>::create(v8::Arguments const& args)
-{
-	aspect::gui::window* window = from_v8<aspect::gui::window*>(args[0]);
-	if (!window)
-	{
-		throw std::runtime_error("hydrogen::engine constructor requires an oxygen::window argument");
-	}
-	return new aspect::gl::engine(*window);
-}
-
-void v8_args_factory::instance<aspect::gl::engine>::destroy(aspect::gl::engine* engine)
-{
-	engine->release();
-}
-
-} // ::v8pp
 
 #endif // __GL_ENGINE_HPP__

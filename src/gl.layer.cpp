@@ -45,14 +45,14 @@ void layer::configure(uint32_t texture_width, uint32_t texture_height, uint32_t 
 }
 */
 
-void layer::render_impl( gl::render_context *context )
+void layer::render_impl(gl::render_context& context)
 {
-	if(texture_.get() && (texture_->get_flags() & gl::texture::CONFIG))
+	if (texture_ && (texture_->get_flags() & gl::texture::CONFIG))
 	{
 		boost::mutex::scoped_lock lock(render_lock_);
 
 		
-		gl::camera *current_camera = context->get_camera();
+		gl::camera *current_camera = context.get_camera();
 		if(current_camera && current_camera->get_projection() == camera::PERSPECTIVE)// && !is_hud_)
 		{
 			math::matrix m;// = current_camera->get_transform_matrix();// * get_transform_matrix();
@@ -86,11 +86,11 @@ void layer::render_impl( gl::render_context *context )
 
 			// render current texture in GPU
 			if(fullsize_)
-				texture_->draw(context->map_pixel_to_view(math::vec2(-0.5,-0.5)),context->map_pixel_to_view(math::vec2(texture_->get_width()-0.5,texture_->get_height()-0.5)), false, flip_);
+				texture_->draw(context.map_pixel_to_view(math::vec2(-0.5,-0.5)),context.map_pixel_to_view(math::vec2(texture_->get_width()-0.5,texture_->get_height()-0.5)), false, flip_);
 			else
 			{
-				texture_->draw(context->map_pixel_to_view(math::vec2(left_,top_)),
-					context->map_pixel_to_view(math::vec2(left_+width_,top_+height_)), false, flip_);
+				texture_->draw(context.map_pixel_to_view(math::vec2(left_,top_)),
+					context.map_pixel_to_view(math::vec2(left_+width_,top_+height_)), false, flip_);
 			}
 			
 //  			if(is_hud_)
@@ -103,13 +103,13 @@ void layer::render_impl( gl::render_context *context )
 		}
 	}
 	else
-		texture_.reset(new gl::texture(context->engine_));//->iface()));
+		texture_.reset(new gl::texture(context.engine_));
 
 	if(sink_)
 		sink_->digest(texture());
 }
 
-void layer::render( gl::render_context *context )
+void layer::render(gl::render_context& context)
 {
 	render_impl(context);
 
@@ -133,22 +133,20 @@ v8::Handle<v8::Value> layer_reference::assoc( v8::Arguments const& args)
 		{
 			throw std::invalid_argument("layer_reference::assoc() argument is not a layer");
 		}
-		layer_ = new_layer->self();
+		layer_.reset(new_layer);
 	}
 
 	return Undefined();
 }
 
-void layer_reference::render( gl::render_context *context )
+void layer_reference::render(gl::render_context& context)
 {
-	if(layer_ && ((layer*)layer_.get())->texture())
+	if (layer_ && layer_->texture())
 	{
-		//layer_->render(ctx);
-
-		((layer*)layer_.get())->texture()->draw(context->map_pixel_to_view(math::vec2(left_,top_)),
-			context->map_pixel_to_view(math::vec2(left_+width_,top_+height_)), false);
+		layer_->texture()->draw(context.map_pixel_to_view(math::vec2(left_,top_)),
+			context.map_pixel_to_view(math::vec2(left_+width_,top_+height_)), false);
 
 	}
 }
 
-} } // aspect::gl
+}} // aspect::gl

@@ -196,7 +196,7 @@ void texture::setup(/*boost::shared_ptr<gl::engine> _engine,*/ int width, int he
 				m_bpp = 2;
 				m_output_width = m_width / 2;
 //				create_YCbCr8_shader();
-				shader_ = engine_->iface()->get_integrated_shader(iface_base::integrated_shader_YCbCr8);
+				shader_ = engine_->iface().get_integrated_shader(iface_base::integrated_shader_YCbCr8);
 			} break;
 
 		case aspect::image::encoding::RGBA8:

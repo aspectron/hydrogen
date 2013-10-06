@@ -26,15 +26,11 @@ enum aspect::image::encoding
 
 class engine;
 
-class HYDROGEN_API texture : public boost::enable_shared_from_this<texture>
+class HYDROGEN_API texture
 {
 	public:
 
-//		std::vector<texture*> m_textures;
-//		typedef std::vector<texture*>::iterator iterator;
-
-		//boost::shared_ptr<aspect::gl::iface>	iface_;
-		boost::shared_ptr<aspect::gl::engine>	engine_;
+		v8pp::persistent_ptr<engine> engine_;
 		GLuint  id_;
 		std::vector<GLuint>	pbo_;
 		unsigned char *pbo_buffer_;
@@ -45,12 +41,11 @@ class HYDROGEN_API texture : public boost::enable_shared_from_this<texture>
 		int m_bpp;
 		int m_output_width;
 		int m_output_height;
-//						int m_channels;
+
 		aspect::image::encoding m_encoding;
 		GLenum m_format_components;
 		GLenum m_format_internal;
 
-//		shader *m_shader;
 		boost::shared_ptr<shader> shader_;
 //		std::vector<GLuint>	m_samplers;
 //						GLuint m_sampler;
@@ -123,11 +118,9 @@ class HYDROGEN_API texture : public boost::enable_shared_from_this<texture>
 
 
 
-		texture(boost::shared_ptr<aspect::gl::engine>& _engine) //boost::shared_ptr<aspect::gl::iface>& _iface)
-			: //m_filter(NULL),
-//		iface_(_iface),
-		engine_(_engine),
-		id_(0), pbo_buffer_(NULL), fbo_(0), m_width(0), m_height(0), m_output_width(0), m_output_height(0), m_bpp(0), m_encoding(aspect::image::encoding::UNKNOWN), 
+		explicit texture(engine& eng)
+			:engine_(&eng),
+			id_(0), pbo_buffer_(NULL), fbo_(0), m_width(0), m_height(0), m_output_width(0), m_output_height(0), m_bpp(0), m_encoding(aspect::image::encoding::UNKNOWN), 
 			  m_trs(0.0), m_cvt(0.0),
 			  flags_(0),
 			  draw_cache_list_(0),

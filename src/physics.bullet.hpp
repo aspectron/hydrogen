@@ -8,10 +8,10 @@ namespace aspect
 	{
 		void physics_tick_callback(const btDynamicsWorld *world, btScalar time_step);
 
-		class HYDROGEN_API bullet : public shared_ptr_object<bullet>
+		class HYDROGEN_API bullet
 		{
 			public:
-				typedef v8pp::class_<bullet, v8pp::v8_args_factory> js_class;
+				typedef v8pp::class_<bullet> js_class;
 
 				enum
 				{
@@ -190,21 +190,5 @@ namespace aspect
 	} // physics
 
 } // aspect
-
-
-
-namespace v8pp {
-
-aspect::physics::bullet * v8_args_factory::instance<aspect::physics::bullet>::create(v8::Arguments const& args)
-{
-	return new aspect::physics::bullet();
-}
-
-void v8_args_factory::instance<aspect::physics::bullet>::destroy( aspect::physics::bullet *o )
-{
-	o->release();
-}
-
-} //v8pp
 
 #endif // _PHYSICS_BULLET_HPP_

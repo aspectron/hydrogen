@@ -99,7 +99,7 @@ private:
 };
 
 
-engine::engine(aspect::gui::window& window)
+engine::engine(aspect::gui::window* window)
 : window_(window),
 flags_(0),
 viewport_width_(0),
@@ -112,12 +112,17 @@ show_engine_info_(false),
 hold_rendering_(false),
 hold_interval_(1000.0/60.0),
 debug_string_changed_(false),
-context_(self())
+context_(*this)
 {
-	window_v8_ = v8::Persistent<v8::Value>::New(v8pp::to_v8(window_));
+	if (!window_)
+	{
+		throw std::runtime_error("hydrogen::engine constructor requires an oxygen::window argument");
+	}
 
-//	context_(self)
-	world_ = ((new world())->self());
+	entity* w = new world;
+	world::js_class::import_external(w);
+	world_.reset(w);
+
 //	viewport_ = boost::make_shared<viewport>();
 
 	task_queue_.reset(new async_queue("HYDROGEN",1));
@@ -139,11 +144,9 @@ engine::~engine()
 
 	task_queue_.reset();
 
-	world_->release();
 	world_.reset();
 
 	iface_.reset();
-	window_v8_.Dispose();
 }
 
 
@@ -154,8 +157,7 @@ void engine::main()
 
 	SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
 
-//	iface_.reset(boost::make_shared<aspect::gl::iface>(new aspect::gl::iface(window_.get())));
-	iface_ = boost::make_shared<aspect::gl::iface>(window_);
+	iface_.reset(new gl::iface(*window_));
 	iface_->setup();
 	iface_->set_active(true);
 
@@ -229,19 +231,19 @@ void engine::main()
 		//render_context context(this);
 		// context_.reset
 		context_.reset_pipeline();
-		world_->update(&context_);
+		world_->update(context_);
 		context_.render();
 #endif
 
 		if(show_engine_info_)
 		{
-			uint32_t const width = context_.iface()->window().width();
-			uint32_t const height = context_.iface()->window().height();
+			uint32_t const width = context_.iface().window().width();
+			uint32_t const height = context_.iface().window().height();
 
 			wchar_t wsz[128];
 			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
 				(float)fps_unheld_, (float)fps_, (float) frt_, width, height);
-			iface()->output_text(engine_info_location_.x,engine_info_location_.y,wsz);
+			iface().output_text(engine_info_location_.x,engine_info_location_.y,wsz);
 
 			debug_string_mutex_.lock();
 			if(debug_string_.length())
@@ -249,12 +251,12 @@ void engine::main()
 				static wchar_t wsz_debug[2048];
 				if(debug_string_changed_)
 					swprintf(wsz_debug, sizeof(wsz_debug)/2, L"%S", debug_string_.c_str());
-				iface()->output_text(engine_info_location_.x,engine_info_location_.y+40,wsz_debug);
+				iface().output_text(engine_info_location_.x,engine_info_location_.y+40,wsz_debug);
 			}
 			debug_string_mutex_.unlock();
 
 //			GLdouble black[] = {0.0,0.0,0.0,1.0};
-			//iface()->output_text(20,58,wsz);
+			//iface().output_text(20,58,wsz);
 
 #if OS(LINUX)
 			static double debug_ts = 0.0;
@@ -278,7 +280,7 @@ void engine::main()
 
 		double ts_rt = utils::get_ts();
 
-		iface()->swap_buffers();	
+		iface().swap_buffers();
 
 		main_loop_->execute_callbacks();
 
@@ -394,7 +396,7 @@ bool engine::setup(void)
 
 	_setup_viewport();
 
-	iface()->setup_shaders();
+	iface().setup_shaders();
 
 //	m_capture_receiver.push_back(new capture_receiver);
 //	m_capture_receiver[0]->m_texture[0]->setup(1280,720,av::YCbCr8); // asy.12
@@ -412,7 +414,7 @@ void engine::cleanup(void)
 
 void engine::validate_iface()
 {
-	if (iface()->window().width() != viewport_width_ || iface()->window().height() != viewport_height_)
+	if (iface().window().width() != viewport_width_ || iface().window().height() != viewport_height_)
 	{
 		update_viewport();
 		setup_viewport();
@@ -426,8 +428,8 @@ void engine::validate_iface()
 
 void engine::update_viewport()
 {
-	viewport_width_ = std::max(1u, iface()->window().width());
-	viewport_height_ = std::max(1u, iface()->window().height());
+	viewport_width_ = std::max(1u, iface().window().width());
+	viewport_height_ = std::max(1u, iface().window().height());
 	glViewport(0, 0, viewport_width_, viewport_height_);
 //	printf("updating viewport: %d %d\n",viewport_width_,viewport_height_);
 }
@@ -495,32 +497,6 @@ math::vec2 engine::map_pixel_to_view(math::vec2 const& v)
 //	return math::vec2( v.x / (double)viewport_width_ * 2.0 - 1.0,
 //		(1.0 - (v.y / (double)viewport_height_)) * 2.0 - 1.0);
 //	return vec2((v.x + 1.0) * 0.5 * (double)viewport_width_, (v.y + 1.0) * 0.5 * (double)viewport_height_);
-}
-
-v8::Handle<v8::Value> engine::attach_v8(v8::Arguments const& args)
-{
-	entity* e = v8pp::from_v8<entity*>(args[0]);
-	if (!e)
-	{
-		throw std::invalid_argument("engine::attach() requires entity object as an argument");
-	}
-
-	attach(e->self());
-
-	return v8pp::to_v8(this);
-}
-
-v8::Handle<v8::Value> engine::detach_v8(v8::Arguments const& args)
-{
-	entity* e = v8pp::from_v8<entity*>(args[0]);
-	if (!e)
-	{
-		throw std::invalid_argument("engine::detach() requires entity object as an argument");
-	}
-
-	detach(e->self());
-
-	return v8pp::to_v8(this);
 }
 
 void engine::set_vsync_interval_impl( int i )

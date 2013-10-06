@@ -12,10 +12,12 @@ namespace aspect { namespace gl {
 	class render_context;
 	class entity;
 
-	class HYDROGEN_API entity : public shared_ptr_object<entity> //boost::enable_shared_from_this<entity>
+	typedef v8pp::persistent_ptr<entity> entity_ptr;
+
+	class HYDROGEN_API entity
 	{
 		public:
-			typedef v8pp::class_<gl::entity, v8pp::v8_args_factory> js_class;
+			typedef v8pp::class_<gl::entity> js_class;
 			static js_class* js_binding;
 
 			enum
@@ -86,23 +88,22 @@ namespace aspect { namespace gl {
 			double age_;
 			transform	entity_transform; //m_Transform;
 
-			//entity *parent;
-			boost::shared_ptr<entity> parent_;
-			std::vector<boost::shared_ptr<entity>> children_;
-			boost::recursive_mutex	children_mutex_;
+			
+			entity_ptr parent_;
+			typedef std::list<entity_ptr> children_list;
+			children_list children_;
+			boost::mutex children_mutex_;
 
 			entity();
 			virtual ~entity();
 			
-			void attach(boost::shared_ptr<entity> child) { children_.push_back(child); child->parent_ = this->self(); }
-			void detach(boost::shared_ptr<entity> child);
+			entity& attach(entity& child);
+			entity& detach(entity& child);
 
-			v8::Handle<v8::Value> attach_v8(v8::Arguments const& args);
-			v8::Handle<v8::Value> detach_v8(v8::Arguments const& args);
-			void delete_all_children(void);
+			void delete_all_children();
 
-			void show(void) { hidden_ = false; }
-			void hide(void) { hidden_ = true; }
+			void show() { hidden_ = false; }
+			void hide() { hidden_ = true; }
 
 			void fade_in(double msec) { fade_ts_ = utils::get_ts(); transparency_targets_[0] = 0.0; transparency_targets_[1] = 1.0; fade_duration_ = msec; }
 			void fade_out(double msec) {  fade_ts_ = utils::get_ts(); transparency_targets_[0] = 1.0; transparency_targets_[1] = 0.0; fade_duration_ = msec; }
@@ -140,10 +141,10 @@ namespace aspect { namespace gl {
 			void apply_rotation(const math::quat &q);
 			
 			// main stuff
-			virtual boost::shared_ptr<entity> instance(uint32_t flags = 0);
-			virtual void init(render_context *context);
-			virtual void render(render_context *context);
-			virtual void update(render_context *context);
+			//virtual boost::shared_ptr<entity> instance(uint32_t flags = 0);
+			virtual void init(render_context& context);
+			virtual void render(render_context& context);
+			virtual void update(render_context& context);
 
 			// ---
 
@@ -189,11 +190,6 @@ namespace aspect { namespace gl {
 			void set_linear_velocity(const math::vec3 &absolute_velocity);
 			//void _set_linear_velocity(math::vec3 absolute_velocity) { set_linear_velocity(absolute_velocity); }
 
-
-		protected:
-
-			virtual boost::shared_ptr<entity> create_instance(void) { return boost::shared_ptr<entity>(new entity); }
-
 		private:
 
 			bool init_invoked_;
@@ -223,18 +219,5 @@ namespace aspect { namespace gl {
 
 } } // namespace aspect::gl
 
-namespace v8pp {
-
-aspect::gl::entity * v8_args_factory::instance<aspect::gl::entity>::create(v8::Arguments const& args)
-{
-	return new aspect::gl::entity();
-}
-
-void v8_args_factory::instance<aspect::gl::entity>::destroy( aspect::gl::entity *o )
-{
-	o->release();
-}
-
-} // v8pp
 
 #endif // _ASPECT_ENTITY_HPP_

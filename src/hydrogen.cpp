@@ -39,8 +39,8 @@ Handle<Value> hydrogen_install()
 
 	gl::engine::js_class engine_class;
 	engine_class
-		.set("attach", &engine::attach_v8)
-		.set("detach", &engine::detach_v8)
+		.set("attach", &engine::attach)
+		.set("detach", &engine::detach)
 		.set("show_engine_info", &engine::show_engine_info)
 		.set("set_engine_info_location", &engine::set_engine_info_location)
 		.set("set_rendering_hold_interval", &engine::set_rendering_hold_interval)
@@ -55,8 +55,8 @@ Handle<Value> hydrogen_install()
 
 	gl::entity::js_binding = new gl::entity::js_class;
 	(*gl::entity::js_binding)
-		.set("attach", &entity::attach_v8)
-		.set("detach", &entity::detach_v8)
+		.set("attach", &entity::attach)
+		.set("detach", &entity::detach)
 		.set("sort_z", &entity::sort_z)
 		.set("set_location", &entity::set_location)
 		.set("get_location", &entity::get_location)

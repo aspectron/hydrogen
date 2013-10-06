@@ -20,62 +20,42 @@ entity::entity()
 
 entity::~entity()
 {
-	delete_all_children();	// this causes recursive mutex lock!
-//	children_.clear();
+	boost::mutex::scoped_lock lock(children_mutex_);
+	children_.clear();
 
-	if(parent_.get())
-		parent_->detach(self_);
-
+	if (parent_)
+	{
+		parent_->detach(*this);
+	}
 	global_entity_count--;
 }
 
-void entity::delete_all_children(void)
+void entity::delete_all_children()
 {
-	boost::recursive_mutex::scoped_lock lock(children_mutex_);
+	boost::mutex::scoped_lock lock(children_mutex_);
 	children_.clear();
 }
 
-void entity::detach(boost::shared_ptr<entity> e)
+entity& entity::attach(entity& child)
 {
-	boost::recursive_mutex::scoped_lock lock(children_mutex_);
-	std::vector<boost::shared_ptr<entity>>::iterator _ei;
-	for(_ei = children_.begin(); _ei != children_.end(); _ei++)
-	{
-		if((*_ei).get() == e.get()) 
-		{
-			children_.erase(_ei);
-			return;
-		}
-	}
+	boost::mutex::scoped_lock lock(children_mutex_);
+	children_.push_back(entity_ptr(&child));
+	child.parent_.reset(this);
 
-	parent_.reset();
-//	_aspect_assert(false);
+	return *this;
 }
 
-v8::Handle<v8::Value> entity::attach_v8(v8::Arguments const& args)
+entity& entity::detach(entity& e)
 {
-	entity* e = v8pp::from_v8<entity*>(args[0]);
-	if (!e)
+	_aspect_assert(e.parent_.get() == this);
+	if (e.parent_.get() == this)
 	{
-		throw std::invalid_argument("engine::attach() requires entity object as an argument");
+		boost::mutex::scoped_lock lock(children_mutex_);
+		children_.remove(entity_ptr(&e));
+
+		e.parent_.reset();
 	}
-
-	attach(e->self());
-
-	return v8pp::to_v8(this);
-}
-
-v8::Handle<v8::Value> entity::detach_v8(v8::Arguments const& args)
-{
-	entity* e = v8pp::from_v8<entity*>(args[0]);
-	if (!e)
-	{
-		throw std::invalid_argument("engine::detach() requires entity object as an argument");
-	}
-
-	detach(e->self());
-
-	return v8pp::to_v8(this);
+	return *this;
 }
 
 aspect::math::matrix& entity::get_transform_matrix()
@@ -115,6 +95,7 @@ void entity::set_transform_matrix(math::matrix const& transform)
 	}
 }
 
+/*
 boost::shared_ptr<entity> entity::instance( uint32_t flags )
 {
 	boost::shared_ptr<entity> target(create_instance()); //new entity;
@@ -133,18 +114,18 @@ boost::shared_ptr<entity> entity::instance( uint32_t flags )
 
 	return target;
 }
+*/
 
-void entity::init( render_context *context )
+void entity::init(render_context& context)
 {
 	init_invoked_ = true;
-	boost::recursive_mutex::scoped_lock lock(children_mutex_);
-	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
-	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
-		(*child_iterator)->init(context);
+	boost::mutex::scoped_lock lock(children_mutex_);
+	std::for_each(children_.begin(), children_.end(),
+		[&context] (entity_ptr& child) { child->init(context); });
 }
 
 
-void entity::update(render_context *context)
+void entity::update(render_context& context)
 {
 //	age += context->delta;
 
@@ -165,26 +146,22 @@ void entity::update(render_context *context)
 	}
 
 
-	context->register_entity(self());
+	context.register_entity(*this);
 
-	boost::recursive_mutex::scoped_lock lock(children_mutex_);
-	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
-	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
-		(*child_iterator)->update(context);
+	boost::mutex::scoped_lock lock(children_mutex_);
+	std::for_each(children_.begin(), children_.end(),
+		[&context] (entity_ptr& child) { child->update(context); });
 }
 
 
-void entity::render( render_context *context )
+void entity::render(render_context& context)
 {
 #if 0
 	
 //	_aspect_assert(init_invoked_);
-	boost::recursive_mutex::scoped_lock lock(children_mutex_);
-//	std::vector<boost::shared_ptr<entity>>::iterator child;
-//	for(child = children_.begin(); child != children_.end(); child++)
-//		(*child)->render(context);
-	for(int i = 0; i < children_.size(); i++)
-		children_[i]->render(context);
+	boost::mutex::scoped_lock lock(children_mutex_);
+	std::for_each(children_.begin(), children_.end(),
+		[&context] (entity_ptr& child) { child->render(context); });
 #endif
 }
  
@@ -214,10 +191,14 @@ struct entity_z_less {
 	}
 };
 
-void entity::sort_z( void )
+void entity::sort_z()
 {
-	boost::recursive_mutex::scoped_lock lock(children_mutex_);
-	std::sort(children_.begin(), children_.end(), entity_z_less());
+	boost::mutex::scoped_lock lock(children_mutex_);
+	children_.sort(
+		[](entity_ptr& lhs, entity_ptr& rhs)
+		{
+			return lhs->get_location().z < rhs->get_location().z;
+		});
 }
 
 void entity::set_location(const math::vec3& l)

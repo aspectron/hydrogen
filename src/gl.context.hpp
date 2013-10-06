@@ -16,27 +16,25 @@ namespace aspect { namespace gl {
 
 			render_pipeline pipeline;
 
-			//class engine *engine_;
-			boost::shared_ptr<engine> engine_;
+			engine& engine_;
 
-			boost::shared_ptr<entity>	camera_;
+			v8pp::persistent_ptr<camera> camera_;
 
-			render_context(boost::shared_ptr<engine> _engine)//engine *e)
-				: engine_(_engine)
+			render_context(engine& eng)
+				: engine_(eng)
 			{
-
 			}
 
-			void set_camera(camera *cam);
-			camera *get_camera(void);
+			void set_camera(camera* cam) { camera_.reset(cam); }
+			camera* get_camera() { return camera_.get(); }
 
-			void reset_pipeline(void);
-			void register_entity(boost::shared_ptr<entity> e, bool force = false);
-			void render(void);
+			void reset_pipeline();
+			void register_entity(entity& e, bool force = false);
+			void render();
 
 			math::vec2 map_pixel_to_view(math::vec2 const& v);
 
-			boost::shared_ptr<aspect::gl::iface>& iface(void);
+			gl::iface& iface();
 	};
 
 } } // aspect::gl

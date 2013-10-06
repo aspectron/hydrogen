@@ -12,13 +12,13 @@ namespace aspect { namespace gl {
 	{
 		public:
 
-			pipeline_entry(boost::shared_ptr<entity> e)
-				: entity_(e)
+			explicit pipeline_entry(entity& e)
+				: entity_(&e)
 			{
 
 			}
 
-			boost::shared_ptr<entity>	entity_;
+			entity* entity_;
 //			math::vec3	location_;
 //			float		radius_;
 	};
@@ -27,12 +27,11 @@ namespace aspect { namespace gl {
 	{
 		public:
 
-//			camera *_camera;
-			boost::shared_ptr<entity>	camera_;
+			v8pp::persistent_ptr<camera> camera_;
 			math::vec3 camera_pos_;
 			double range_;
 
-			std::vector<pipeline_entry>	pipeline_data_;
+			std::vector<pipeline_entry> pipeline_data_;
 
 			render_pipeline()
 			{
@@ -44,10 +43,10 @@ namespace aspect { namespace gl {
 			}
 
 			pipeline_entry& operator [] (int i) { return pipeline_data_[i]; }
-//			void reset();
-			void render_pipeline::reset( camera *_c );
-			void register_entity(boost::shared_ptr<entity> e, bool force_rendering);
-			void render(render_context *context);
+
+			void reset(camera* cam);
+			void register_entity(entity& e, bool force_rendering);
+			void render(render_context& context);
 	};
 
 } } // aspect::gl
