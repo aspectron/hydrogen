@@ -2,9 +2,9 @@
 
 namespace aspect { namespace gl {
 
-void iface_base::setup_shaders(void)
+void iface_base::setup_shaders()
 {
-	const char*	source =
+	const char* const source =
 		"#version 130 \n"
 		"uniform sampler2D UYVYtex; \n"		// UYVY macropixel texture passed as RGBA format
 		"void main(void) \n"
@@ -41,14 +41,12 @@ void iface_base::setup_shaders(void)
 //		"	gl_FragColor = vec4(r, g, b, 0.7); \n"
 		"}\n";
 
-	shaders_.push_back(boost::shared_ptr<gl::shader>(new shader(GL_FRAGMENT_SHADER, source)));
+	shaders_.push_back(boost::make_shared<gl::shader>(GL_FRAGMENT_SHADER, source));
 }
 
-void iface_base::cleanup_shaders(void)
+void iface_base::cleanup_shaders()
 {
 	shaders_.clear();
 }
 
-
-
-} } // namespace aspect::gl
+}} // namespace aspect::gl

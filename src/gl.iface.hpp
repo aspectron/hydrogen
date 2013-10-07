@@ -13,99 +13,11 @@ class HYDROGEN_API iface_base
 
 		gui::window& window_;
 
+		std::vector<boost::shared_ptr<gl::shader>> shaders_;
 	public:
-								
-//		std::vector<boost::shared_ptr<shader>>	shaders_;
-//		GLuint				m_program;
-		//typedef vector<shader *>::iterator shader_iterator;
 
-// 		shader *load_shader(const std::string &filename) //char *filename)
-// 		{
-// 			shader *ps = new shader;
-// 			if(!ps->read_file(filename.c_str()))
-// 			{
-// 				delete ps;
-// 				return NULL;
-// 			}
-// 
-// 			m_shaders.push_back(ps);
-// 			return ps;
-// 
-// 			// printf("loaded shader, count: %d\n",m_shaders.size());
-// 
-// 		}
-
-// 		void cleanup_shaders(void)
-// 		{
-// 			// printf("cleaning up shaders\n");
-// 
-// 			shader::iterator psi;
-// 			for(psi = m_shaders.begin(); psi != m_shaders.end(); psi++)
-// 				delete *psi;
-// 
-// 			m_shaders.clear();
-// 		}
-
-// 		virtual void load_shader_files(void)
-// 		{
-// 			return; 
-// 
-/*			//GetModuleFileName(NULL,);
-			std::string folder;
-			aspect::get_application_folder(folder);
-			folder += "/shaders";
-			load_shader(folder + "/toon.fsl");
-*/
-// 		}
-
-#if 0
-		void setup_shaders(void)
-		{
-
-			load_shader_files();
-
-
-			// ~~~
-// trace("1\n %I64x",glCreateProgram);
-			//m_program = glCreateProgram();
-			m_program = glCreateProgramObjectARB();
-
-			shader::iterator psi;
-			for(psi = m_shaders.begin(); psi != m_shaders.end(); psi++)
-			{
-				(*psi)->compile();
-				glAttachShader(m_program,(*psi)->get_id());
-			}
-
-			glLinkProgram(m_program);
-
-			GLint link_status;
-			glGetProgramiv(m_program,GL_LINK_STATUS,&link_status);
-			if(!link_status)
-			{
-				GLint size = 0;
-				glGetProgramiv(m_program,GL_INFO_LOG_LENGTH,&size);
-				char *buffer = (char*)malloc(size);
-				glGetProgramInfoLog(m_program,size,NULL,buffer);
-				error("program link failed\n%s\n", buffer);
-				free(buffer);
-			}
-
-//					glUseProgram(m_program);
-
-			printf("loaded and compiled %d shaders\n",(int)m_shaders.size());
-		}
-#endif
-
-// 		void use_shader(void)
-// 		{
-// 			glUseProgram(m_program);
-// 		}
-// 
-// 		void reset_shader(void)
-// 		{
-// 			glUseProgram(0);
-// 		}
+		void setup_shaders();
+		void cleanup_shaders();
 
 		enum integrated_shaders
 		{
@@ -113,22 +25,17 @@ class HYDROGEN_API iface_base
 			integrated_shader_last
 		};
 
-		void setup_shaders(void);
-		void cleanup_shaders(void);
-		std::vector<boost::shared_ptr<gl::shader>> shaders_;
-		boost::shared_ptr<gl::shader> get_integrated_shader(uint32_t id) 
-		{ 
+		boost::shared_ptr<gl::shader> get_integrated_shader(uint32_t id)
+		{
 			_aspect_assert(id < integrated_shader_last);
-			return shaders_[id]; 
+			return shaders_[id];
 		}
 
 		////////////////////////////
 
 		explicit iface_base(gui::window& window)
-			: window_(window)//,
-				//m_program(NULL)
+			: window_(window)
 		{
-
 		}
 
 		virtual ~iface_base()

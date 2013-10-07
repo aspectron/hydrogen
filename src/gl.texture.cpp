@@ -195,7 +195,6 @@ void texture::setup(/*boost::shared_ptr<gl::engine> _engine,*/ int width, int he
 				m_format_internal = GL_BGRA;
 				m_bpp = 2;
 				m_output_width = m_width / 2;
-//				create_YCbCr8_shader();
 				shader_ = engine_->iface().get_integrated_shader(iface_base::integrated_shader_YCbCr8);
 			} break;
 
@@ -587,25 +586,28 @@ void texture::unmap_pbo(uint32_t idx)
 }
 
 
-void texture::bind(void) //gl::shader *custom_shader)
+void texture::bind()
 {
 	_aspect_assert(get_flags() & CONFIG);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D,get_id());
 
-	if(shader_.get())
-		glUseProgram(shader_->get_program());
-
+	if (shader_)
+	{
+		glUseProgram(shader_->program());
+	}
 }
 
-void texture::unbind(void) // gl::shader *custom_shader)
+void texture::unbind()
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D,0);
 
-	if(shader_.get())
+	if (shader_)
+	{
 		glUseProgram(0);
+	}
 }
 
 void texture::cleanup_async(void)
