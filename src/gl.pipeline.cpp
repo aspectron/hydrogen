@@ -6,7 +6,7 @@ namespace aspect { namespace gl {
 	{
 		pipeline_data_.clear();
 
-		camera_.reset(cam);
+		camera_ = cam;
 		if (camera_)
 		{
 			camera_->get_transform_matrix().get_translation(camera_pos_);
