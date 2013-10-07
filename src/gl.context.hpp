@@ -3,40 +3,44 @@
 
 namespace aspect { namespace gl {
 
-	class entity;
-	class camera;
-	class engine;
+class entity;
+class camera;
+class engine;
 
-	class HYDROGEN_API render_context
+class HYDROGEN_API render_context
+{
+public:
+	explicit render_context(engine& eng)
+		: engine_(eng)
+		, camera_(nullptr)
 	{
-		public:
+	}
 
-//			gl::state_context	gls;
-//			camera	*active_camera;
+	gl::engine& engine() { return engine_; }
 
-			render_pipeline pipeline;
+	gl::camera* camera() { return camera_; }
+	void set_camera(gl::camera* camera) { camera_ = camera; }
 
-			engine& engine_;
+	void reset();
+	void render();
 
-			v8pp::persistent_ptr<camera> camera_;
+	void register_entity(entity& e, bool force = false)
+	{
+		pipeline_.push_back(&e);
+	}
 
-			render_context(engine& eng)
-				: engine_(eng)
-			{
-			}
+	math::vec2 map_pixel_to_view(math::vec2 const& v) const;
 
-			void set_camera(camera* cam) { camera_.reset(cam); }
-			camera* get_camera() { return camera_.get(); }
+private:
+	gl::engine& engine_;
 
-			void reset_pipeline();
-			void register_entity(entity& e, bool force = false);
-			void render();
+	gl::camera* camera_;
+	math::vec3 camera_pos_;
+	double range_;
 
-			math::vec2 map_pixel_to_view(math::vec2 const& v);
+	std::vector<gl::entity*> pipeline_;
+};
 
-			gl::iface& iface();
-	};
-
-} } // aspect::gl
+}} // aspect::gl
 
 #endif // _ASPECT_RENDER_CONTEXT_HPP_

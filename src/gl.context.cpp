@@ -2,29 +2,26 @@
 
 namespace aspect { namespace gl {
 
-	void render_context::reset_pipeline()
-	{
-		pipeline.reset(get_camera());
-	}
+void render_context::reset()
+{
+	pipeline_.clear();
 
-	void render_context::register_entity(entity& e, bool force)
+	if (camera_)
 	{
-		pipeline.register_entity(e, force);
+		camera_->get_transform_matrix().get_translation(camera_pos_);
+		range_ = -camera_pos_.z * fabs(tan(camera_->get_fov() * 0.5)) * 0.5;
 	}
+}
 
-	void render_context::render()
-	{
-		pipeline.render(*this);
-	}
+void render_context::render()
+{
+	std::for_each(pipeline_.begin(), pipeline_.end(),
+		[this](entity* e) { e->render(*this); });
+}
 
-	math::vec2 render_context::map_pixel_to_view(math::vec2 const& v)
-	{
-		return engine_.map_pixel_to_view(v);
-	}
-
-	gl::iface& render_context::iface()
-	{
-		return engine_.iface();
-	}
+math::vec2 render_context::map_pixel_to_view(math::vec2 const& v) const
+{
+	return engine_.map_pixel_to_view(v);
+}
 
 }} // aspect::gl

@@ -37,7 +37,6 @@
 
 #include "gl.transform.hpp"
 
-#include "gl.pipeline.hpp"
 #include "gl.context.hpp"
 #include "gl.entity.hpp"
 #include "gl.viewport.hpp"

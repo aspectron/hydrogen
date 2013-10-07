@@ -224,15 +224,15 @@ void engine::main()
 			last_physics_ts = physics_ts;
 		}
 
-		context_.reset_pipeline();
+		context_.reset();
 		world_->update(context_);
 		context_.render();
 #endif
 
 		if(show_engine_info_)
 		{
-			uint32_t const width = context_.iface().window().width();
-			uint32_t const height = context_.iface().window().height();
+			uint32_t const width = iface_->window().width();
+			uint32_t const height = iface_->window().height();
 
 			wchar_t wsz[128];
 			swprintf(wsz, sizeof(wsz)/2, L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
@@ -484,10 +484,9 @@ void engine::setup_viewport()
 
 }
 
-math::vec2 engine::map_pixel_to_view(math::vec2 const& v)
+math::vec2 engine::map_pixel_to_view(math::vec2 const& v) const
 {
 	return math::vec2( (v.x+0.5) / (double)(viewport_width_ ), (v.y+0.5) / (double)(viewport_height_ ));
-//	return math::vec2( (v.x+0.5) / (double)(viewport_width_ ), (v.y+0.5) / (double)(viewport_height_ ));
 //	return math::vec2( v.x / (double)viewport_width_ * 2.0 - 1.0,
 //		(1.0 - (v.y / (double)viewport_height_)) * 2.0 - 1.0);
 //	return vec2((v.x + 1.0) * 0.5 * (double)viewport_width_, (v.y + 1.0) * 0.5 * (double)viewport_height_);
@@ -511,9 +510,10 @@ void engine::set_debug_string(std::string s)
 	debug_string_changed_ = true;
 }
 
-void engine::set_camera(camera *cam)
+void engine::set_camera(gl::camera* camera)
 {
-	context_.set_camera(cam);
+	camera_.reset(camera);
+	context_.set_camera(camera);
 }
 
 void engine::capture_screen_gl(Persistent<Function> cb)

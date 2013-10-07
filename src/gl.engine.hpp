@@ -40,7 +40,7 @@ namespace aspect { namespace gl {
 			engine& attach(entity& e) { world_->attach(e); return *this; }
 			engine& detach(entity& e) { world_->detach(e); return *this; }
 
-			math::vec2 map_pixel_to_view(math::vec2 const& v);
+			math::vec2 map_pixel_to_view(math::vec2 const& v) const;
 
 			void show_engine_info(bool f) { show_engine_info_ = f; }
 			void set_engine_info_location(double x, double y) { engine_info_location_ = math::vec2(x,y); }
@@ -51,7 +51,7 @@ namespace aspect { namespace gl {
 
 			void set_debug_string(std::string);
 
-			void set_camera(camera *cam);
+			void set_camera(gl::camera* camera);
 
 			void set_physics(physics::bullet& bullet) { bullet_.reset(&bullet); }
 
@@ -77,9 +77,9 @@ namespace aspect { namespace gl {
 			double fps_,fps_unheld_,frt_,tswp_;
 			boost::scoped_ptr<gl::iface> iface_;
 			entity_ptr world_;
-			// render_pipeline	pipeline_;
 			render_context context_;
 			v8pp::persistent_ptr<physics::bullet> bullet_;
+			v8pp::persistent_ptr<gl::camera> camera_;
 
 			std::string debug_string_;
 			bool debug_string_changed_;

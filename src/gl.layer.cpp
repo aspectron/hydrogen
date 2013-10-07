@@ -48,7 +48,7 @@ void layer::render_impl(gl::render_context& context)
 	{
 		boost::mutex::scoped_lock lock(render_lock_);
 
-		gl::camera* current_camera = context.get_camera();
+		gl::camera* current_camera = context.camera();
 		if (current_camera && current_camera->get_projection() == camera::PERSPECTIVE)// && !is_hud_)
 		{
 			math::matrix m;
@@ -100,7 +100,7 @@ void layer::render_impl(gl::render_context& context)
 	}
 	else
 	{
-		texture_.reset(new gl::texture(context.engine_));
+		texture_.reset(new gl::texture(context.engine()));
 	}
 
 	if (sink_)
