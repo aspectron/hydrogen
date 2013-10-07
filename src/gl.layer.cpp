@@ -7,21 +7,18 @@ namespace aspect { namespace gl {
 
 
 layer::layer()
-: init_done_(false),
-left_(0.0), top_(0.0),
-width_(0.5), height_(0.5),
-fullsize_(false),
-sink_(NULL),
-is_hud_(false),
-flip_(false)
+	: init_done_(false)
+	, left_(0.0), top_(0.0)
+	, width_(0.5), height_(0.5)
+	, fullsize_(false)
+	, sink_(nullptr)
+	, is_hud_(false)
+	, flip_(false)
 {
-
 }
 
 layer::~layer()
 {
-	printf("DELEGING GL LAYER!\n");
-	fflush(stdout);
 }
 
 /*
@@ -105,8 +102,11 @@ void layer::render_impl(gl::render_context& context)
 	else
 		texture_.reset(new gl::texture(context.engine_));
 
-	if(sink_)
-		sink_->digest(texture());
+	if (sink_)
+	{
+		_aspect_assert(texture_);
+		sink_->digest(*texture_);
+	}
 }
 
 void layer::render(gl::render_context& context)

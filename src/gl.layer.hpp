@@ -104,15 +104,12 @@ class texture;
 
 class HYDROGEN_API texture_update_sink
 {
-	public:
+public:
+	virtual ~texture_update_sink() {}
 
-//		V8_DECLARE_CLASS_BINDER(layer_update_sink);
+	virtual void digest(gl::texture&) = 0;
 
-		texture_update_sink() { }
-
-		virtual void digest(gl::texture *) { }
-
-		// RECEIVE FRAME DATA FROM DECKLINK HERE...
+	// RECEIVE FRAME DATA FROM DECKLINK HERE...
 };
 
 
@@ -154,15 +151,13 @@ class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update
 		double height_;
 
 	private:
-
 		boost::scoped_ptr<gl::texture> texture_;
-		bool				init_done_;
-		texture_update_sink	*sink_;
+		bool init_done_;
+		texture_update_sink* sink_;
 		bool fullsize_;
 		bool is_hud_;
 		bool flip_;
 		boost::mutex render_lock_;
-		double test_delay_;
 };
 
 class HYDROGEN_API layer_reference : public layer
