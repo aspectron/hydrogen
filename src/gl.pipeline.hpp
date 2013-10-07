@@ -4,49 +4,34 @@
 
 namespace aspect { namespace gl {
 
-	class camera;
-	class entity;
-	class render_context;
+class camera;
+class entity;
+class render_context;
 
-	class HYDROGEN_API pipeline_entry
+class HYDROGEN_API render_pipeline
+{
+public:
+	render_pipeline()
+		: camera_(nullptr)
 	{
-		public:
+	}
 
-			explicit pipeline_entry(entity& e)
-				: entity_(&e)
-			{
+	void reset(camera* cam);
 
-			}
-
-			entity* entity_;
-//			math::vec3	location_;
-//			float		radius_;
-	};
-
-	class HYDROGEN_API render_pipeline
+	void register_entity(entity& e, bool force_rendering)
 	{
-		public:
+		data_.push_back(&e);
+	}
 
-			camera* camera_;
-			math::vec3 camera_pos_;
-			double range_;
+	void render(render_context& context);
+private:
+	camera* camera_;
+	math::vec3 camera_pos_;
+	double range_;
 
-			std::vector<pipeline_entry> pipeline_data_;
+	std::vector<entity*> data_;
+};
 
-			render_pipeline()
-				: camera_(nullptr)
-			{
-			}
-
-			~render_pipeline()
-			{
-			}
-
-			void reset(camera* cam);
-			void register_entity(entity& e, bool force_rendering);
-			void render(render_context& context);
-	};
-
-} } // aspect::gl
+}} // aspect::gl
 
 #endif // _GL_PIPELINE_HPP_
