@@ -44,15 +44,14 @@ void layer::configure(uint32_t texture_width, uint32_t texture_height, uint32_t 
 
 void layer::render_impl(gl::render_context& context)
 {
-	if (texture_ && (texture_->get_flags() & gl::texture::CONFIG))
+	if (texture_ && texture_->is_config())
 	{
 		boost::mutex::scoped_lock lock(render_lock_);
 
-		
-		gl::camera *current_camera = context.get_camera();
-		if(current_camera && current_camera->get_projection() == camera::PERSPECTIVE)// && !is_hud_)
+		gl::camera* current_camera = context.get_camera();
+		if (current_camera && current_camera->get_projection() == camera::PERSPECTIVE)// && !is_hud_)
 		{
-			math::matrix m;// = current_camera->get_transform_matrix();// * get_transform_matrix();
+			math::matrix m;
 			m.invert(current_camera->get_transform_matrix());
 			m = m * current_camera->get_projection_matrix();
 			glMatrixMode(GL_PROJECTION);
@@ -61,10 +60,9 @@ void layer::render_impl(gl::render_context& context)
 			glMatrixMode(GL_MODELVIEW);
 			glLoadMatrixd(get_transform_matrix().v);
 
-			texture_->draw(math::vec2(0.0,0.0),math::vec2(texture_->get_width(),texture_->get_height()), false);
+			texture_->draw(math::vec2(0, 0), math::vec2(texture_->width(), texture_->height()));
 		}
 		else
-
 		{
 //  			if(is_hud_)
 //  			{
@@ -82,12 +80,13 @@ void layer::render_impl(gl::render_context& context)
 //			glLoadMatrixd((GLdouble*)get_transform_matrix_ptr());
 
 			// render current texture in GPU
-			if(fullsize_)
-				texture_->draw(context.map_pixel_to_view(math::vec2(-0.5,-0.5)),context.map_pixel_to_view(math::vec2(texture_->get_width()-0.5,texture_->get_height()-0.5)), false, flip_);
+			if (fullsize_)
+				texture_->draw(context.map_pixel_to_view(math::vec2(-0.5, -0.5)),
+					context.map_pixel_to_view(math::vec2(texture_->width() - 0.5, texture_->height() - 0.5)), false, flip_);
 			else
 			{
-				texture_->draw(context.map_pixel_to_view(math::vec2(left_,top_)),
-					context.map_pixel_to_view(math::vec2(left_+width_,top_+height_)), false, flip_);
+				texture_->draw(context.map_pixel_to_view(math::vec2(left_, top_)),
+					context.map_pixel_to_view(math::vec2(left_ + width_, top_ + height_)), false, flip_);
 			}
 			
 //  			if(is_hud_)
@@ -100,7 +99,9 @@ void layer::render_impl(gl::render_context& context)
 		}
 	}
 	else
+	{
 		texture_.reset(new gl::texture(context.engine_));
+	}
 
 	if (sink_)
 	{
