@@ -1,5 +1,4 @@
 #pragma once
-// #define BUILDING_V8_SHARED 1
 
 #include "core.hpp"
 #include "v8_core.hpp"
@@ -7,9 +6,6 @@
 #include "image.hpp"
 #include "math.hpp"
 #include "oxygen.hpp"
-
-#include "boost/thread/recursive_mutex.hpp"
-#include "boost/scoped_ptr.hpp"
 
 #if OS(WINDOWS)
 //	#pragma warning ( disable : 4251 )
