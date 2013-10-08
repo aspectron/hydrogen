@@ -1,142 +1,112 @@
 #ifndef _GL_VIEWPORT_HPP_
 #define _GL_VIEWPORT_HPP_
 
-namespace aspect
+namespace aspect { namespace gl {
+
+class HYDROGEN_API viewport
 {
-	namespace gl
+public:
+	viewport()
+		: aspect_ratio_(0)
+		, width_(0)
+		, height_(0)
+		, pixel_size_(0, 0)
+		, fov_(0)
 	{
+		projection_matrix_.set_identity();
+	}
 
-		class HYDROGEN_API viewport // : public aspect::entity
-		{
-			public:
+	void set_perspective_projection_fov(double width, double height, double near_plane, double far_plane, double fov)
+	{
+		width_ = width;
+		height_ = height;
+		pixel_size_.x = 2.0 / width_;
+		pixel_size_.y = 2.0 / height_;
+		aspect_ratio_ = width_ / height_;
+		fov_ = fov;
 
-				viewport()
-					: aspect_ratio_(0.0f), width_(0.0f), height_(0.0f), pixel_size_(0.0f,0.0f), fov_(0.0f)
-				{
-					projection_matrix_.set_identity();
-				}
+		generate_perspective_projection_fov(projection_matrix_, fov, near_plane, far_plane, aspect_ratio_);
+	}
 
-				void set_perspective_projection_fov( double _width, double _height, double near_plane, double far_plane, double fov)
-				{
-					width_ = _width;
-					height_ = _height;
-					pixel_size_.x = 2.0f / width_;
-					pixel_size_.y = 2.0f / height_;
-					aspect_ratio_ = width_ / height_;
+	void set_frustum_projection(double left, double right, double bottom, double top, double zNear, double zFar)
+	{
+		generate_frustum_projection(projection_matrix_, left, right, bottom, top, zNear, zFar);
+	}
 
-					generate_perspective_projection_fov(projection_matrix_, fov, near_plane, far_plane, aspect_ratio_);
-				}
+	void set_orthographic_projection(double left, double right, double bottom, double top, double zNear, double zFar)
+	{
+		generate_orthographic_projection(projection_matrix_, left, right, bottom, top, zNear, zFar);
+	}
 
-				void set_frustum_projection(double left, double right, double bottom, double top, double zNear, double zFar)
-				{
-					generate_frustum_projection(projection_matrix_, left, right, bottom, top, zNear, zFar);
-				}
+	double aspect_ratio() const { return aspect_ratio_; }
 
-				void set_orthographic_projection(double left, double right, double bottom, double top, double zNear, double zFar)
-				{
-					generate_orthographic_projection(projection_matrix_, left, right, bottom, top, zNear, zFar);
-				}
+	double width() const { return width_; }
+	double height() const { return height_; }
 
-				double  get_aspect_ratio(void) const { return aspect_ratio_; }
-				double  get_width(void) const { return width_; }
-				double  get_height(void) const { return height_; }
-				const math::vec2& get_pixel_size(void) const { return pixel_size_; }
-				double  get_fov(void) const { return fov_; }
+	math::vec2 const& pixel_size() const { return pixel_size_; }
 
-				math::matrix *get_projection_matrix_ptr(void) { return &projection_matrix_; }
-				math::matrix &get_projection_matrix(void) { return projection_matrix_; }
+	double fov() const { return fov_; }
 
-				virtual math::matrix *get_modelview_matrix_ptr(void) = 0;
-				virtual math::matrix &get_modelview_matrix(void) = 0;
+	math::matrix const& projection_matrix() const { return projection_matrix_; }
 
-			protected:
+private:
+	math::matrix projection_matrix_;
+	double aspect_ratio_;
+	double width_, height_;
+	math::vec2 pixel_size_;
+	double fov_;
 
-				math::matrix projection_matrix_;
-				double 	aspect_ratio_;
-				double 	width_, height_;
-				math::vec2 pixel_size_;
-				double 	fov_;
+	static void generate_frustum_projection(math::matrix &m,
+		double left, double right, double bottom, double top, double zNear, double zFar)
+	{
+		double* mm = m.v;
 
-				void generate_frustum_projection(math::matrix &m, double left, double right, double bottom, double top, double zNear, double zFar)
-				{
+		mm[1] = mm[2] = mm[3] = mm[4] = 0.0;
+		mm[6] = mm[7] = mm[12] = mm[13] = mm[15] = 0.0;
 
-					double *mm = (double*)&m;
+		mm[0] = 2.0 * zNear / (right - left);
+		mm[5] = 2.0 * zNear / (top - bottom);
+		mm[8] = (right + left) / (right - left);
+		mm[9] = (top + bottom) / (top - bottom);
+		mm[10] = -(zFar + zNear) / (zFar - zNear);
+		mm[11] = -1.0;
+		mm[14] = -(2.0 * zFar * zNear) / (zFar - zNear);
+	}
 
-					mm[1] = mm[2] = mm[3] = mm[4] = 0.f;
-					mm[6] = mm[7] = mm[12] = mm[13] = mm[15] = 0.f;
+	static void generate_orthographic_projection(math::matrix &m,
+		double left, double right, double bottom, double top, double znear, double zfar)
+	{
+		double* mm = m.v;
 
+		mm[1] = mm[2] = mm[3] = mm[4] = 0.0;
+		mm[6] = mm[7] = mm[8] = mm[9] = mm[11] = 0.0; // = mm[12] = mm[13] = mm[15] = 0.0;
 
-					mm[0] = 2 * zNear / (right - left);
-					mm[5] = 2 * zNear / (top - bottom);
-					mm[8] = (right + left) / (right - left);
-					mm[9] = (top + bottom) / (top - bottom);
-					mm[10] = -(zFar + zNear) / (zFar - zNear);
-					mm[11] = -1.f;
-					mm[14] = -(2 * zFar * zNear) / (zFar - zNear);
-				}
+		mm[0] = 2.0 / (right - left);
+		mm[5] = 2.0 / (top - bottom);
+		mm[10] = -2.0 / (zfar - znear);
+		mm[12] = -((right + left) / (right - left));
+		mm[13] = -((top + bottom) / (top - bottom));
+		mm[14] = -((zfar + znear) / (zfar - znear));
+		mm[15] = 1.0;
+	}
 
-
-				void generate_orthographic_projection(math::matrix &m, double left, double right, double bottom, double top, double znear, double zfar)
-				{
-
-					double *mm = (double*)&m;
-
-					mm[1] = mm[2] = mm[3] = mm[4] = 0.f;
-					mm[6] = mm[7] = mm[8] = mm[9] = mm[11];
-					
-//					= mm[12] = mm[13] = mm[15] = 0.f;
-
-
-// 					mm[0] = 2 * zNear / (right - left);
-// 					mm[5] = 2 * zNear / (top - bottom);
-// 					mm[8] = (right + left) / (right - left);
-// 					mm[9] = (top + bottom) / (top - bottom);
-// 					mm[10] = -(zFar + zNear) / (zFar - zNear);
-// 					mm[11] = -1.f;
-// 					mm[14] = -(2 * zFar * zNear) / (zFar - zNear);
-
-					mm[0] = 2.0f / (right - left);
-					mm[5] = 2.0f / (top - bottom);
-					mm[10] = -2.0f / (zfar - znear);
-					mm[12] = -((right + left) / (right - left));
-					mm[13] = -((top + bottom) / (top - bottom));
-					mm[14] = -((zfar + znear) / (zfar - znear));
-					mm[15] = 1.0f;
-
-				}
-
-				void generate_perspective_projection_fov(math::matrix &m, double _fov, double near_plane, double far_plane, double _aspect_ratio)
-				{
+	static void generate_perspective_projection_fov(math::matrix &m,
+		double fov, double near_plane, double far_plane, double aspect_ratio)
+	{
 #if 0
-					double ymax = 1024/2.0f * near_plane / fov;
-					double ymin = -ymax;
-					double xmin = ymin * aspect_ratio;
-					double xmax = ymax * aspect_ratio;
-					generate_frustum_projection( m, xmin, xmax, ymin, ymax, near_plane, far_plane);
+		double ymax = 1024 / 2.0 * near_plane / fov;
+		double ymin = -ymax;
+		double xmin = ymin * aspect_ratio;
+		double xmax = ymax * aspect_ratio;
+		generate_frustum_projection( m, xmin, xmax, ymin, ymax, near_plane, far_plane);
 #else
-					fov_ = _fov;
-					double size = near_plane * tan(math::deg_to_rad(fov_) / 2.0); 
-//					generate_frustum_projection( m, -size * _aspect_ratio, size * _aspect_ratio, -size , size , near_plane, far_plane);
-					generate_frustum_projection( m, -size, size, -size / _aspect_ratio, size / _aspect_ratio, near_plane, far_plane);
-
-
+		double const size = near_plane * tan(math::deg_to_rad(fov) / 2.0);
+		// generate_frustum_projection(m, -size * aspect_ratio, size * aspect_ratio, -size, size, near_plane, far_plane);
+		generate_frustum_projection(m, -size, size, -size / aspect_ratio, size / aspect_ratio, near_plane, far_plane);
 #endif
+	}
+};
 
-
-					//double aspect = this.fullWidth / this.fullHeight;
-					// double top = Math.tan( _fov * Math.PI / 360 ) * this.near;
-// 					var bottom = -top;
-// 					var left = aspect * bottom;
-// 					var right = aspect * top;
-// 					var width = Math.abs( right - left );
-// 					var height = Math.abs( top - bottom );
-
-				}
-
-		};
-
-	} // gl
-
-} // aspect
+}} // aspect::gl
 
 #endif // _GL_VIEWPORT_HPP_

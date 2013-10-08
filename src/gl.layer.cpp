@@ -49,11 +49,11 @@ void layer::render_impl(gl::render_context& context)
 		boost::mutex::scoped_lock lock(render_lock_);
 
 		gl::camera* current_camera = context.camera();
-		if (current_camera && current_camera->get_projection() == camera::PERSPECTIVE)// && !is_hud_)
+		if (current_camera && current_camera->is_perspective_projection())// && !is_hud_)
 		{
 			math::matrix m;
 			m.invert(current_camera->get_transform_matrix());
-			m = m * current_camera->get_projection_matrix();
+			m = m * current_camera->projection_matrix();
 			glMatrixMode(GL_PROJECTION);
 			glLoadMatrixd((GLdouble*)&m);
 

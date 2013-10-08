@@ -93,8 +93,8 @@ Handle<Value> hydrogen_install()
 	camera_class
 		.set("set_perspective_projection_fov", &camera::set_perspective_projection_fov)
 		.set("set_orthographic_projection", &camera::set_orthographic_projection)
-		.set("get_fov", &camera::get_fov)
-		.set("fov", v8pp::property(&camera::get_fov))
+		.set("get_fov", &camera::fov)
+		.set("fov", v8pp::property(&camera::fov))
 		.set("set_target", &camera::set_target)
 		.set("reset_target", &camera::reset_target)
 		;

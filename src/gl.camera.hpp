@@ -3,67 +3,56 @@
 
 #include "gl.entity.hpp"
 
-namespace aspect
+namespace aspect { namespace gl {
+
+class HYDROGEN_API camera : public entity, public gl::viewport
 {
-	namespace gl
+public:
+	typedef v8pp::class_<camera> js_class;
+
+	camera();
+
+	bool is_perspective_projection() const { return projection_ == PERSPECTIVE; }
+
+	void set_perspective_projection_fov(double width, double height, double near_plane, double far_plane, double fov)
 	{
-		
-		class HYDROGEN_API camera : public entity, public gl::viewport
-		{
-			public:
-				typedef v8pp::class_<camera> js_class;
-
-				enum
-				{
-					ORTHOGRAPHIC = 0,
-					PERSPECTIVE = 1,
-				};
-
-				camera();
-
-				uint32_t get_projection(void) const { return projection_; }
-
-				void update_modelview_matrix(void);
-
-				virtual math::matrix *get_modelview_matrix_ptr(void) { update_modelview_matrix(); return &modelview_matrix_; }
-				virtual math::matrix &get_modelview_matrix(void) { update_modelview_matrix(); return modelview_matrix_; }
-
-				void get_zero_plane_world_to_screen_scale(math::vec2 &scale);
-
-				void set_perspective_projection_fov(double width, double height, double near_plane, double far_plane, double fov)
-				{
-					projection_ = PERSPECTIVE;
-//					fov_ = fov;
-					gl::viewport::set_perspective_projection_fov(width,height,near_plane,far_plane,fov);
-				}
-
-				void set_orthographic_projection(double left, double right, double bottom, double top, double near_plane, double far_plane)
-				{
-					projection_ = ORTHOGRAPHIC;
-					gl::viewport::set_orthographic_projection(left,right,bottom,top,near_plane,far_plane);
-				}
-
-				math::vec3 project_mouse(gl::entity *, double x, double y);
-
-				double get_fov() const { return fov_; }
-
-				void set_target(entity& e) { target_.reset(&e); }
-				void reset_target() { target_.reset(); }
-
-				void render(render_context *context);
-
-			private:
-
-				math::matrix modelview_matrix_;
-				math::matrix look_at_;
-//				double fov_;
-				uint32_t	projection_;
-
-				entity_ptr target_;
-
-		};
+		projection_ = PERSPECTIVE;
+		gl::viewport::set_perspective_projection_fov(width, height, near_plane, far_plane, fov);
 	}
 
-} // aspect
+	void set_orthographic_projection(double left, double right, double bottom, double top, double near_plane, double far_plane)
+	{
+		projection_ = ORTHOGRAPHIC;
+		gl::viewport::set_orthographic_projection(left, right, bottom, top, near_plane, far_plane);
+	}
+
+	void set_target(entity& e) { target_.reset(&e); }
+	void reset_target() { target_.reset(); }
+
+	math::vec3 project_mouse(gl::entity& e, double x, double y);
+
+	void camera::get_zero_plane_world_to_screen_scale(math::vec2 &scale);
+
+	void render(render_context& context);
+
+	math::matrix const& modelview_matrix() { update_modelview_matrix(); return modelview_matrix_; }
+
+private:
+	void update_modelview_matrix();
+
+private:
+	enum projection
+	{
+		ORTHOGRAPHIC = 0,
+		PERSPECTIVE = 1,
+	} projection_;
+
+	math::matrix modelview_matrix_;
+	math::matrix look_at_;
+
+	entity_ptr target_;
+};
+
+}} // aspect::gl
 
 #endif // _ASPECT_CAMERA_HPP_
