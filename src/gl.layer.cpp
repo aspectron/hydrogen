@@ -98,7 +98,7 @@ void layer::render_impl(gl::render_context& context)
 			
 		}
 	}
-	else
+	else if (!texture_)
 	{
 		texture_.reset(new gl::texture(context.engine()));
 	}
