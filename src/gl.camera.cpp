@@ -10,7 +10,7 @@ camera::camera()
 void camera::update_modelview_matrix()
 {
 	math::matrix const& viewport_projection = projection_matrix();
-	math::matrix const& entity_transform = get_transform_matrix();
+	math::matrix const& entity_transform = transform_matrix();
 
 	math::matrix m;
 
@@ -28,7 +28,7 @@ void camera::update_modelview_matrix()
 		eye = eye * entity_transform;
 
 		math::vec3 target(0, 0, 0);
-		target = target * target_->get_transform_matrix();
+		target = target * target_->transform_matrix();
 
 		math::vec3 up(0, 1, 0);
 
@@ -73,19 +73,20 @@ void camera::update_modelview_matrix()
 	}
 }
 
-void camera::get_zero_plane_world_to_screen_scale(math::vec2 &scale)
+math::vec2 camera::get_zero_plane_world_to_screen_scale()
 {
 	math::matrix const& m_view = modelview_matrix();
-	math::matrix const& m_transform = get_transform_matrix();
-	math::vec3 ptCam(0.0f,0.0f,0.0f);
+	math::matrix const& m_transform = transform_matrix();
+
+	math::vec3 ptCam(0, 0, 0);
 	ptCam = m_transform * ptCam;
-	math::vec3 pt1(ptCam.x,ptCam.y,0.0f);
-	math::vec3 pt2(ptCam.x+1,ptCam.y+1.0f,0.0f);
+
+	math::vec3 pt1(ptCam.x, ptCam.y, 0);
+	math::vec3 pt2(ptCam.x + 1, ptCam.y + 1, 0);
 	pt1 = m_view * pt1;
 	pt2 = m_view * pt2;
 
-	scale.x = pt2.x-pt1.x;
-	scale.y = pt2.y-pt1.y;
+	return math::vec2(pt2.x - pt1.x, pt2.y - pt1.y);
 }
 
 void camera::render(render_context& context)

@@ -58,20 +58,21 @@ entity& entity::detach(entity& e)
 	return *this;
 }
 
-aspect::math::matrix& entity::get_transform_matrix()
+math::matrix const& entity::transform_matrix() const
 {
 	if (physics_data_.rigid_body)
 	{
-		entity_transform.flags = transform::TRANSFORM_BIND_DISABLED;
-
 		btScalar m[16];
 		physics_data_.rigid_body->getWorldTransform().getOpenGLMatrix(m);
-		std::copy(std::begin(m), std::end(m), entity_transform.transform_matrix.v);
+
+		math::matrix transform;
+		std::copy(std::begin(m), std::end(m), transform.v);
+
+		entity_transform.set_matrix(transform);
 	}
 
-	return entity_transform.get_matrix();
+	return entity_transform.matrix();
 }
-
 
 void entity::set_transform_matrix(math::matrix const& transform)
 {
@@ -90,8 +91,7 @@ void entity::set_transform_matrix(math::matrix const& transform)
 	}
 	else
 	{
-		entity_transform.transform_matrix = transform;
-		entity_transform.flags = transform::TRANSFORM_BIND_DISABLED;
+		entity_transform.set_matrix(transform);
 	}
 }
 
@@ -165,31 +165,10 @@ void entity::render(render_context& context)
 #endif
 }
  
-void entity::apply_rotation( const math::quat &q )
+void entity::apply_rotation(math::quat const& q)
 {
-	math::matrix &m = get_transform_matrix();
-
-//		m.apply_orientation(q);
-	math::matrix mrot;
-	q.to_matrix(mrot);
-//		m = q * m;
-	m = mrot * m;
-
-	set_transform_matrix(m);
+	set_transform_matrix(q.to_matrix() * transform_matrix());
 }
-
-struct entity_z_less {
-	bool operator ()(boost::shared_ptr<entity> const& a, boost::shared_ptr<entity> const& b) const {
-
-		math::vec3 const v1 = a->get_location();
-		math::vec3 const v2 = b->get_location();
-
-		if (v1.z < v2.z) return true;
-		if (v1.z > v2.z) return false;
-
-		return false;
-	}
-};
 
 void entity::sort_z()
 {
@@ -197,18 +176,15 @@ void entity::sort_z()
 	children_.sort(
 		[](entity_ptr& lhs, entity_ptr& rhs)
 		{
-			return lhs->get_location().z < rhs->get_location().z;
+			return lhs->location().z < rhs->location().z;
 		});
 }
 
 void entity::set_location(const math::vec3& l)
 {
-//	_set_location(math::vec3(x,y,z));
 	entity_transform.set_location(l);
-	math::matrix m = entity_transform.get_matrix(); // get_transform_matrix();
-	set_transform_matrix(m);
+	set_transform_matrix(entity_transform.matrix()); // get_transform_matrix();
 }
-
 
 void entity::disable_contact_response( void )
 {

@@ -146,9 +146,9 @@ bool bullet::add(gl::entity& e)
 	case gl::entity::BOUNDING_BOX:
 		{
 			pbtCollisionShape.reset(new btBoxShape(btVector3(
-				e.physics_data_.dimension.x * e.get_transform().scale.x,
-				e.physics_data_.dimension.y * e.get_transform().scale.y,
-				e.physics_data_.dimension.z * e.get_transform().scale.z)));
+				e.physics_data_.dimension.x * e.scale().x,
+				e.physics_data_.dimension.y * e.scale().y,
+				e.physics_data_.dimension.z * e.scale().z)));
 		} break;
 
 	case gl::entity::BOUNDING_SPHERE:
@@ -267,13 +267,10 @@ bool bullet::add(gl::entity& e)
 		} break;
 	}
 
+	btScalar m[16];
+	std::copy(std::begin(e.transform_matrix().v), std::end(e.transform_matrix().v), m);
 	transform.setIdentity();
-	float m[16];
-	double *src = (double*)e.entity_transform.get_matrix_ptr();
-	for(int i = 0; i < 16; i++)
-		m[i] = src[i];
-	transform.setFromOpenGLMatrix((const btScalar *)m);
-	// transform.setFromOpenGLMatrix((const btScalar *)e.entity_transform.get_matrix_ptr());
+	transform.setFromOpenGLMatrix(m);
 
 	pbtDefaultMotionState.reset(new btDefaultMotionState(transform));
 

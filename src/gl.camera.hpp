@@ -31,7 +31,7 @@ public:
 
 	math::vec3 project_mouse(gl::entity& e, double x, double y);
 
-	void camera::get_zero_plane_world_to_screen_scale(math::vec2 &scale);
+	math::vec2 get_zero_plane_world_to_screen_scale();
 
 	void render(render_context& context);
 

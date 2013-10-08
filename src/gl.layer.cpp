@@ -12,13 +12,13 @@ void layer::render(gl::render_context& context)
 		if (current_camera && current_camera->is_perspective_projection())// && !is_hud_)
 		{
 			math::matrix m;
-			m.invert(current_camera->get_transform_matrix());
+			m.invert(current_camera->transform_matrix());
 			m = m * current_camera->projection_matrix();
 			glMatrixMode(GL_PROJECTION);
-			glLoadMatrixd((GLdouble*)&m);
+			glLoadMatrixd(m.v);
 
 			glMatrixMode(GL_MODELVIEW);
-			glLoadMatrixd(get_transform_matrix().v);
+			glLoadMatrixd(transform_matrix().v);
 
 			texture_->draw(math::vec2(0, 0), math::vec2(texture_->width(), texture_->height()));
 		}
@@ -33,7 +33,7 @@ void layer::render(gl::render_context& context)
 //  			else
 			{
 				glMatrixMode(GL_MODELVIEW);
-				glLoadMatrixd(get_transform_matrix().v);
+				glLoadMatrixd(transform_matrix().v);
 			}
 
 //			glMatrixMode(GL_MODELVIEW);

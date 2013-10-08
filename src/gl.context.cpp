@@ -8,7 +8,7 @@ void render_context::reset()
 
 	if (camera_)
 	{
-		camera_->get_transform_matrix().get_translation(camera_pos_);
+		camera_pos_ = camera_->location();
 		range_ = -camera_pos_.z * fabs(tan(camera_->fov() * 0.5)) * 0.5;
 	}
 }

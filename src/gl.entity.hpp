@@ -86,7 +86,7 @@ namespace aspect { namespace gl {
 			uint32_t collision_candidates_;
 
 			double age_;
-			transform	entity_transform; //m_Transform;
+			mutable transform entity_transform; //m_Transform;
 
 			
 			entity_ptr parent_;
@@ -108,37 +108,19 @@ namespace aspect { namespace gl {
 			void fade_in(double msec) { fade_ts_ = utils::get_ts(); transparency_targets_[0] = 0.0; transparency_targets_[1] = 1.0; fade_duration_ = msec; }
 			void fade_out(double msec) {  fade_ts_ = utils::get_ts(); transparency_targets_[0] = 1.0; transparency_targets_[1] = 0.0; fade_duration_ = msec; }
 
-			transform& get_transform() { return entity_transform; }
+			math::matrix const& transform_matrix() const;
+			void set_transform_matrix(math::matrix const& transform);
 
-			aspect::math::matrix& get_transform_matrix();
-			void set_transform_matrix(const math::matrix &transform);
-			void acquire_transform(entity *src) { set_transform_matrix(src->get_transform_matrix()); }
+			void _set_location(math::vec3 const& loc) { entity_transform.set_location(loc); }
+			math::vec3 location() const { return entity_transform.location(); }
 
-			void _set_location(const math::vec3 &loc) { entity_transform.set_location(loc); }
-			math::vec3 get_location()
-			{
-				math::vec3 loc;
-				entity_transform.get_matrix().get_translation(loc);
-				return loc;
-			}
+			void _set_orientation(math::quat const& q) { entity_transform.set_orientation(q); }
+			math::quat orientation() const { return entity_transform.orientation(); }
 
-			void _set_orientation(const math::quat &q) { entity_transform.set_orientation(q); }
-			math::quat get_orientation()
-			{
-				math::quat q;
-				entity_transform.get_matrix().get_orientation(q);
-				return q;
-			}
+			void _set_scale(math::vec3 const& scale) { entity_transform.set_scale(scale); }
+			math::vec3 scale() const { return entity_transform.scale(); }
 
-			void _set_scale(const math::vec3 &scale) { entity_transform.set_scale(scale); }
-			math::vec3 get_scale()
-			{
-				math::vec3 sc;
-				entity_transform.get_matrix().get_scale(sc);
-				return sc;
-			}
-
-			void apply_rotation(const math::quat &q);
+			void apply_rotation(math::quat const& q);
 			
 			// main stuff
 			//virtual boost::shared_ptr<entity> instance(uint32_t flags = 0);
