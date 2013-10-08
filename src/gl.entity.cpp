@@ -51,7 +51,7 @@ entity& entity::detach(entity& e)
 	if (e.parent_.get() == this)
 	{
 		boost::mutex::scoped_lock lock(children_mutex_);
-		children_.remove(entity_ptr(&e));
+		children_.remove_if([&e](entity_ptr& e2) { return &e == e2.get(); });
 
 		e.parent_.reset();
 	}
