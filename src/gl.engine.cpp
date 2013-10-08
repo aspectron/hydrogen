@@ -63,11 +63,11 @@ public:
 	}
 	*/
 
-	void execute_callbacks()
+	void execute_callbacks(size_t limit = 100)
 	{
-		size_t const MAX_CALLBACKS_HANDLED = 100;
+		limit = std::min(limit, 10000u);
 		callback cb;
-		for (size_t cb_handled = 0; callbacks_.try_pop(cb) && cb_handled < MAX_CALLBACKS_HANDLED; ++cb_handled)
+		for (size_t cb_handled = 0; callbacks_.try_pop(cb) && cb_handled < limit; ++cb_handled)
 		{
 			if ( !cb )
 			{
@@ -83,12 +83,6 @@ public:
 			}
 		}
 	}
-
-	void clear_callbacks()
-	{
-		callbacks_.clear();
-	}
-
 
 private:
 
@@ -317,9 +311,9 @@ void engine::main()
 		iter++;
 	}
 
-	main_loop_->clear_callbacks();
+	main_loop_->execute_callbacks(0);
 
-	world_->delete_all_children();
+	world_.reset();
 
 	cleanup();
 

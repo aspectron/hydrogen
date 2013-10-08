@@ -141,13 +141,15 @@ Handle<Value> hydrogen_install()
 
 void hydrogen_uninstall(Handle<Value> library)
 {
-	gl::engine::js_class::destroy_objects();
-	aspect::physics::bullet::js_class::destroy_objects();
-
 	aspect::gl::layer_reference::js_class::destroy_objects();
 	aspect::gl::layer::js_class::destroy_objects();
-	aspect::gl::camera::js_class::destroy_objects();
+
+	gl::engine::js_class::destroy_objects();
+
 	aspect::gl::entity::js_class::destroy_objects();
+	aspect::gl::camera::js_class::destroy_objects();
+
+	aspect::physics::bullet::js_class::destroy_objects();
 
 	delete gl::entity::js_binding; gl::entity::js_binding = nullptr;
 	image_module.Dispose();
