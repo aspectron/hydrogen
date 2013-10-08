@@ -158,7 +158,6 @@ void engine::main()
 	SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
 
 	iface_.reset(new gl::iface(*window_));
-	iface_->setup();
 	iface_->set_active(true);
 
 	setup();
@@ -328,21 +327,8 @@ void engine::main()
 
 }
 
-bool engine::setup(void)
+void engine::setup()
 {
-//					iface_->cleanup();
-//					if(!iface_->setup())
-//					{
-//						iface_->cleanup();
-//						// TODO - error handling!
-//						return false;
-//					}
-
-	// iface_->setup_fonts();
-//	glLigt
-	// do we modify vsync?
-//					SetVSync(pArgList->Status);
-
 //	glShadeModel(GL_SMOOTH);					// enable smooth shading
 	glShadeModel(GL_FLAT);					// enable smooth shading
 #if OS(WINDOWS)
@@ -388,22 +374,62 @@ bool engine::setup(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	_setup_viewport();
+	update_viewport();
+	setup_viewport();
 
-	iface().setup_shaders();
-
-//	m_capture_receiver.push_back(new capture_receiver);
-//	m_capture_receiver[0]->m_texture[0]->setup(1280,720,av::YCbCr8); // asy.12
-
-//	viewport_->bind(iface()->window());
-
-	return true;
+	setup_shaders();
 }
 
-void engine::cleanup(void)
+void engine::cleanup()
 {
-	iface_->cleanup_shaders();
-	iface_->cleanup();
+	cleanup_shaders();
+}
+
+void engine::setup_shaders()
+{
+	const char* const source =
+		"#version 130 \n"
+		"uniform sampler2D UYVYtex; \n"		// UYVY macropixel texture passed as RGBA format
+		"void main(void) \n"
+		"{\n"
+		"	float tx, ty, Y, Cb, Cr, r, g, b; \n"
+		"	tx = gl_TexCoord[0].x; \n"
+		"	ty = gl_TexCoord[0].y; \n"
+
+		// The UYVY texture appears to the shader with 1/2 the true width since we used RGBA format to pass UYVY
+//		"	float true_width = textureSize(UYVYtex, 0).x * 2; \n"
+		"	int true_width = textureSize(UYVYtex, 0).x * 2; \n"
+
+		// For U0 Y0 V0 Y1 macropixel, lookup Y0 or Y1 based on whether
+		// the original texture x coord is even or odd.
+		"	if (fract(floor(tx * true_width + 0.5) / 2.0) > 0.0) \n"
+		"		Y = texture2D(UYVYtex, vec2(tx,ty)).a; \n"		// odd so choose Y1
+		"	else \n"
+		"		Y = texture2D(UYVYtex, vec2(tx,ty)).g; \n"		// even so choose Y0
+		"	Cb = texture2D(UYVYtex, vec2(tx,ty)).b; \n"
+		"	Cr = texture2D(UYVYtex, vec2(tx,ty)).r; \n"
+
+		// Y: Undo 1/256 texture value scaling and scale [16..235] to [0..1] range
+		// C: Undo 1/256 texture value scaling and scale [16..240] to [-0.5 .. + 0.5] range
+		"	Y = (Y * 256.0 - 16.0) / 219.0; \n"
+		"	Cb = (Cb * 256.0 - 16.0) / 224.0 - 0.5; \n"
+		"	Cr = (Cr * 256.0 - 16.0) / 224.0 - 0.5; \n"
+		// Convert to RGB using Rec.709 conversion matrix (see eq 26.7 in Poynton 2003)
+		"	r = Y + 1.5748 * Cr; \n"
+		"	g = Y - 0.1873 * Cb - 0.4681 * Cr; \n"
+		"	b = Y + 1.8556 * Cb; \n"
+
+		// Set alpha to 0.7 for partial transparency when GL_BLEND is enabled
+		"	gl_FragColor = vec4(r, g, b, 1.0); \n"
+//		"	gl_FragColor = vec4(r, g, b, 0.7); \n"
+		"}\n";
+
+	shaders_.push_back(boost::make_shared<gl::shader>(GL_FRAGMENT_SHADER, source));
+}
+
+void engine::cleanup_shaders()
+{
+	shaders_.clear();
 }
 
 void engine::validate_iface()
@@ -444,12 +470,6 @@ void engine::get_viewport_units(double *x, double *y)
 
 	*x = 2.0 / (double)width;
 	*y = 2.0 / (double)height;
-}
-
-void engine::_setup_viewport()
-{
-	update_viewport();
-	setup_viewport();
 }
 
 void engine::setup_viewport()

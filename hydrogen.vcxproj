@@ -135,7 +135,8 @@
     <ClCompile Include="src\gl.context.cpp" />
     <ClCompile Include="src\gl.engine.cpp" />
     <ClCompile Include="src\gl.entity.cpp" />
-    <ClCompile Include="src\gl.iface.cpp" />
+    <ClCompile Include="src\gl.iface.linux.cpp" />
+    <ClCompile Include="src\gl.iface.windows.cpp" />
     <ClCompile Include="src\gl.layer.cpp" />
     <ClCompile Include="src\gl.texture.cpp" />
     <ClCompile Include="src\hydrogen.cpp" />
@@ -147,7 +148,8 @@
     <ClInclude Include="src\gl.context.hpp" />
     <ClInclude Include="src\gl.engine.hpp" />
     <ClInclude Include="src\gl.entity.hpp" />
-    <ClInclude Include="src\gl.iface.hpp" />
+    <ClInclude Include="src\gl.iface.linux.hpp" />
+    <ClInclude Include="src\gl.iface.windows.hpp" />
     <ClInclude Include="src\gl.layer.hpp" />
     <ClInclude Include="src\gl.shader.hpp" />
     <ClInclude Include="src\gl.texture.hpp" />

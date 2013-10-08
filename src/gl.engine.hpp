@@ -31,6 +31,18 @@ namespace aspect { namespace gl {
 
 			void main();
 
+			enum integrated_shaders
+			{
+				integrated_shader_YCbCr8,
+				integrated_shader_last
+			};
+
+			boost::shared_ptr<gl::shader> get_integrated_shader(uint32_t id)
+			{
+				_aspect_assert(id < integrated_shader_last);
+				return shaders_[id];
+			}
+
 			gl::iface& iface() { _aspect_assert(iface_); return *iface_; }
 			aspect::gui::window& window() { _aspect_assert(window_); return *window_; }
 		
@@ -85,17 +97,19 @@ namespace aspect { namespace gl {
 			bool debug_string_changed_;
 			boost::mutex debug_string_mutex_;
 
-			bool setup();
+			void setup();
 			void cleanup();
 			void validate_iface();
 			void update_viewport();
 			void get_viewport_size(size_t *width, size_t *height);
 			void get_viewport_units(double *x, double *y);
-			void _setup_viewport();
 			void setup_viewport();
 
+			void setup_shaders();
+			void cleanup_shaders();
 	private:
 		v8pp::persistent_ptr<gui::window> window_;
+		std::vector<boost::shared_ptr<gl::shader>> shaders_;
 	};
 
 

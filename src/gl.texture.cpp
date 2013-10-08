@@ -58,7 +58,7 @@ void texture::setup(unsigned width, unsigned height, aspect::image::encoding enc
 			format_internal_ = GL_BGRA;
 			bpp_ = 2;
 			output_width_ /= 2;
-			shader_ = engine_.iface().get_integrated_shader(iface_base::integrated_shader_YCbCr8);
+			shader_ = engine_.get_integrated_shader(engine::integrated_shader_YCbCr8);
 		} break;
 
 	case image::RGBA8:

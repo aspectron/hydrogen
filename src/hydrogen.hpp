@@ -24,15 +24,17 @@
 #if OS(WINDOWS)
 #include "glew/include/glew.h"
 //#include <GL/glew.h>
+#include "gl.iface.windows.hpp"
 #elif OS(LINUX)
 #include <GL/glxew.h>
 #include <GL/glew.h>
+#include "gl.iface.linux.hpp"
+#else
+#error "Unsupported platform"
 #endif
 
 #include "gl.color.hpp"
-
 #include "gl.shader.hpp"
-#include "gl.iface.hpp"
 #include "gl.texture.hpp"
 
 #include "gl.transform.hpp"
