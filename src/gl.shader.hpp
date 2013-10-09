@@ -138,7 +138,6 @@ private:
 	}
 };
 
-
 }} // aspect::gl
 
 #endif // __GL_SHADER_HPP__

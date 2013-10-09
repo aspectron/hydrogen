@@ -45,6 +45,8 @@ void texture::_update_pixels(GLubyte* dst)
 
 void texture::setup(unsigned width, unsigned height, aspect::image::encoding encoding, uint32_t flags)
 {
+	cleanup_sync();
+
 	flags_ |= flags;
 	encoding_ = encoding;
 	width_ = output_width_ = width;
