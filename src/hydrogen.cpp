@@ -143,15 +143,20 @@ Handle<Value> hydrogen_install()
 
 void hydrogen_uninstall(Handle<Value> library)
 {
+	// destroy layer instances before engine stop
+	// to clean up texture resources in then main engine thread
 	aspect::gl::layer_reference::js_class::destroy_objects();
 	aspect::gl::layer::js_class::destroy_objects();
 
+	// destroy engine and bullet instances before entity
+	// to stop rendering and physics simulation
 	gl::engine::js_class::destroy_objects();
-
-	aspect::gl::entity::js_class::destroy_objects();
-	aspect::gl::camera::js_class::destroy_objects();
-
 	aspect::physics::bullet::js_class::destroy_objects();
+
+	// it's now safe to destroy entity and camera instances
+	// after engine and bullet have been stopped
+	aspect::gl::camera::js_class::destroy_objects();
+	aspect::gl::entity::js_class::destroy_objects();
 
 	delete gl::entity::js_binding; gl::entity::js_binding = nullptr;
 	image_module.Dispose();
