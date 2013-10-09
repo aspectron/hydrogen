@@ -9,197 +9,175 @@
 
 namespace aspect { namespace gl {
 
-	class render_context;
-	class entity;
+class render_context;
+class entity;
 
-	typedef v8pp::persistent_ptr<entity> entity_ptr;
+typedef v8pp::persistent_ptr<entity> entity_ptr;
 
-	class HYDROGEN_API entity
+class HYDROGEN_API entity
+{
+public:
+	typedef v8pp::class_<gl::entity> js_class;
+
+	static js_class* js_binding;
+
+	entity();
+	virtual ~entity();
+
+	// main stuff
+	//virtual boost::shared_ptr<entity> instance(uint32_t flags = 0);
+	virtual void init(render_context& context);
+	virtual void render(render_context& context) {}
+	virtual void update(render_context& context);
+
+	entity& attach(entity& child);
+	entity& detach(entity& child);
+
+	void delete_all_children();
+
+	void show() { hidden_ = false; }
+	void hide() { hidden_ = true; }
+
+	void fade_in(double msec) { fade(true, msec); }
+	void fade_out(double msec) { fade(false, msec); }
+
+	void sort_z();
+
+	math::matrix const& transform_matrix() const;
+	void set_transform_matrix(math::matrix const& transform);
+
+	void _set_location(math::vec3 const& loc) { transform_.set_location(loc); }
+	math::vec3 location() const { return transform_.location(); }
+
+	void set_location(const math::vec3&);
+
+	void _set_orientation(math::quat const& q) { transform_.set_orientation(q); }
+	math::quat orientation() const { return transform_.orientation(); }
+
+	void _set_scale(math::vec3 const& scale) { transform_.set_scale(scale); }
+	math::vec3 scale() const { return transform_.scale(); }
+
+	void apply_rotation(math::quat const& q);
+
+public:
+// collision
+
+	uint32_t entity_type() const { return entity_type_; }
+	void set_entity_type(uint32_t type) { entity_type_ = type; }
+
+	uint32_t collision_candidates() const { return collision_candidates_; }
+	void set_collision_properties(uint32_t type, uint32_t candidates)
 	{
-		public:
-			typedef v8pp::class_<gl::entity> js_class;
-			static js_class* js_binding;
+		entity_type_ = type;
+		collision_candidates_ = candidates;
+	}
 
-			enum
-			{
-				INSTANCE_COPY_TRANSFORM = 0x00000001
-			};
-			
+public:
+// physics collision
 
-			enum
-			{
-				BOUNDING_NONE,
-				BOUNDING_CONVEX_HULL,
-				BOUNDING_GEOMETRY,
-				BOUNDING_BOX,
-				BOUNDING_SPHERE,
-				BOUNDING_SPHERE_HULL,
-				BOUNDING_CYLINDER,
-
-			};
-
-
-			class _physics_data
-			{
-				public:
-
-					uint32_t bounding_type;
-					double radius;
-					math::vec3 dimension;
-					math::vec2 damping;
-					math::vec3 linear_factor;
-					math::vec3 angular_factor;
-					double mass;
-					double margin;
-					btRigidBody *rigid_body;
-					btSoftBody *soft_body;
-					btTriangleMesh *triangle_mesh;
-					btConvexHullShape *convex_hull;
-
-					_physics_data()
-//						: bounding_type(BOUNDING_NONE),
-						: bounding_type(BOUNDING_SPHERE),
-						radius(100.0f), 
-						dimension(0.0f,0.0f,0.0f), 
-						damping(0.0f,0.0f),
-						linear_factor(1.0f,1.0f,1.0f),
-						angular_factor(1.0f,1.0f,1.0f),
-						mass(1.0f), 
-						margin(0.0f), 
-						rigid_body(NULL), 
-						soft_body(NULL), 
-						triangle_mesh(NULL), 
-						convex_hull(NULL)
-					{
-					}
-
-					void copy(const _physics_data &src);
-
-					// void serialize_xml(TiXmlElement *);
-					// void serialize_in(resource_container*);
-					// void serialize_out(resource_container*);
-
-			} physics_data_;
-
-
-			uint32_t entity_type_;
-			uint32_t collision_candidates_;
-
-			double age_;
-			mutable transform entity_transform; //m_Transform;
-
-			
-			entity_ptr parent_;
-			typedef std::list<entity_ptr> children_list;
-			children_list children_;
-			boost::mutex children_mutex_;
-
-			entity();
-			virtual ~entity();
-			
-			entity& attach(entity& child);
-			entity& detach(entity& child);
-
-			void delete_all_children();
-
-			void show() { hidden_ = false; }
-			void hide() { hidden_ = true; }
-
-			void fade_in(double msec) { fade_ts_ = utils::get_ts(); transparency_targets_[0] = 0.0; transparency_targets_[1] = 1.0; fade_duration_ = msec; }
-			void fade_out(double msec) {  fade_ts_ = utils::get_ts(); transparency_targets_[0] = 1.0; transparency_targets_[1] = 0.0; fade_duration_ = msec; }
-
-			math::matrix const& transform_matrix() const;
-			void set_transform_matrix(math::matrix const& transform);
-
-			void _set_location(math::vec3 const& loc) { entity_transform.set_location(loc); }
-			math::vec3 location() const { return entity_transform.location(); }
-
-			void _set_orientation(math::quat const& q) { entity_transform.set_orientation(q); }
-			math::quat orientation() const { return entity_transform.orientation(); }
-
-			void _set_scale(math::vec3 const& scale) { entity_transform.set_scale(scale); }
-			math::vec3 scale() const { return entity_transform.scale(); }
-
-			void apply_rotation(math::quat const& q);
-			
-			// main stuff
-			//virtual boost::shared_ptr<entity> instance(uint32_t flags = 0);
-			virtual void init(render_context& context);
-			virtual void render(render_context& context);
-			virtual void update(render_context& context);
-
-			// ---
-
-			void sort_z(void);
-			void set_location(const math::vec3&);//double,double,double);
-
-			// collision
-			void set_entity_type(uint32_t type) { entity_type_ = type; }
-			uint32_t get_entity_type(void) const { return entity_type_; }
-			uint32_t get_collision_candidates(void) const { return collision_candidates_; }
-			void set_collision_properties(uint32_t type, uint32_t candidates) { entity_type_ = type; collision_candidates_ = candidates; }
-
-
-			// physics collision
-			void set_bounding_type(unsigned int _bounding_type) { physics_data_.bounding_type = _bounding_type; }
-			unsigned int get_bounding_type(void) const { return physics_data_.bounding_type; }
-			void set_dimension(const math::vec3 &_dimension) { physics_data_.dimension = _dimension; }
-			void set_radius(double _radius) { physics_data_.radius = _radius; }
-			double get_radius() const { return physics_data_.radius; }
-			void set_margin(double margin) { physics_data_.margin = margin; }
-			double get_margin() const { return physics_data_.margin; }
-			void set_mass(double mass) { physics_data_.mass = mass; }
-			double get_mass() const { return physics_data_.mass; }
-			void disable_contact_response(void);
-
-			// physics manipulation
-			void set_damping(double _linear, double _angular);
-			void set_linear_factor(const math::vec3 &factor);
-			void set_angular_factor(const math::vec3 &factor);
-			void apply_impulse(const math::vec3 &impulse, const math::vec3 &rel_pos);
-			//			void apply_torque(const math::vec3 &torque);
-			void apply_force(const math::vec3 &force, const math::vec3 &rel_pos);
-			//void _apply_force(math::vec3 force, math::vec3 rel_pos) { apply_force(force,rel_pos); }
-			void calculate_relative_vector(const math::vec3 &absolute_vector, math::vec3 &relative_vector);
-			// math::vec3 entity::calculate_relative_vector( const math::vec3 &_relative_vector );
-			void apply_relative_force(const math::vec3 &relative_force);
-			//void _apply_relative_force(math::vec3 relative_force) { apply_relative_force(relative_force); }
-
-			void apply_relative_impulse(const math::vec3 &relative_force);
-			//void _apply_relative_impulse(math::vec3 relative_force) { apply_relative_impulse(relative_force); }
-			void apply_absolute_impulse(const math::vec3 &relative_force);
-			//void _apply_absolute_impulse
-			void set_linear_velocity(const math::vec3 &absolute_velocity);
-			//void _set_linear_velocity(math::vec3 absolute_velocity) { set_linear_velocity(absolute_velocity); }
-
-		private:
-
-			bool init_invoked_;
-			bool hidden_;
-
-			double fade_ts_;
-			double fade_duration_;
-			double transparency_targets_[2];
-			double transparency_;
+	enum bounding_type_t
+	{
+		BOUNDING_NONE,
+		BOUNDING_CONVEX_HULL,
+		BOUNDING_GEOMETRY,
+		BOUNDING_BOX,
+		BOUNDING_SPHERE,
+		BOUNDING_SPHERE_HULL,
+		BOUNDING_CYLINDER,
 
 	};
 
-	extern uint32_t global_entity_count;
-
-	class HYDROGEN_API world : public entity
+	struct physics_data
 	{
-		public:
+		bounding_type_t bounding_type;
+		math::vec3 dimension;
+		math::vec2 damping;
+		math::vec3 linear_factor;
+		math::vec3 angular_factor;
+		double radius;
+		double mass;
+		double margin;
+		boost::scoped_ptr<btSoftBody> soft_body;
+		boost::scoped_ptr<btRigidBody> rigid_body;
+		boost::scoped_ptr<btTriangleMesh> triangle_mesh;
+		boost::scoped_ptr<btConvexHullShape> convex_hull;
 
-			std::vector<boost::shared_ptr<entity>> deletion_queue;
-
-			void delete_entity(boost::shared_ptr<entity> _e);
-			// call this after processing physics steps
-			void cleanup(void);
-			void destroy(void) { delete_all_children(); }
-
+		physics_data()
+			: bounding_type(BOUNDING_SPHERE)
+			, dimension(0, 0, 0)
+			, damping(0, 0)
+			, linear_factor(1, 1, 1)
+			, angular_factor(1, 1, 1)
+			, radius(100)
+			, mass(1)
+			, margin(0)
+		{
+		}
 	};
 
-} } // namespace aspect::gl
+	physics_data physics_data_;
 
+	math::vec3 const& dimension() const { return physics_data_.dimension; }
+	void set_dimension(math::vec3 const& dimension) { physics_data_.dimension = dimension; }
+
+	double radius() const { return physics_data_.radius; }
+	void set_radius(double radius) { physics_data_.radius = radius; }
+
+	double margin() const { return physics_data_.margin; }
+	void set_margin(double margin) { physics_data_.margin = margin; }
+
+	double mass() const { return physics_data_.mass; }
+	void set_mass(double mass) { physics_data_.mass = mass; }
+
+	void disable_contact_response();
+
+public:
+// physics manipulation
+	void set_damping(double linear, double angular);
+	void set_linear_factor(math::vec3 const& factor);
+	void set_angular_factor(math::vec3 const& factor);
+	void apply_impulse(math::vec3 const& impulse, math::vec3 const& rel_pos);
+	//void apply_torque(math::vec3 const& torque);
+	void apply_force(math::vec3 const& force, math::vec3 const& rel_pos);
+	math::vec3 calculate_relative_vector(math::vec3 const& absolute_vector) const;
+	void apply_relative_force(math::vec3 const& relative_force);
+
+	void apply_relative_impulse(math::vec3 const& relative_force);
+	void apply_absolute_impulse(math::vec3 const& relative_force);
+	void set_linear_velocity(math::vec3 const& absolute_velocity);
+
+private:
+	void fade(bool in, double msec)
+	{
+		fade_ts_ = utils::get_ts();
+		transparency_targets_[!in] = 0.0;
+		transparency_targets_[in] = 1.0;
+		fade_duration_ = msec;
+	}
+
+	entity_ptr parent_;
+
+	typedef std::list<entity_ptr> children_list;
+	children_list children_;
+	boost::mutex children_mutex_;
+
+	mutable transform transform_;
+
+	bool hidden_;
+
+	double fade_ts_;
+	double fade_duration_;
+	double transparency_targets_[2];
+	double transparency_;
+
+	uint32_t entity_type_;
+	uint32_t collision_candidates_;
+
+//	double age_;
+};
+
+extern uint32_t global_entity_count;
+
+}} // namespace aspect::gl
 
 #endif // _ASPECT_ENTITY_HPP_

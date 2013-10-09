@@ -24,9 +24,9 @@ engine::engine(aspect::gui::window* window)
 		throw std::runtime_error("hydrogen::engine constructor requires an oxygen::window argument");
 	}
 
-	entity* w = new world;
-	world::js_class::import_external(w);
-	world_.reset(w);
+	entity* world = new entity;
+	entity::js_class::import_external(world);
+	world_.reset(world);
 
 	// start main thread and wait for iface creation
 	thread_ = boost::thread(&engine::main, this);

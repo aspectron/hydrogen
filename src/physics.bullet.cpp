@@ -132,34 +132,34 @@ bool bullet::add(gl::entity& e)
 {
 	boost::mutex::scoped_lock lock(mutex_);
 
-	if (e.get_bounding_type() == gl::entity::BOUNDING_NONE)
+	if (e.physics_data_.bounding_type == gl::entity::BOUNDING_NONE)
 		return false;
 
-	std::auto_ptr<btCollisionShape> pbtCollisionShape;
-	std::auto_ptr<btDefaultMotionState> pbtDefaultMotionState;
+	btCollisionShape* pbtCollisionShape = nullptr;
+	btDefaultMotionState* pbtDefaultMotionState = nullptr;
 
 	btTransform transform;
 	btVector3 vector3(0, 0, 0);
 
-	switch (e.get_bounding_type())
+	switch (e.physics_data_.bounding_type)
 	{
 	case gl::entity::BOUNDING_BOX:
 		{
-			pbtCollisionShape.reset(new btBoxShape(btVector3(
+			pbtCollisionShape = new btBoxShape(btVector3(
 				e.physics_data_.dimension.x * e.scale().x,
 				e.physics_data_.dimension.y * e.scale().y,
-				e.physics_data_.dimension.z * e.scale().z)));
+				e.physics_data_.dimension.z * e.scale().z));
 		} break;
 
 	case gl::entity::BOUNDING_SPHERE:
 		{
-			pbtCollisionShape.reset(new btSphereShape(e.physics_data_.radius)); // * 0.575f );
+			pbtCollisionShape = new btSphereShape(e.physics_data_.radius); // * 0.575f );
 		} break;
 
 #if 0
 	case gl::entity::BOUNDING_GEOMETRY:
 		{
-			e.physics_data_.triangle_mesh = new btTriangleMesh();
+			e.physics_data_.triangle_mesh.reset(new btTriangleMesh);
 
 			gl::geometry *entity_geometry = e.get_geometry_ptr();
 			gl::vertex_buffer *vb = entity_geometry->get_vertex_buffer_ptr();
@@ -188,7 +188,7 @@ bool bullet::add(gl::entity& e)
 				}
 			}
 
-			pbtCollisionShape = new btBvhTriangleMeshShape(e.physics_data_.triangle_mesh,1,1);
+			pbtCollisionShape = new btBvhTriangleMeshShape(e.physics_data_.triangle_mesh.get(), true, true);
 
 		} break;
 #endif
@@ -202,8 +202,8 @@ bool bullet::add(gl::entity& e)
 			//								gl::geometry *entity_geometry = e.get_geometry_ptr();
 			//								if(!entity_geometry) return false;
 
-			e.physics_data_.convex_hull = new btConvexHullShape();
-			e.physics_data_.convex_hull->setMargin(0.25f);
+			e.physics_data_.convex_hull.reset(new btConvexHullShape);
+			e.physics_data_.convex_hull->setMargin(0.25);
 
 			gl::geometry_ptr_array::iterator geometry_iterator;
 			for(geometry_iterator = geometries.begin(); geometry_iterator != geometries.end(); geometry_iterator++)
@@ -223,7 +223,7 @@ bool bullet::add(gl::entity& e)
 				}
 			}
 
-			pbtCollisionShape = e.physics_data_.convex_hull;
+			pbtCollisionShape = e.physics_data_.convex_hull.get();
 
 		} break;
 #endif
@@ -272,42 +272,38 @@ bool bullet::add(gl::entity& e)
 	transform.setIdentity();
 	transform.setFromOpenGLMatrix(m);
 
-	pbtDefaultMotionState.reset(new btDefaultMotionState(transform));
+	pbtDefaultMotionState = new btDefaultMotionState(transform);
 
-	if (!aspect::math::is_zero(e.get_mass()))
+	if (!aspect::math::is_zero(e.mass()))
 	{
-		pbtCollisionShape->calculateLocalInertia(e.get_mass(), vector3);
+		pbtCollisionShape->calculateLocalInertia(e.mass(), vector3);
 	}
 
-	if (!aspect::math::is_zero(e.get_margin()))
+	if (!aspect::math::is_zero(e.margin()))
 	{
-		pbtCollisionShape->setMargin(e.get_margin());
+		pbtCollisionShape->setMargin(e.margin());
 	}
 
-	e.physics_data_.rigid_body = new btRigidBody(
-		e.get_mass(),
-		pbtDefaultMotionState.release(),
-		pbtCollisionShape.release(),
-		vector3);
+	e.physics_data_.rigid_body.reset(new btRigidBody(
+		e.mass(), pbtDefaultMotionState, pbtCollisionShape, vector3));
 
 	//////////////////////////////////////////////////////////////////////////
 
 	e.physics_data_.rigid_body->setActivationState(DISABLE_DEACTIVATION);
 
-	//??					e.physics_data_.rigid_body->setCollisionFlags( e.physics_data_.rigid_body->getCollisionFlags() |
-	//??						btCollisionObject::CF_NO_CONTACT_RESPONSE );
+	//e.physics_data_.rigid_body->setCollisionFlags(rigid_body->getCollisionFlags()
+	// | btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
-	double *pt = &e.physics_data_.angular_factor[0];
-	e.physics_data_.rigid_body->setAngularFactor(btVector3(pt[0],pt[1],pt[2]));
-//			e.physics_data_.rigid_body->setAngularFactor((const btVector3&)e.physics_data_.angular_factor);
-	pt = &e.physics_data_.linear_factor[0];
-	e.physics_data_.rigid_body->setLinearFactor(btVector3(pt[0],pt[1],pt[2]));
-//			e.physics_data_.rigid_body->setLinearFactor((const btVector3&)e.physics_data_.linear_factor);
-	e.physics_data_.rigid_body->setDamping(e.physics_data_.damping.get_x(),e.physics_data_.damping.get_y());
+	math::vec3 const& angular_factor = e.physics_data_.angular_factor;
+	e.physics_data_.rigid_body->setAngularFactor(btVector3(angular_factor.x, angular_factor.y, angular_factor.z));
+
+	math::vec3 const& linear_factor = e.physics_data_.linear_factor;
+	e.physics_data_.rigid_body->setLinearFactor(btVector3(linear_factor.x, linear_factor.y, linear_factor.z));
+	e.physics_data_.rigid_body->setDamping(e.physics_data_.damping.x, e.physics_data_.damping.y);
 
 	e.physics_data_.rigid_body->setUserPointer(&e);
 
-	btSoftRigidDynamicsWorld_->addRigidBody(e.physics_data_.rigid_body, e.get_entity_type(), e.get_collision_candidates());
+	btSoftRigidDynamicsWorld_->addRigidBody(e.physics_data_.rigid_body.get(), e.entity_type(), e.collision_candidates());
 
 	return true;
 }
@@ -325,7 +321,7 @@ void bullet::remove(gl::entity& e)
 		btRigidBody *pbtRigidBody = btRigidBody::upcast( pbtCollisionObject );
 		btSoftBody *pbtSoftBody  = btSoftBody::upcast( pbtCollisionObject );
 
-		if ( pbtRigidBody && pbtRigidBody == e.physics_data_.rigid_body)
+		if ( pbtRigidBody && pbtRigidBody == e.physics_data_.rigid_body.get())
 		{
 			delete pbtRigidBody->getCollisionShape();
 			delete pbtRigidBody->getMotionState();
@@ -333,25 +329,19 @@ void bullet::remove(gl::entity& e)
 			btSoftRigidDynamicsWorld_->removeRigidBody(pbtRigidBody);
 			btSoftRigidDynamicsWorld_->removeCollisionObject(pbtCollisionObject);
 
-			delete pbtRigidBody;
-
-			e.physics_data_.rigid_body = NULL;
+			e.physics_data_.rigid_body.reset();
 
 			break;
 		}
-
-		else if( pbtSoftBody && pbtSoftBody == e.physics_data_.soft_body)
+		else if (pbtSoftBody && pbtSoftBody == e.physics_data_.soft_body.get())
 		{
 			btSoftRigidDynamicsWorld_->removeSoftBody(pbtSoftBody);
 			btSoftRigidDynamicsWorld_->removeCollisionObject(pbtCollisionObject);
 
-			delete pbtSoftBody;
-
-			e.physics_data_.soft_body = NULL;
+			e.physics_data_.soft_body.reset();
 
 			break;
 		}
-
 	}
 }
 
