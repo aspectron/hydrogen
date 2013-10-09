@@ -1,48 +1,8 @@
 #include "hydrogen.hpp"
-#include "library.hpp"
-
-using namespace v8;
 
 namespace aspect { namespace gl {
 
-
-layer::layer()
-	: init_done_(false)
-	, left_(0.0), top_(0.0)
-	, width_(0.5), height_(0.5)
-	, fullsize_(false)
-	, sink_(nullptr)
-	, is_hud_(false)
-	, flip_(false)
-{
-}
-
-layer::~layer()
-{
-}
-
-/*
-void layer::configure(uint32_t texture_width, uint32_t texture_height, uint32_t texture_encoding)
-{
-	boost::mutex::scoped_lock lock(render_lock_);
-
-//	texture_width_ = width;
-//	texture_height_ = height;
-//	texture_encoding_ = (image_encoding)encoding;
-
-	texture_.reset(new gl::texture());
-	//			texture_->setup(1024,1024,aspect::gl::image_encoding::RGBA8);
-	//		texture_->setup(1024,1024,aspect::gl::image_encoding::BGRA8, gl::texture::PBOx2);
-	texture_->setup(texture_width,texture_height,(aspect::image::encoding)texture_encoding, gl::texture::PBOx2);
-
-	texture_->configure(GL_LINEAR, GL_CLAMP_TO_EDGE);
-
-	init_done_ = true;
-
-}
-*/
-
-void layer::render_impl(gl::render_context& context)
+void layer::render(gl::render_context& context)
 {
 	if (texture_ && texture_->is_config())
 	{
@@ -110,42 +70,30 @@ void layer::render_impl(gl::render_context& context)
 	}
 }
 
-void layer::render(gl::render_context& context)
+v8::Handle<v8::Value> layer_reference::assoc(v8::Arguments const& args)
 {
-	render_impl(context);
-
-	entity::render(context);
-//	rendering_idx_ ^= 1;
-}
-
-v8::Handle<v8::Value> layer_reference::assoc( v8::Arguments const& args)
-{
-	if(!args.Length())
-		throw std::invalid_argument("layer_reference::assoc() requires layer as an argument");
-
-	if(args[0]->IsNull())
+	if (args[0]->IsNull())
 	{
 		layer_.reset();
 	}
-	else
+	else if (layer* new_layer = v8pp::from_v8<layer*>(args[0]))
 	{
-		layer* new_layer = v8pp::from_v8<layer*>(args[0]);
-		if (!new_layer)
-		{
-			throw std::invalid_argument("layer_reference::assoc() argument is not a layer");
-		}
 		layer_.reset(new_layer);
 	}
+	else
+	{
+		throw std::invalid_argument("layer_reference::assoc() argument is not a layer");
+	}
 
-	return Undefined();
+	return v8::Undefined();
 }
 
 void layer_reference::render(gl::render_context& context)
 {
-	if (layer_ && layer_->texture())
+	if (layer_ && layer_->texture_)
 	{
-		layer_->texture()->draw(context.map_pixel_to_view(math::vec2(left_,top_)),
-			context.map_pixel_to_view(math::vec2(left_+width_,top_+height_)), false);
+		layer_->texture_->draw(context.map_pixel_to_view(math::vec2(left_, top_)),
+			context.map_pixel_to_view(math::vec2(left_ + width_, top_ + height_)), false);
 
 	}
 }

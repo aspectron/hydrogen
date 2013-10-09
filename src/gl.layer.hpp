@@ -1,102 +1,91 @@
-#pragma once
+#ifndef __GL_LAYER_HPP__
+#define __GL_LAYER_HPP__
 
 #include <vector>
 
 namespace aspect { namespace gl {
-	
+
 class HYDROGEN_API image_rect_update_queue
 {
-	public:
+public:
+	bool empty()
+	{
+		boost::mutex::scoped_lock lock(mutex_);
+		return rects_.empty();
+	}
 
-		std::vector<image_rect>	rects_;
-		boost::mutex mutex_;
+	void push_back(image_rect const& rc)
+	{
+		boost::mutex::scoped_lock lock(mutex_);
 
-		class rect_update
+		for (image_rects::iterator iter = rects_.begin(), end = rects_.end(); iter != end; ++iter)
 		{
-			public:
-				uint32_t left,top,width,height,data_offset;
-
-				rect_update(image_rect &rc, uint32_t _offset)
-					: data_offset(_offset), left(rc.left), top(rc.top), width(rc.width), height(rc.height)
-				{
-
-				}
-		};
-
-
-		void push_back(image_rect const& rc)
-		{
-			boost::mutex::scoped_lock lock(mutex_);
-
-			std::vector<aspect::image_rect>::iterator iter;
-			for(iter = rects_.begin(); iter != rects_.end(); iter++)
+			if (*iter >= rc)
+				return;
+			if (*iter < rc)
 			{
-				if(*iter >= rc)
-					return;
-				if(*iter < rc)
-				{
-					*iter = rc;
-					return;
-				}
+				*iter = rc;
+				return;
 			}
-			
-			rects_.push_back(rc);
+		}
+		rects_.push_back(rc);
+	}
+
+	struct rect_update
+	{
+		uint32_t left, top, width, height, data_offset;
+
+		rect_update(image_rect const& rc, uint32_t offset)
+			: left(rc.left)
+			, top(rc.top)
+			, width(rc.width)
+			, height(rc.height)
+			, data_offset(offset)
+		{
+		}
+	};
+
+	bool get(std::vector<rect_update>& v, uint32_t *size, image_rect const& bounds)
+	{
+		boost::mutex::scoped_lock lock(mutex_);
+
+		if (rects_.empty())
+			return false;
+
+		uint32_t dest_offset = 0;
+		for (image_rects::iterator iter = rects_.begin(), end = rects_.end(); iter != end; ++iter)
+		{
+			image_rect& rc = *iter;
+
+			if ( rc.left > bounds.width || rc.top > bounds.height )
+				continue;
+
+			if ( rc.left < 0 || rc.top < 0 || rc.width < 1 || rc.height < 1)
+				continue;
+
+			if ( rc.left +  rc.width > bounds.width )
+				rc.width = bounds.width - rc.left;
+			if ( rc.top +  rc.height > bounds.height )
+				rc.height = bounds.height - rc.top;
+
+			v.push_back(rect_update(rc,dest_offset));
+			dest_offset += rc.width * rc.height * 4;
+			//dest_offset = (dest_offset +31) & ~31;
 		}
 
-		bool get(std::vector<rect_update>& v, uint32_t *size, image_rect const& bounds)
+		if (size)
 		{
-			boost::mutex::scoped_lock lock(mutex_);
-			if(rects_.empty())
-				return false;
-
-			uint32_t dest_offset = 0;
-			std::vector<image_rect>::iterator iter;
-			for(iter = rects_.begin(); iter != rects_.end(); iter++)
-			{
-				image_rect &rc = *iter;
-
-				if ( rc.left > bounds.width || rc.top > bounds.height )
-					continue;
-
-				if ( rc.left < 0 || rc.top < 0 || rc.width < 1 || rc.height < 1)
-					continue;
-
-				if ( rc.left +  rc.width > bounds.width )
-					rc.width = bounds.width - rc.left;
-				if ( rc.top +  rc.height > bounds.height )
-					rc.height = bounds.height - rc.top;
-
-				v.push_back(rect_update(rc,dest_offset));
-				dest_offset += rc.width*rc.height*4;
-				//dest_offset = (dest_offset +31) & ~31;
-			}
-
-			if(size)
-				*size = dest_offset;
-
-			rects_.clear();
-
-			return true;
-		}
-		
-		bool empty()
-		{
-			boost::mutex::scoped_lock lock(mutex_);
-			return rects_.empty();
+			*size = dest_offset;
 		}
 
-		/*
-		bool try_pop(image_rect &dest)
-		{
-			boost::mutex::scoped_lock lock(mutex_);
+		rects_.clear();
+		return true;
+	}
 
-			if(rects_.empty())
-				return false;
-
-			dest = rects_[0];
-			rects_.erase(rects_.begin());
-			return true;
-		}*/
+private:
+	typedef std::vector<image_rect> image_rects;
+	image_rects rects_;
+	boost::mutex mutex_;
 };
 
 class layer;
@@ -113,67 +102,68 @@ public:
 };
 
 
-class HYDROGEN_API layer : public gl::entity //, public thorium_delegate::update_bitmap_sink
+class HYDROGEN_API layer : public gl::entity
 {
-	public:
-		typedef v8pp::class_<layer> js_class;
+public:
+	typedef v8pp::class_<layer> js_class;
 
-		layer();
-		virtual ~layer();
+	layer()
+		: left_(0.0), top_(0.0)
+		, width_(0.5), height_(0.5)
+		, fullsize_(false)
+		, sink_(nullptr)
+		, is_hud_(false)
+		, flip_(false)
+	{
+	}
 
-		void set_flip(bool flip) { flip_ = flip; }
+	virtual ~layer() {}
 
-		void configure(uint32_t width, uint32_t height, uint32_t encoding);
+	void set_rect(double left, double top, double width, double height)
+	{
+		left_ = left; top_ = top; width_ = width; height_ = height;
+	}
 
-		virtual void render_impl(gl::render_context& ctx);
-		virtual void render(gl::render_context& ctx);
+	void set_flip(bool flip) { flip_ = flip; }
+	void set_fullsize(bool flag) { fullsize_ = flag; }
+	void set_as_hud(bool flag) { is_hud_ = flag; }
 
-		void set_rect(double l, double t, double w, double h)
-		{
-			left_ = l; top_ = t; width_ = w; height_ = h; 
-		}
+	void register_texture_update_sink(texture_update_sink& sink) { sink_ = &sink; }
+	void reset_texture_update_sink() { sink_ = nullptr; }
 
-		v8::Handle<v8::Value>	register_as_update_sink(v8::Arguments const&);
+	virtual void render(gl::render_context& ctx);
 
-		void set_fullsize(bool flag) { fullsize_ = flag; }
-		void set_as_hud(bool flag) { is_hud_ = flag; }
+private:
+	friend class layer_reference;
 
-		gl::texture *texture(void) { return texture_.get(); }
+	double left_;
+	double top_;
+	double width_;
+	double height_;
 
-		void register_texture_update_sink(texture_update_sink *sink) { sink_  = sink; }
-		void reset_texture_update_sink() { sink_ = nullptr; }
+	boost::scoped_ptr<gl::texture> texture_;
 
-	protected:
+	bool fullsize_;
+	bool is_hud_;
+	bool flip_;
 
-		double left_;
-		double top_;
-		double width_;
-		double height_;
-
-	private:
-		boost::scoped_ptr<gl::texture> texture_;
-		bool init_done_;
-		texture_update_sink* sink_;
-		bool fullsize_;
-		bool is_hud_;
-		bool flip_;
-		boost::mutex render_lock_;
+	texture_update_sink* sink_;
+	boost::mutex render_lock_;
 };
 
 class HYDROGEN_API layer_reference : public layer
 {
-	public:
-		typedef v8pp::class_<gl::layer_reference> js_class;
+public:
+	typedef v8pp::class_<gl::layer_reference> js_class;
 
-		v8::Handle<v8::Value>	assoc(v8::Arguments const&);
+	v8::Handle<v8::Value> assoc(v8::Arguments const&);
 
-		virtual void render(gl::render_context& ctx);
+	void render(gl::render_context& ctx);
 
-		void set_rect(double l, double t, double w, double h) { left_ = l; top_ = t; width_ = w; height_ = h; }
-
-	private:
-
-		v8pp::persistent_ptr<gl::layer> layer_;
+private:
+	v8pp::persistent_ptr<gl::layer> layer_;
 };
 
 }} // aspect::gl
+
+#endif // __GL_LAYER_HPP__
