@@ -125,7 +125,7 @@ void iface::output_text(double x, double y, wchar_t const* text, GLdouble const*
 	glPushMatrix();
 	glLoadIdentity();
 
-	glRasterPos2f(x,y);
+	glRasterPos2d(x, y);
 
 	glPushAttrib(GL_LIST_BIT);
 	glListBase(font_base_ - 32);
