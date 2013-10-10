@@ -511,7 +511,7 @@ void texture::draw_sprite(math::vec2 const& size, bool cache)
 	bind(false);
 }
 
-class texture::cleanup_info
+class texture::cleanup_info : boost::noncopyable
 {
 public:
 	explicit cleanup_info(texture& t)
@@ -551,10 +551,11 @@ public:
 		}
 	}
 
-	static void perform(cleanup_info info)
+	static void perform(boost::shared_ptr<cleanup_info> info)
 	{
-		// cleanup_info dtor performs all owrk
+		// cleanup_info dtor performs all the work
 	}
+
 private:
 	std::vector<GLuint> pbo_;
 	//unsigned char *pbo_buffer_;
@@ -567,7 +568,7 @@ void texture::cleanup_async()
 {
 	_aspect_assert(!pbo_buffer_);
 
-	engine_.schedule(boost::bind(&cleanup_info::perform, cleanup_info(*this)));
+	engine_.schedule(boost::bind(&cleanup_info::perform, boost::make_shared<cleanup_info>(*this)));
 
 //	shader_.reset();
 //	flags_ = 0;
