@@ -159,7 +159,7 @@ bool bullet::add(gl::entity& e)
 #if 0
 	case gl::entity::BOUNDING_GEOMETRY:
 		{
-			e.physics_data_.triangle_mesh.reset(new btTriangleMesh);
+			e.physics_data_.triangle_mesh = new btTriangleMesh;
 
 			gl::geometry *entity_geometry = e.get_geometry_ptr();
 			gl::vertex_buffer *vb = entity_geometry->get_vertex_buffer_ptr();
@@ -202,7 +202,7 @@ bool bullet::add(gl::entity& e)
 			//								gl::geometry *entity_geometry = e.get_geometry_ptr();
 			//								if(!entity_geometry) return false;
 
-			e.physics_data_.convex_hull.reset(new btConvexHullShape);
+			e.physics_data_.convex_hull = new btConvexHullShape;
 			e.physics_data_.convex_hull->setMargin(0.25);
 
 			gl::geometry_ptr_array::iterator geometry_iterator;
@@ -284,8 +284,8 @@ bool bullet::add(gl::entity& e)
 		pbtCollisionShape->setMargin(e.margin());
 	}
 
-	e.physics_data_.rigid_body.reset(new btRigidBody(
-		e.mass(), pbtDefaultMotionState, pbtCollisionShape, vector3));
+	e.physics_data_.rigid_body = new btRigidBody(
+		e.mass(), pbtDefaultMotionState, pbtCollisionShape, vector3);
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -303,7 +303,7 @@ bool bullet::add(gl::entity& e)
 
 	e.physics_data_.rigid_body->setUserPointer(&e);
 
-	btSoftRigidDynamicsWorld_->addRigidBody(e.physics_data_.rigid_body.get(), e.entity_type(), e.collision_candidates());
+	btSoftRigidDynamicsWorld_->addRigidBody(e.physics_data_.rigid_body, e.entity_type(), e.collision_candidates());
 
 	return true;
 }
@@ -321,7 +321,7 @@ void bullet::remove(gl::entity& e)
 		btRigidBody *pbtRigidBody = btRigidBody::upcast( pbtCollisionObject );
 		btSoftBody *pbtSoftBody  = btSoftBody::upcast( pbtCollisionObject );
 
-		if ( pbtRigidBody && pbtRigidBody == e.physics_data_.rigid_body.get())
+		if ( pbtRigidBody && pbtRigidBody == e.physics_data_.rigid_body)
 		{
 			delete pbtRigidBody->getCollisionShape();
 			delete pbtRigidBody->getMotionState();
@@ -329,16 +329,18 @@ void bullet::remove(gl::entity& e)
 			btSoftRigidDynamicsWorld_->removeRigidBody(pbtRigidBody);
 			btSoftRigidDynamicsWorld_->removeCollisionObject(pbtCollisionObject);
 
-			e.physics_data_.rigid_body.reset();
+			delete e.physics_data_.rigid_body;
+			e.physics_data_.rigid_body = nullptr;
 
 			break;
 		}
-		else if (pbtSoftBody && pbtSoftBody == e.physics_data_.soft_body.get())
+		else if (pbtSoftBody && pbtSoftBody == e.physics_data_.soft_body)
 		{
 			btSoftRigidDynamicsWorld_->removeSoftBody(pbtSoftBody);
 			btSoftRigidDynamicsWorld_->removeCollisionObject(pbtCollisionObject);
 
-			e.physics_data_.soft_body.reset();
+			delete e.physics_data_.soft_body;
+			e.physics_data_.soft_body = nullptr;
 
 			break;
 		}

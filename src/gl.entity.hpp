@@ -87,7 +87,7 @@ public:
 
 	};
 
-	struct physics_data
+	struct physics_data : boost::noncopyable
 	{
 		bounding_type_t bounding_type;
 		math::vec3 dimension;
@@ -97,10 +97,10 @@ public:
 		double radius;
 		double mass;
 		double margin;
-		boost::scoped_ptr<btSoftBody> soft_body;
-		boost::scoped_ptr<btRigidBody> rigid_body;
-		boost::scoped_ptr<btTriangleMesh> triangle_mesh;
-		boost::scoped_ptr<btConvexHullShape> convex_hull;
+		btSoftBody* soft_body;
+		btRigidBody* rigid_body;
+		btTriangleMesh* triangle_mesh;
+		btConvexHullShape* convex_hull;
 
 		physics_data()
 			: bounding_type(BOUNDING_SPHERE)
@@ -111,6 +111,10 @@ public:
 			, radius(100)
 			, mass(1)
 			, margin(0)
+			, soft_body(nullptr)
+			, rigid_body(nullptr)
+			, triangle_mesh(nullptr)
+			, convex_hull(nullptr)
 		{
 		}
 	};
