@@ -19,9 +19,6 @@ entity::entity()
 
 entity::~entity()
 {
-	boost::mutex::scoped_lock lock(children_mutex_);
-	children_.clear();
-
 	if (parent_)
 	{
 		parent_->detach(*this);
