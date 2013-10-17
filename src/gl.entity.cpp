@@ -10,6 +10,10 @@ uint32_t global_entity_count = 0;
 
 entity::entity()
 	: hidden_(false)
+	, fade_ts_(0)
+	, fade_duration_(0)
+	, transparency_targets_()
+	, transparency_(0)
 	, entity_type_(0)
 	, collision_candidates_(0)
 	//, age_(0)
