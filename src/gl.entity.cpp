@@ -115,16 +115,9 @@ boost::shared_ptr<entity> entity::instance( uint32_t flags )
 }
 */
 
-void entity::init(render_context& context)
+void entity::render(render_context& context)
 {
 	boost::mutex::scoped_lock lock(children_mutex_);
-	std::for_each(children_.begin(), children_.end(),
-		[&context] (entity_ptr& child) { child->init(context); });
-}
-
-void entity::update(render_context& context)
-{
-//	age += context->delta;
 
 	if (hidden_)
 		return;
@@ -142,11 +135,10 @@ void entity::update(render_context& context)
 		transparency_ = transparency_targets_[0] * (1.0 - delta) - transparency_targets_[1] * delta;
 	}
 
-	context.register_entity(*this);
+	render_impl(context);
 
-	boost::mutex::scoped_lock lock(children_mutex_);
 	std::for_each(children_.begin(), children_.end(),
-		[&context] (entity_ptr& child) { child->update(context); });
+		[&context] (entity_ptr& child) { child->render(context); });
 }
 
 void entity::apply_rotation(math::quat const& q)

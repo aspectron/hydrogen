@@ -89,9 +89,8 @@ math::vec2 camera::get_zero_plane_world_to_screen_scale()
 	return math::vec2(pt2.x - pt1.x, pt2.y - pt1.y);
 }
 
-void camera::render(render_context& context)
+void camera::render_impl(render_context& context)
 {
-
 	glMatrixMode(GL_PROJECTION);
 	// glLoadIdentity();
 

@@ -108,9 +108,7 @@ void engine::main()
 			bullet_->render(hold_interval_ / 1000.0, 10);//, 1.0/60.0);
 		}
 
-		context_.reset();
-		world_->update(context_);
-		context_.render();
+		world_->render(context_);
 
 		if (show_engine_info_)
 		{

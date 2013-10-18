@@ -13,6 +13,7 @@ public:
 	camera();
 
 	bool is_perspective_projection() const { return projection_ == PERSPECTIVE; }
+	bool is_orthographic_projection() const { return projection_ == ORTHOGRAPHIC; }
 
 	void set_perspective_projection_fov(double width, double height, double near_plane, double far_plane, double fov)
 	{
@@ -33,11 +34,10 @@ public:
 
 	math::vec2 get_zero_plane_world_to_screen_scale();
 
-	void render(render_context& context);
-
 	math::matrix const& modelview_matrix() { update_modelview_matrix(); return modelview_matrix_; }
 
 private:
+	void render_impl(render_context& context);
 	void update_modelview_matrix();
 
 private:

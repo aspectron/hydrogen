@@ -131,9 +131,9 @@ public:
 	void register_texture_update_sink(texture_update_sink& sink) { sink_ = &sink; }
 	void reset_texture_update_sink() { sink_ = nullptr; }
 
-	virtual void render(gl::render_context& ctx);
-
 private:
+	virtual void render_impl(render_context& context);
+
 	friend class layer_reference;
 
 	double left_;

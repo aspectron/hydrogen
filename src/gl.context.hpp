@@ -21,14 +21,6 @@ public:
 	gl::camera* camera() { return camera_; }
 	void set_camera(gl::camera* camera) { camera_ = camera; }
 
-	void reset();
-	void render();
-
-	void register_entity(entity& e, bool force = false)
-	{
-		pipeline_.push_back(&e);
-	}
-
 	math::vec2 map_pixel_to_view(math::vec2 const& v) const;
 
 private:
@@ -37,8 +29,6 @@ private:
 	gl::camera* camera_;
 	math::vec3 camera_pos_;
 	double range_;
-
-	std::vector<gl::entity*> pipeline_;
 };
 
 }} // aspect::gl

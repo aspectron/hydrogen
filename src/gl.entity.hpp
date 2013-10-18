@@ -25,10 +25,7 @@ public:
 	virtual ~entity();
 
 	// main stuff
-	//virtual boost::shared_ptr<entity> instance(uint32_t flags = 0);
-	virtual void init(render_context& context);
-	virtual void render(render_context& context) {}
-	virtual void update(render_context& context);
+	void render(render_context& context);
 
 	entity& attach(entity& child);
 	entity& detach(entity& child);
@@ -151,6 +148,9 @@ public:
 	void set_linear_velocity(math::vec3 const& absolute_velocity);
 
 private:
+	// perform real rendering
+	virtual void render_impl(render_context&) {}
+
 	void fade(bool in, double msec)
 	{
 		fade_ts_ = utils::get_ts();

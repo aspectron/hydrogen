@@ -2,7 +2,7 @@
 
 namespace aspect { namespace gl {
 
-void layer::render(gl::render_context& context)
+void layer::render_impl(gl::render_context& context)
 {
 	if (texture_ && texture_->is_config())
 	{
