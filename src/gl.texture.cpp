@@ -353,9 +353,7 @@ bool texture::map_pbo(size_t idx)
 	return false;
 }
 
-
-
-void texture::unmap_pbo(uint32_t idx)
+void texture::unmap_pbo(size_t idx)
 {
 	_aspect_assert(pbo(idx) && "no pbo id present - did you call map_pbo() before?");
 
