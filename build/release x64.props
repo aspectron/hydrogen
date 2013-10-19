@@ -14,7 +14,6 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>extern/glew/lib/x64;$(OutDir);$(JSX)/extern/boost/lib/x64;$(JSX)/extern/openssl/lib/x64;$(JSX)/extern/v8/lib/x64/release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;winmm.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 </Project>
