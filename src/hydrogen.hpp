@@ -33,6 +33,10 @@
 #error "Unsupported platform"
 #endif
 
+#ifdef None
+#undef None
+#endif
+
 #include "gl.color.hpp"
 #include "gl.shader.hpp"
 #include "gl.texture.hpp"

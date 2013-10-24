@@ -117,7 +117,7 @@ public:
 	{
 	}
 
-	virtual ~layer() {}
+	virtual ~layer();
 
 	void set_rect(double left, double top, double width, double height)
 	{

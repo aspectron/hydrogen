@@ -42,8 +42,6 @@ iface::~iface()
 	if (glx_context_) glXDestroyContext(gui::g_display, glx_context_);
 }
 
-}} // namespace aspect::gl
-
 void iface::set_vsync_interval(int interval)
 {
 #if 1
@@ -71,8 +69,9 @@ void iface::set_vsync_interval(int interval)
 }
 
 
-void iface::output_text(double x, double y, char const* text, GLdouble const* clr = nullptr)
+void iface::output_text(double x, double y, char const* text, GLdouble const* clr)
 {
+	trace("%s\n", text);
 #if 0
 	//y+= 10;
 	static double const default_color[] = {1.0,1.0,1.0,1.0};
@@ -108,5 +107,7 @@ void iface::output_text(double x, double y, char const* text, GLdouble const* cl
 	glMatrixMode(GL_MODELVIEW);
 #endif // 0
 }
+
+}} // namespace aspect::gl
 
 #endif

@@ -3,9 +3,9 @@
 
 #define BT_NO_PROFILE
 #include "btBulletDynamicsCommon.h"
-#include "bulletsoftbody/btSoftRigidDynamicsWorld.h"
-#include "bulletsoftbody/btSoftBodyRigidBodyCollisionConfiguration.h"
-#include "bulletsoftbody/btSoftBody.h"
+#include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
+#include "BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 namespace aspect { namespace gl {
 

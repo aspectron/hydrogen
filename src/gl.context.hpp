@@ -10,7 +10,7 @@ class engine;
 class HYDROGEN_API render_context
 {
 public:
-	explicit render_context(engine& eng)
+	explicit render_context(gl::engine& eng)
 		: engine_(eng)
 		, camera_(nullptr)
 	{

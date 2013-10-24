@@ -1,5 +1,5 @@
-#ifndef __GL_IFACE_WINDOWS_HPP__
-#define __GL_IFACE_WINDOWS_HPP__
+#ifndef __GL_IFACE_LINUX_HPP__
+#define __GL_IFACE_LINUX_HPP__
 
 #if OS(LINUX)
 
@@ -28,27 +28,28 @@ public:
 		}
 	}
 
-		void swap_buffers()
-		{
-			if (window_ && glx_context_)
-				glXSwapBuffers(gui::g_display, window_);
-		}
+	void swap_buffers()
+	{
+		if (window_ && glx_context_)
+			glXSwapBuffers(gui::g_display, window_);
+	}
 
-		bool is_vsync_enabled() const
-		{
-			return true; // TODO
-		}
+	bool is_vsync_enabled() const
+	{
+		return true; // TODO
+	}
 
-		void set_vsync_interval(int interval);
+	void set_vsync_interval(int interval);
 
-		void output_text(double x, double y, char const* text, GLdouble const* clr = nullptr);
+	void output_text(double x, double y, char const* text, GLdouble const* clr = nullptr);
 
 private:
 	gui::window& window_;
 	GLXContext glx_context_;
+};
 
 }} // namespace aspect::gl
 
 #endif
 
-#endif // __GL_IFACE_WINDOWS_HPP__
+#endif // __GL_IFACE_LINUX_HPP__

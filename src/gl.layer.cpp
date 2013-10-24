@@ -2,6 +2,11 @@
 
 namespace aspect { namespace gl {
 
+layer::~layer()
+{
+	// dtor in .cpp file to properly delete texture_ 
+}
+
 void layer::render_impl(gl::render_context& context)
 {
 	if (texture_ && texture_->is_config())
