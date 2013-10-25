@@ -29,6 +29,7 @@ engine::engine(aspect::gui::window* window)
 	world_.reset(world);
 
 	// start main thread and wait for iface creation
+	is_running_ = true;
 	thread_ = boost::thread(&engine::main, this);
 	while (!iface_)
 	{
@@ -177,11 +178,7 @@ void engine::main()
 void engine::setup()
 {
 	glShadeModel(GL_FLAT);
-#if OS(WINDOWS)
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);		// black background/clear color
-#else
-	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);		// black background/clear color
-#endif
 
 	glDisable(GL_DEPTH_TEST);
 
