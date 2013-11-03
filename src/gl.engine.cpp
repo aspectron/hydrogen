@@ -31,9 +31,10 @@ engine::engine(aspect::gui::window* window)
 	// start main thread and wait for iface creation
 	is_running_ = true;
 	thread_ = boost::thread(&engine::main, this);
+	boost::mutex::scoped_lock iface_lock(iface_mutex_);
 	while (!iface_)
 	{
-		boost::this_thread::yield();
+		iface_cv_.wait(iface_lock);
 	}
 }
 
@@ -85,7 +86,11 @@ void engine::main()
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 #endif
 
+	boost::mutex::scoped_lock iface_lock(iface_mutex_);
 	iface_.reset(new gl::iface(*window_));
+	iface_cv_.notify_one();
+	iface_lock.unlock();
+
 	iface_->set_active(true);
 
 	setup();

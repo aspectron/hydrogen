@@ -96,6 +96,8 @@ private:
 	boost::scoped_ptr<gl::iface> iface_;
 	render_context context_;
 
+	boost::mutex iface_mutex_;
+	boost::condition_variable iface_cv_;
 	boost::thread thread_;
 	bool is_running_;
 
