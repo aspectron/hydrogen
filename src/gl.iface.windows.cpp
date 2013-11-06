@@ -39,9 +39,11 @@ iface::iface(gui::window& window)
 
 	//get extensions of graphics card
 	const char* extensions = (char*)glGetString(GL_EXTENSIONS);
+#if 0
 	const char* version = (char*)glGetString(GL_VERSION);
 	trace ("OpenGL version: %s\n", version);
 	trace("OpenGL extensions: %s\n", extensions);
+#endif
 
 	//is WGL_EXT_swap_control in the string? VSync switch possible?
 	if (extensions && strstr(extensions,"WGL_EXT_swap_control"))

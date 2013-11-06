@@ -22,6 +22,7 @@ iface::iface(gui::window& window)
 		throw std::runtime_error("glew error: " + err_str);
 	}
 
+#if 0
 	trace("glew initialized\n");
 	const char* extensions = (char*)glGetString(GL_EXTENSIONS);
 	const char* version = (char*)glGetString(GL_VERSION);
@@ -31,7 +32,7 @@ iface::iface(gui::window& window)
 	extensions = glXQueryExtensionsString(gui::g_display, gui::g_screen);
 	if (extensions)
 		trace("GLX extensions: %s\n",extensions);
-	
+#endif
 
 	//set_vsync_interval(1);
 	set_vsync_interval(0);
