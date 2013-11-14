@@ -34,7 +34,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalOptions>/Zm392 /MP %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(SolutionDir)extern;$(SolutuinDir)extern/bullet/src;$(IMAGE)/src;$(MATH)/src;$(OXYGEN)/src;$(JSX)/sdk/core/src;$(JSX)/extern;$(JSX)/extern/boost/include;$(JSX)/extern/v8/include;$(JSX)/extern/zlib;$(JSX)/extern/cryptopp;$(JSX)/extern/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extern;$(SolutuinDir)extern/bullet/src;$(IMAGE)/src;$(MATH)/src;$(OXYGEN)/src;$(JSX)/sdk/core/src;$(JSX)/extern;$(JSX)/extern/boost/include;$(JSX)/extern/v8/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN32;_WIN32_WINNT=0x0601;WIN32;NOMINMAX;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;V8_USE_UNSAFE_HANDLES;V8_DISABLE_DEPRECATIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>

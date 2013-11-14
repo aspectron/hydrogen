@@ -157,9 +157,6 @@
     <ClInclude Include="src\physics.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\image\image.vcxproj">
-      <Project>{123b7954-7897-7897-7897-6057d8e3780b}</Project>
-    </ProjectReference>
     <ProjectReference Include="extern\bullet\build\vs2010\BulletCollision.vcxproj">
       <Project>{54ae91c7-48d4-9c49-a5b1-0ced554cadfa}</Project>
     </ProjectReference>

@@ -13,7 +13,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>extern/glew/lib/x64;$(OutDir);$(JSX)/extern/boost/lib/x64;$(JSX)/extern/openssl/lib/x64;$(JSX)/extern/v8/lib/x64/release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>extern/glew/lib/x64;$(OutDir);$(JSX)/extern/boost/lib/x64;$(JSX)/extern/v8/lib/x64/release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
 </Project>
