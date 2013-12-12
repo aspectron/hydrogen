@@ -12,7 +12,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>extern/glew/lib/x86;$(OutDir);$(JSX)/extern/boost/lib/x86;$(JSX)/extern/v8/lib/x86/debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)extern/glew/lib/x86;$(OutDir);$(JSX)/extern/boost/lib/x86;$(JSX)/extern/v8/lib/x86/debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
 </Project>

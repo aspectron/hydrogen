@@ -75,6 +75,37 @@ void layer::render_impl(gl::render_context& context)
 	}
 }
 
+bool layer::world_ray_to_local_mouse(math::vec3 pt_near, math::vec3 pt_far, int& out_x, int& out_y)
+{
+	// Convert to local space
+	math::matrix m;
+	m.invert(transform_matrix());
+	pt_far = pt_far * m;
+	pt_near = pt_near * m;  // ray origin
+	math::vec3 dir = (pt_far-pt_near).normalize(); // ray direction
+
+	// Find the point of intersection with XY plane
+	math::vec3 p0 = math::vec3(0,0,0);  // point on plane
+	math::vec3 n = math::vec3(0,0,-1);	// normal
+	double denom = n.dot(dir);
+	if (math::is_zero(denom))
+		return false;	// no intersection: ray is parallel to plane
+	math::vec3 p1 = p0 - pt_near;
+	double d = p1.dot(n) / denom; 
+	math::vec3 p = pt_near + (dir * d);	// intersection point
+
+	// For the mouse, Y is inverted
+	p.y = -p.y;
+
+	// Now translate to account for rect position
+	p.x += (int)floor(left_ + width_ / 2);
+	p.y += (int)floor(top_ + height_ / 2);
+
+	out_x = (int)floor((p.x + 0.5) + 0.5);
+	out_y = (int)floor((p.y + 0.5) + 0.5);
+	return true;
+}
+
 v8::Handle<v8::Value> layer_reference::assoc(v8::Arguments const& args)
 {
 	if (args[0]->IsNull())

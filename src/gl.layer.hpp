@@ -131,6 +131,8 @@ public:
 	void register_texture_update_sink(texture_update_sink& sink) { sink_ = &sink; }
 	void reset_texture_update_sink() { sink_ = nullptr; }
 
+	bool world_ray_to_local_mouse(math::vec3 pt_near, math::vec3 pt_far, int& out_x, int& out_y);
+
 private:
 	virtual void render_impl(render_context& context);
 

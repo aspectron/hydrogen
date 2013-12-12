@@ -30,7 +30,8 @@ public:
 	void set_target(entity& e) { target_.reset(&e); }
 	void reset_target() { target_.reset(); }
 
-	math::vec3 project_mouse(gl::entity& e, double x, double y);
+	// get a world-space ray representing the mouse pointer
+	bool camera::get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far);
 
 	math::vec2 get_zero_plane_world_to_screen_scale();
 

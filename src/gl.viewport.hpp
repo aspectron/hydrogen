@@ -12,6 +12,8 @@ public:
 		, height_(0)
 		, pixel_size_(0, 0)
 		, fov_(0)
+		, near_clip_(0)
+		, far_clip_(0)
 	{
 		projection_matrix_.set_identity();
 	}
@@ -24,6 +26,8 @@ public:
 		pixel_size_.y = 2.0 / height_;
 		aspect_ratio_ = width_ / height_;
 		fov_ = fov;
+		near_clip_ = near_plane;
+		far_clip_ = far_plane;
 
 		generate_perspective_projection_fov(projection_matrix_, fov, near_plane, far_plane, aspect_ratio_);
 	}
@@ -46,6 +50,8 @@ public:
 	math::vec2 const& pixel_size() const { return pixel_size_; }
 
 	double fov() const { return fov_; }
+	double near_clip() const { return near_clip_; }
+	double far_clip() const { return far_clip_; }
 
 	math::matrix const& projection_matrix() const { return projection_matrix_; }
 
@@ -55,6 +61,8 @@ private:
 	double width_, height_;
 	math::vec2 pixel_size_;
 	double fov_;
+	double near_clip_;
+	double far_clip_;
 
 	static void generate_frustum_projection(math::matrix &m,
 		double left, double right, double bottom, double top, double zNear, double zFar)

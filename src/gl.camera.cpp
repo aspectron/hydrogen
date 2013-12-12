@@ -130,68 +130,29 @@ void camera::render_impl(render_context& context)
 	context.set_camera(this);
 }
 
-math::vec3 camera::project_mouse(gl::entity& e, double x, double y)
+bool camera::get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far)
 {
-	math::matrix m;
-	m.invert(modelview_matrix());
+	if (!is_perspective_projection())
+		return false;
 
-	math::vec3 pt_near(x,y,0.0);
-	math::vec3 pt_far(x,y,1.0);
+	double halfWidth = width() / 2;
+	double halfHeight = height() / 2;
+	if (math::is_zero(halfWidth) || math::is_zero(halfHeight) || math::is_zero(aspect_ratio()))
+		return false;
 
-	pt_near = pt_near * m;
-	pt_far = pt_far * m;
+	double fovX = math::deg_to_rad(fov());
+	double fovY = math::deg_to_rad(fov());
+	double dx = tan(fovX / 2) * ((double)x/halfWidth - 1.0f);
+	double dy = tan(fovY / 2) * -((double)y/halfHeight - 1.0f) / aspect_ratio(); // mouse Y is inverted
 
-	/*
-	math::matrix m;
-	m.invert(e->get_transform_matrix());
+	out_near = math::vec3(near_clip() * dx, near_clip() * dy, -near_clip());
+	out_far = math::vec3(far_clip() * dx, far_clip() * dy, -far_clip());
 
-	math::vec3 target(0.0,0.0,0.0);
-	target = target * e->get_transform_matrix();
-
-	math::vec3 cam_pos(0.0,0.0,0.0);
-	cam_pos = cam_pos * get_transform_matrix();
-
-	math::vec3 view = target - cam_pos;
-	view.normalize();
-
-	math::vec3 screen_h; screen_h.cross(view, math::vec3(0.0,1.0,0.0));
-	screen_h.normalize();
-
-	math::vec3 screen_v; screen_v.cross(screen_h, view);
-	screen_v.normalize();
-
-//		double radians = ;
-	double half_height = (tan(math::deg_to_rad(fov_)/2.0)*0.1); //nearClippingPlaneDistance);
-		
-	double half_scaled_aspect_ratio = half_height*get_aspect_ratio();
-		
-	screen_v *= half_height;
-	screen_h *= half_scaled_aspect_ratio;
-
-	math::vec3 world_pos = cam_pos;
-	world_pos += view;
-
-	x = x * 2.0 - 1;
-	y = y * 2.0 - 1;
-
-	world_pos.x += screen_h.x * x + screen_v.x * y;
-	world_pos.y += screen_h.y * x + screen_v.y * y;
-	world_pos.z += screen_h.z * x + screen_v.z * y;
-
-	math::vec3 direction(world_pos);
-	direction -= cam_pos;
-
-	math::vec3 pt;
-	double s = -world_pos.z / direction.z;
-	pt.x = world_pos.x+direction.x*s;
-	pt.y = world_pos.y+direction.y*s;
-	pt.z = 0;
-
-	return pt;
-	*/
-	math::vec3 pt(0.0,0.0);
-	return pt;
+	// Convert to world coords
+	math::matrix m = transform_matrix();
+	out_near *= m;
+	out_far *= m;
+	return true;
 }
-
 
 }} // aspect::gl
