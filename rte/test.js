@@ -1,4 +1,4 @@
-SET_EXECUTION_OPTIONS(EVENT_QUEUE | NO_GC_NOTIFY);
+pragma("event-queue");
 
 require("rte");
 
