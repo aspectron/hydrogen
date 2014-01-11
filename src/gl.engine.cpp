@@ -1,5 +1,6 @@
 #include "hydrogen.hpp"
 
+#include "os.hpp"
 #include "v8_buffer.hpp"
 
 namespace aspect { namespace gl {
@@ -80,7 +81,7 @@ void engine::execute_callbacks(size_t limit)
 void engine::main()
 {
 	// main thread
-	aspect::utils::set_thread_name("hydrogen::engine");
+	aspect::os::set_thread_name("hydrogen::engine");
 
 #if OS(WINDOWS)
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
