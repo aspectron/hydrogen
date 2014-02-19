@@ -27,5 +27,6 @@ include_directories(extern/bullet/src)
 add_subdirectory(extern/bullet bin/bullet)
 
 add_library(hydrogen.jsx SHARED ${SRC})
-target_link_libraries(hydrogen.jsx core.jsx math.jsx image.jsx oxygen.jsx v8 X11 Xrandr GL GLEW BulletDynamics BulletCollision)
+set(BULLET_LIBS BulletSoftBody BulletDynamics BulletCollision LinearMath)
+target_link_libraries(hydrogen.jsx core.jsx math.jsx image.jsx oxygen.jsx v8 X11 Xrandr GL GLEW ${BULLET_LIBS})
  
