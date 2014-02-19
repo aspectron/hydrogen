@@ -75,7 +75,7 @@ void layer::render_impl(gl::render_context& context)
 	}
 }
 
-bool layer::world_ray_to_local_mouse(math::vec3 pt_near, math::vec3 pt_far, int& out_x, int& out_y)
+bool layer::world_ray_to_local_mouse(math::vec3 pt_near, math::vec3 pt_far, int& out_x, int& out_y) const
 {
 	// Convert to local space
 	math::matrix m;

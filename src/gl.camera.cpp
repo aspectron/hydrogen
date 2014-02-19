@@ -130,7 +130,7 @@ void camera::render_impl(render_context& context)
 	context.set_camera(this);
 }
 
-bool camera::get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far)
+bool camera::get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far) const
 {
 	if (!is_perspective_projection())
 		return false;

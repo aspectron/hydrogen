@@ -31,7 +31,7 @@ public:
 	void reset_target() { target_.reset(); }
 
 	// get a world-space ray representing the mouse pointer
-	bool get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far);
+	bool get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far) const;
 
 	math::vec2 get_zero_plane_world_to_screen_scale();
 
