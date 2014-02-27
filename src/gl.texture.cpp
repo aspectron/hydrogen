@@ -535,7 +535,7 @@ public:
 
 		if (!pbo_.empty())
 		{
-			glDeleteBuffersARB(pbo_.size(), &pbo_[0]);
+			glDeleteBuffersARB(static_cast<GLsizei>(pbo_.size()), &pbo_[0]);
 		}
 
 		if (fbo_)

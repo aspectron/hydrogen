@@ -19,7 +19,7 @@ public:
 	void flush()
 	{
 		// opengl drawing of lines...
-		glDrawArrays(GL_LINES, 0, points_.size() / 2);
+		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(points_.size() / 2));
 	}
 
 private:

@@ -86,7 +86,7 @@ private:
 #else
 	std::string debug_string_;
 #endif
-	unsigned viewport_width_, viewport_height_;
+	box<int> viewport_;
 	double fps_, fps_unheld_, frt_;
 
 	v8pp::persistent_ptr<entity> world_;

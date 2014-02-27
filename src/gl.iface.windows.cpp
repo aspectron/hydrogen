@@ -131,7 +131,7 @@ void iface::output_text(double x, double y, wchar_t const* text, GLdouble const*
 
 	glPushAttrib(GL_LIST_BIT);
 	glListBase(font_base_ - 32);
-	glCallLists(wcslen(text), GL_UNSIGNED_SHORT, text);
+	glCallLists(static_cast<GLsizei>(wcslen(text)), GL_UNSIGNED_SHORT, text);
 	//					glCallLists(strlen(pText),GL_UNSIGNED_BYTE, pText);
 	glPopAttrib();
 

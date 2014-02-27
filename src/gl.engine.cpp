@@ -1,6 +1,5 @@
 #include "hydrogen.hpp"
 
-#include "os.hpp"
 #include "v8_buffer.hpp"
 
 namespace aspect { namespace gl {
@@ -13,8 +12,6 @@ engine::engine(aspect::gui::window* window)
 	, engine_info_location_(0, 12)
 	, hold_rendering_(false)
 	, hold_interval_(1000.0/60.0)
-	, viewport_width_(0)
-	, viewport_height_(0)
 	, fps_(0)
 	, fps_unheld_(0)
 	, frt_(0)
@@ -122,11 +119,11 @@ void engine::main()
 #if OS(WINDOWS)
 			wchar_t info[128];
 			swprintf(info, sizeof(info) / sizeof(*info), L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
-				fps_unheld_, fps_, frt_, viewport_width_, viewport_height_);
+				fps_unheld_, fps_, frt_, viewport_.width, viewport_.height);
 #else
 			char info[128];
 			snprintf(info, sizeof(info) / sizeof(*info), "fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
-				fps_unheld_, fps_, frt_, viewport_width_, viewport_height_);
+				fps_unheld_, fps_, frt_, viewport_.width, viewport_.height);
 #endif
 			iface_->output_text(engine_info_location_.x, engine_info_location_.y, info);
 
@@ -278,7 +275,7 @@ void engine::cleanup_shaders()
 
 void engine::validate_iface()
 {
-	if (iface_->window().width() != viewport_width_ || iface_->window().height() != viewport_height_)
+	if (iface_->window().size() != viewport_)
 	{
 		update_viewport();
 		setup_viewport();
@@ -287,10 +284,10 @@ void engine::validate_iface()
 
 void engine::update_viewport()
 {
-	viewport_width_ = std::max(1u, iface_->window().width());
-	viewport_height_ = std::max(1u, iface_->window().height());
+	viewport_.width = std::max(1, iface_->window().width());
+	viewport_.height = std::max(1, iface_->window().height());
 
-	glViewport(0, 0, viewport_width_, viewport_height_);
+	glViewport(0, 0, viewport_.width, viewport_.height);
 }
 
 void engine::setup_viewport()
@@ -306,7 +303,7 @@ void engine::setup_viewport()
 
 math::vec2 engine::map_pixel_to_view(math::vec2 const& v) const
 {
-	return math::vec2( (v.x + 0.5) / (double)viewport_width_, (v.y + 0.5) / (double)viewport_height_ );
+	return math::vec2((v.x + 0.5) / viewport_.width, (v.y + 0.5) / viewport_.height);
 }
 
 void engine::set_vsync_interval( int i )
@@ -322,9 +319,9 @@ void engine::set_camera(gl::camera* camera)
 
 void engine::capture_screen_gl(Persistent<Function> cb)
 {
-	image::shared_bitmap b = boost::make_shared<image::bitmap>(viewport_width_, viewport_height_, image::BGRA8);
+	image::shared_bitmap b = boost::make_shared<image::bitmap>(viewport_.width, viewport_.height, image::BGRA8);
 
-	glReadPixels(0, 0,viewport_width_, viewport_height_, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
+	glReadPixels(0, 0,viewport_.width, viewport_.height, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
 
 	runtime::main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb));
 }
