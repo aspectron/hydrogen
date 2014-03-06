@@ -18,7 +18,7 @@ var hydrogen = require("hydrogen");
 
 log.info("Creating window...");
 
-var window = oxygen.window({
+var window = oxygen.Window({
 	width: 640,
 	height: 480,
 	bpp: 32,
@@ -34,8 +34,9 @@ dpc(500000, function(){
 	window.destroy();
 })
 
-var engine = new hydrogen.engine(window);
-engine.show_engine_info(true);
-engine.set_vsync_interval(1);
-
+var engine = new hydrogen.Engine(window, 
+	{
+		info { show: true },
+		vsync_interval: 1,
+	});
 

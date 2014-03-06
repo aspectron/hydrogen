@@ -17,11 +17,12 @@ typedef v8pp::persistent_ptr<entity> entity_ptr;
 class HYDROGEN_API entity
 {
 public:
-	typedef v8pp::class_<gl::entity> js_class;
+	typedef v8pp::class_<gl::entity, v8pp::v8_args_factory> js_class;
 
 	static js_class* js_binding;
 
 	entity();
+	explicit entity(v8::Arguments const& args);
 	virtual ~entity();
 
 	// main stuff
@@ -152,6 +153,8 @@ public:
 	void set_angular_velocity(math::vec3 const& angular_v);
 
 private:
+	void init();
+
 	// perform real rendering
 	virtual void render_impl(render_context&) {}
 
@@ -175,7 +178,7 @@ private:
 
 	double fade_ts_;
 	double fade_duration_;
-	double transparency_targets_[2];
+	std::array<double, 2> transparency_targets_;
 	double transparency_;
 
 	uint32_t entity_type_;

@@ -9,16 +9,25 @@ namespace aspect { namespace gl {
 uint32_t global_entity_count = 0;
 
 entity::entity()
-	: hidden_(false)
-	, fade_ts_(0)
-	, fade_duration_(0)
-	, transparency_targets_()
-	, transparency_(0)
-	, entity_type_(0)
-	, collision_candidates_(0)
-	//, age_(0)
 {
-	++global_entity_count;
+	init();
+}
+
+entity::entity(Arguments const& args)
+{
+	init();
+
+	HandleScope scope;
+	if (args[0]->IsObject())
+	{
+		Handle<Object> config = args[0].As<Object>();
+
+		Handle<Value> value;
+		if (get_option(config, "location", value))
+		{
+			set_location(v8pp::from_v8<math::vec3>(value));
+		}
+	}
 }
 
 entity::~entity()
@@ -28,6 +37,18 @@ entity::~entity()
 		parent_->detach(*this);
 	}
 	--global_entity_count;
+}
+
+void entity::init()
+{
+	hidden_ = false;
+	fade_ts_ = 0;
+	fade_duration_ = 0;
+	transparency_targets_.fill(0);
+	transparency_ = 0;
+	entity_type_ = 0;
+	collision_candidates_ = 0;
+	++global_entity_count;
 }
 
 void entity::delete_all_children()

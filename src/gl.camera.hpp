@@ -8,9 +8,10 @@ namespace aspect { namespace gl {
 class HYDROGEN_API camera : public entity, public gl::viewport
 {
 public:
-	typedef v8pp::class_<camera> js_class;
+	typedef v8pp::class_<camera, v8pp::v8_args_factory> js_class;
 
 	camera();
+	explicit camera(v8::Arguments const& args);
 
 	bool is_perspective_projection() const { return projection_ == PERSPECTIVE; }
 	bool is_orthographic_projection() const { return projection_ == ORTHOGRAPHIC; }

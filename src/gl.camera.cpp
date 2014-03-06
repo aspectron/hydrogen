@@ -7,6 +7,12 @@ camera::camera()
 	modelview_matrix_.set_identity();
 }
 
+camera::camera(v8::Arguments const& args)
+	: gl::entity(args)
+{
+	modelview_matrix_.set_identity();
+}
+
 void camera::update_modelview_matrix()
 {
 	math::matrix const& viewport_projection = projection_matrix();
