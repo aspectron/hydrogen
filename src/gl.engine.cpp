@@ -6,21 +6,57 @@ namespace aspect { namespace gl {
 
 using namespace v8;
 
-engine::engine(aspect::gui::window* window)
-	: window_(window)
-	, show_engine_info_(false)
-	, engine_info_location_(0, 12)
-	, hold_rendering_(false)
-	, hold_interval_(1000.0/60.0)
-	, fps_(0)
-	, fps_unheld_(0)
-	, frt_(0)
-	, context_(*this)
+engine::engine(gui::window& window)
+	: context_(*this)
 {
-	if (!window_)
+	init(window);
+}
+
+engine::engine(v8::Arguments const& args)
+	: context_(*this)
+{
+	HandleScope scope;
+
+	gui::window* wnd = v8pp::from_v8<gui::window*>(args[0]);
+	if (!wnd)
 	{
-		throw std::runtime_error("hydrogen::engine constructor requires an oxygen::window argument");
+		throw std::invalid_argument("Hydrogen Engine constructor requires an Oxygen Window argument");
 	}
+	init(*wnd);
+
+	if (args[1]->IsObject())
+	{
+		Handle<Object> config = args[1].As<Object>();
+
+		Handle<Value> info;
+		if (get_option(config, "info", info))
+		{
+			show_info(info);
+		}
+
+		Handle<Value> rendering_hold;
+		if (get_option(config, "rendering_hold", rendering_hold))
+		{
+			set_rendering_hold(rendering_hold);
+		}
+
+		int vsync_interval;
+		if (get_option(config, "vsync_interval", vsync_interval))
+		{
+			set_vsync_interval(vsync_interval);
+		}
+	}
+}
+
+void engine::init(aspect::gui::window& window)
+{
+	window_.reset(&window);
+	show_engine_info_ = false;
+	engine_info_location_.x = 0;
+	engine_info_location_.y = 12;
+	hold_rendering_ = false;
+	hold_interval_ = 1000.0/60.0;
+	fps_ = fps_unheld_ = frt_ = 0;
 
 	entity* world = new entity;
 	entity::js_class::import_external(world);
@@ -328,13 +364,14 @@ void engine::capture_screen_gl(Persistent<Function> cb)
 
 void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function> cb)
 {
+	using namespace v8_core;
+
 	HandleScope scope;
 
 	//TODO: move data from shared_bitmap to buffer
-	v8_core::buffer* buf = new v8_core::buffer((char const*)b->data(), b->data_size());
-	Handle<Value> buf_value = v8_core::buffer::js_class::import_external(buf);
+	v8_core::buffer* buf = new buffer((char const*)b->data(), b->data_size());
 
-	Handle<Value> args[] = { v8pp::to_v8("complete"), buf_value };
+	Handle<Value> args[] = { buffer::js_class::import_external(buf) };
 	
 	TryCatch try_catch;
 	Handle<Value> result = cb->Call(v8pp::to_v8(this)->ToObject(), 1, args);
@@ -345,17 +382,46 @@ void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function
 	cb.Dispose();
 }
 
-Handle<Value> engine::capture(const v8::Arguments& args)
+void engine::capture(v8::Arguments const& args)
 {
-	Persistent<Function> cb = Persistent<Function>::New(args[0].As<Function>());
-	if (cb.IsEmpty())
+	if (!args[0]->IsFunction())
 	{
 		throw std::invalid_argument("capture requires function callback");
 	}
 
+	Persistent<Function> cb = Persistent<Function>::New(args[0].As<Function>());
 	schedule(boost::bind(&engine::capture_screen_gl, this, cb));
+}
 
-	return v8pp::to_v8(this);
+void engine::show_info(v8::Handle<v8::Value> settings)
+{
+	if (settings->IsBoolean())
+	{
+		show_engine_info_ = settings->BooleanValue();
+	}
+	else if (settings->IsObject())
+	{
+		HandleScope scope;
+		Handle<Object> obj = settings.As<Object>();
+		
+		get_option(obj, "show", show_engine_info_);
+		get_option(obj, "location", engine_info_location_);
+		get_option(obj, "string", debug_string_);
+	}
+	else throw std::invalid_argument("require object");
+}
+
+void engine::set_rendering_hold(v8::Handle<v8::Value> settings)
+{
+	if (settings->IsObject())
+	{
+		HandleScope scope;
+		Handle<Object> obj = settings.As<Object>();
+		
+		get_option(obj, "enable", hold_rendering_);
+		get_option(obj, "interval", hold_interval_);
+	}
+	else throw std::invalid_argument("require object");
 }
 
 }} // namespace aspect::gl

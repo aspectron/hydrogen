@@ -6,9 +6,10 @@ namespace aspect { namespace gl {
 class HYDROGEN_API engine
 {
 public:
-	typedef v8pp::class_<engine, v8pp::factory<gui::window*>> js_class;
+	typedef v8pp::class_<engine, v8pp::v8_args_factory> js_class;
 
-	explicit engine(gui::window* window);
+	explicit engine(gui::window& window);
+	explicit engine(v8::Arguments const& args);
 	~engine();
 
 	/// Callback function to schedule in the main engine thread
@@ -41,8 +42,6 @@ public:
 
 	void set_physics(physics::bullet& bullet) { bullet_.reset(&bullet); }
 
-	v8::Handle<v8::Value> capture(const v8::Arguments& args);
-
 	enum integrated_shaders
 	{
 		integrated_shader_YCbCr8,
@@ -57,7 +56,13 @@ public:
 
 	math::vec2 map_pixel_to_view(math::vec2 const& v) const;
 
+	void capture(v8::Arguments const& args);
+	void show_info(v8::Handle<v8::Value> settings);
+	void set_rendering_hold(v8::Handle<v8::Value> settings);
+
 private:
+	void init(gui::window& window);
+
 	void main();
 	void execute_callbacks(size_t limit = 10);
 
