@@ -18,7 +18,8 @@ public:
 		projection_matrix_.set_identity();
 	}
 
-	void set_perspective_projection_fov(double width, double height, double near_plane, double far_plane, double fov)
+	// return pixel perfect distance
+	double set_perspective_projection_fov(double width, double height, double near_plane, double far_plane, double fov)
 	{
 		width_ = width;
 		height_ = height;
@@ -30,6 +31,8 @@ public:
 		far_clip_ = far_plane;
 
 		generate_perspective_projection_fov(projection_matrix_, fov, near_plane, far_plane, aspect_ratio_);
+
+		return width / (2 * tan(math::deg_to_rad(fov) / 2.0));
 	}
 
 	void set_frustum_projection(double left, double right, double bottom, double top, double zNear, double zFar)

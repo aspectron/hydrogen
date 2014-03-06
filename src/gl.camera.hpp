@@ -15,10 +15,11 @@ public:
 	bool is_perspective_projection() const { return projection_ == PERSPECTIVE; }
 	bool is_orthographic_projection() const { return projection_ == ORTHOGRAPHIC; }
 
-	void set_perspective_projection_fov(double width, double height, double near_plane, double far_plane, double fov)
+	// return pixel perfect distance
+	double set_perspective_projection_fov(double width, double height, double near_plane, double far_plane, double fov)
 	{
 		projection_ = PERSPECTIVE;
-		gl::viewport::set_perspective_projection_fov(width, height, near_plane, far_plane, fov);
+		return gl::viewport::set_perspective_projection_fov(width, height, near_plane, far_plane, fov);
 	}
 
 	void set_orthographic_projection(double left, double right, double bottom, double top, double near_plane, double far_plane)
@@ -27,8 +28,7 @@ public:
 		gl::viewport::set_orthographic_projection(left, right, bottom, top, near_plane, far_plane);
 	}
 
-	void set_target(entity& e) { target_.reset(&e); }
-	void reset_target() { target_.reset(); }
+	void set_target(entity* e) { target_.reset(e); }
 
 	// get a world-space ray representing the mouse pointer
 	bool get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far) const;
