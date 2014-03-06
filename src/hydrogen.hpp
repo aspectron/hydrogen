@@ -50,7 +50,6 @@
 #include "gl.layer.hpp"
 
 // #define BT_USE_DOUBLE_PRECISION
-#include "physics.hpp"
 #include "physics.bullet.hpp"
 
 #include "gl.engine.hpp"

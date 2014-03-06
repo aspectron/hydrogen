@@ -71,9 +71,45 @@ private:
 };
 
 bullet::bullet()
-	: state_(STOP)
-	, user_collision_callback_(nullptr)
 {
+	init();
+}
+
+bullet::bullet(v8::Arguments const& args)
+{
+	init();
+	if (args[0]->IsObject())
+	{
+		v8::HandleScope scope;
+		v8::Handle<v8::Object> obj = args[0].As<v8::Object>();
+
+		math::vec3 gravity, water_normal;
+		double air_density = 0, water_density = 0, water_offset = 0;
+
+		get_option(obj, "gravity", gravity);
+		get_option(obj, "air_density", air_density);
+		get_option(obj, "water_density", water_density);
+		get_option(obj, "water_offset", water_offset);
+		get_option(obj, "water_normal", water_normal);
+
+		set_gravity(gravity);
+		set_densities(air_density, water_density, water_offset, water_normal);
+	}
+}
+
+bullet::~bullet()
+{
+	set_debug_drawer(nullptr);
+
+	btSoftBodyWorldInfo_->m_sparsesdf.Reset();
+	btSoftBodyWorldInfo_->m_sparsesdf.cells.clear();
+}
+
+void bullet::init()
+{
+	state_ = STOP;
+	user_collision_callback_ = nullptr;
+
 	btSoftBodyRigidBodyCollisionConfiguration_.reset(new btSoftBodyRigidBodyCollisionConfiguration);
 	btCollisionDispatcher_.reset(new btCollisionDispatcher(btSoftBodyRigidBodyCollisionConfiguration_.get()));
 	btBroadphaseInterface_.reset(new btDbvtBroadphase);
@@ -97,35 +133,19 @@ bullet::bullet()
 	set_debug_drawer(debug_draw_.get());
 }
 
-bullet::~bullet()
+void bullet::set_gravity(math::vec3 const& gravity)
 {
-	set_debug_drawer(nullptr);
-
-	btSoftBodyWorldInfo_->m_sparsesdf.Reset();
-	btSoftBodyWorldInfo_->m_sparsesdf.cells.clear();
+	btSoftRigidDynamicsWorld_->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
+	btSoftBodyWorldInfo_->m_gravity.setValue(gravity.x, gravity.y, gravity.z);
 }
 
-void bullet::configure(configuration const& config)
-{
-	set_gravity(config.gravity.x, config.gravity.y, config.gravity.z);
-
-	set_densities(config.air_density, config.water_density, config.water_offset,
-		config.water_normal.x, config.water_normal.y, config.water_normal.z);
-}
-
-void bullet::set_gravity(double x, double y, double z)
-{
-	btSoftRigidDynamicsWorld_->setGravity(btVector3(x, y, z));
-	btSoftBodyWorldInfo_->m_gravity.setValue(x, y, z);
-}
-
-void bullet::set_densities(double air_density, double water_density, double water_offset,
-	double wn_x, double wn_y, double wn_z)
+void bullet::set_densities(double air_density, double water_density,
+	double water_offset, math::vec3 const& water_normal)
 {
 	btSoftBodyWorldInfo_->air_density   = air_density; //1.2f;
 	btSoftBodyWorldInfo_->water_density = water_density; //0.0f;
 	btSoftBodyWorldInfo_->water_offset  = water_offset; //0.0f;
-	btSoftBodyWorldInfo_->water_normal  = btVector3(wn_x, wn_y, wn_z); //0.0f, 0.0f, 1.0f );
+	btSoftBodyWorldInfo_->water_normal  = btVector3(water_normal.x, water_normal.y, water_normal.z); //0.0f, 0.0f, 1.0f );
 }
 
 bool bullet::add(gl::entity& e)

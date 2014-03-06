@@ -1,20 +1,36 @@
 #ifndef _PHYSICS_BULLET_HPP_
 #define _PHYSICS_BULLET_HPP_
 
+#include "v8_core.hpp"
+#include "math.vector3.hpp"
+
 namespace aspect { namespace physics {
+
+struct collision_callback
+{
+	struct info
+	{
+		gl::entity *entities[2];
+		math::vec3 position[2];
+		math::vec3 normal;
+	};
+
+	virtual ~collision_callback() {}
+
+	virtual void physics_collision(info const&) = 0;
+};
 
 class HYDROGEN_API bullet : boost::noncopyable
 {
 public:
-	typedef v8pp::class_<bullet> js_class;
+	typedef v8pp::class_<bullet, v8pp::v8_args_factory> js_class;
 
 	bullet();
+	explicit bullet(v8::Arguments const& args);
 	~bullet();
 
-	void configure(configuration const& config);
-
-	void set_gravity(double x, double y, double z);
-	void set_densities(double air, double water, double water_offset, double wn_x, double wn_y, double wn_z);
+	void set_gravity(math::vec3 const& vec3);
+	void set_densities(double air, double water, double water_offset, math::vec3 const& water_normal);
 
 	bool add(gl::entity& e);
 	void remove(gl::entity& e);
@@ -50,6 +66,7 @@ private:
 	void tick_callback(btScalar time_step);
 
 private:
+	void init();
 	enum state_t { STOP, PLAY } state_;
 
 	collision_callback* user_collision_callback_;
