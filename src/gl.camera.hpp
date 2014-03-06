@@ -2,6 +2,7 @@
 #define _ASPECT_CAMERA_HPP_
 
 #include "gl.entity.hpp"
+#include "gl.viewport.hpp"
 
 namespace aspect { namespace gl {
 

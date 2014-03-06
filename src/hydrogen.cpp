@@ -388,52 +388,11 @@ Handle<Value> hydrogen_install()
 		;
 	hydrogen_module.set("Camera", camera_class);
 
-	gl::layer::js_class layer_class(*gl::entity::js_binding);
-	layer_class
-//		.set("register_as_update_sink", &layer::register_as_update_sink)
-		.set("set_fullsize", &layer::set_fullsize)
-		.set("set_as_hud", &layer::set_as_hud)
-		.set("set_flip", &layer::set_flip)
-		;
-	hydrogen_module.set("layer", layer_class);
-
-	gl::layer_reference::js_class layer_reference_class(*gl::entity::js_binding);
-	layer_reference_class
-		.set("assoc", &layer_reference::assoc)
-		.set("set_rect", &layer_reference::set_rect)
-		;
-	hydrogen_module.set("layer_reference", layer_reference_class);
-
-	v8pp::module pixel_formats;
-#define SET_IMAGE_CONST(name) pixel_formats.set_const(#name, image::name)
-#define SET_GL_CONST(name) pixel_formats.set_const(#name, gl::name)
-	SET_IMAGE_CONST(UNKNOWN);
-	SET_IMAGE_CONST(YUV8);
-	SET_IMAGE_CONST(YUV10);
-	SET_IMAGE_CONST(RGBA8);
-	SET_IMAGE_CONST(ARGB8);
-	SET_IMAGE_CONST(BGRA8);
-	SET_IMAGE_CONST(RGB10);
-//	SET_IMAGE_CONST(RGBA32f);
-//	SET_GL_CONST(Y8);
-//	SET_GL_CONST(Cb8);
-//	SET_GL_CONST(Cr8);
-//	SET_GL_CONST(CbCr8);
-//	SET_GL_CONST(YCbCr8_v1);
-#undef SET_GL_CONST
-#undef SET_IMAGE_CONST
-	hydrogen_module.set("pixel_formats", pixel_formats);
-
 	return hydrogen_module.new_instance();
 }
 
 void hydrogen_uninstall(Handle<Value> library)
 {
-	// destroy layer instances before engine stop
-	// to clean up texture resources in then main engine thread
-	aspect::gl::layer_reference::js_class::destroy_objects();
-	aspect::gl::layer::js_class::destroy_objects();
-
 	// destroy engine and bullet instances before entity
 	// to stop rendering and physics simulation
 	gl::engine::js_class::destroy_objects();

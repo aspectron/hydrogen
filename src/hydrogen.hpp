@@ -45,9 +45,7 @@
 
 #include "gl.context.hpp"
 #include "gl.entity.hpp"
-#include "gl.viewport.hpp"
 #include "gl.camera.hpp"
-#include "gl.layer.hpp"
 
 // #define BT_USE_DOUBLE_PRECISION
 #include "physics.bullet.hpp"
