@@ -32,8 +32,11 @@ public:
 
 	void delete_all_children();
 
-	void show() { hidden_ = false; }
-	void hide() { hidden_ = true; }
+	bool is_hidden() const { return hidden_; }
+	void set_hidden(bool value) { hidden_ = value; }
+
+	void show() { set_hidden(false); }
+	void hide() { set_hidden(true); }
 
 	void fade_in(double msec) { fade(true, msec); }
 	void fade_out(double msec) { fade(false, msec); }
@@ -145,7 +148,8 @@ public:
 
 	void apply_relative_impulse(math::vec3 const& relative_force);
 	void apply_absolute_impulse(math::vec3 const& relative_force);
-	void set_linear_velocity(math::vec3 const& absolute_velocity);
+	void set_linear_velocity(math::vec3 const& linear_v);
+	void set_angular_velocity(math::vec3 const& angular_v);
 
 private:
 	// perform real rendering

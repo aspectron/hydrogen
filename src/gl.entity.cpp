@@ -249,13 +249,22 @@ void entity::apply_absolute_impulse(math::vec3 const& absolute_f)
 	physics_data_.rigid_body->applyImpulse(absolute_force, btVector3(0, 0, 0));
 }
 
-void entity::set_linear_velocity(math::vec3 const& absolute_v)
+void entity::set_linear_velocity(math::vec3 const& linear_v)
 {
 	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
 
-	btVector3 const absolute_velocity(absolute_v.x, absolute_v.y, absolute_v.z);
+	btVector3 const linear_velocity(linear_v.x, linear_v.y, linear_v.z);
 
-	physics_data_.rigid_body->setLinearVelocity(absolute_velocity);
+	physics_data_.rigid_body->setLinearVelocity(linear_velocity);
+}
+
+void entity::set_angular_velocity(math::vec3 const& angular_v)
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+
+	btVector3 const angular_velocity(angular_v.x, angular_v.y, angular_v.z);
+
+	physics_data_.rigid_body->setAngularVelocity(angular_velocity);
 }
 
 }} // aspect::gl
