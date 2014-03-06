@@ -18,17 +18,14 @@ public:
 
 	gl::engine& engine() { return engine_; }
 
-	gl::camera* camera() { return camera_; }
-	void set_camera(gl::camera* camera) { camera_ = camera; }
+	gl::camera const* camera() const { return camera_; }
+	void set_camera(gl::camera const* camera) { camera_ = camera; }
 
 	math::vec2 map_pixel_to_view(math::vec2 const& v) const;
 
 private:
 	gl::engine& engine_;
-
-	gl::camera* camera_;
-	math::vec3 camera_pos_;
-	double range_;
+	gl::camera const* camera_;
 };
 
 }} // aspect::gl
