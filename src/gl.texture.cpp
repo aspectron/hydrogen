@@ -30,7 +30,7 @@ void texture::_update_pixels(GLubyte* dst)
 	int* ptr = (int*)dst;
 
 	// copy 4 bytes at once
-	for(int i = 0; i < height(); ++i)
+	for(int i = 0; i < size_.height; ++i)
 	{
 		for(int j = 0; j < row_bytes() / 4 ; ++j)
 		{
@@ -43,14 +43,13 @@ void texture::_update_pixels(GLubyte* dst)
 }
 #endif
 
-void texture::setup(unsigned width, unsigned height, aspect::image::encoding encoding, uint32_t flags)
+void texture::setup(image_size const& size, aspect::image::encoding encoding, uint32_t flags)
 {
 	cleanup_sync();
 
 	flags_ |= flags;
 	encoding_ = encoding;
-	width_ = output_width_ = width;
-	height_ = output_height_ = height;
+	size_ = output_size_ = size;
 
 	switch (encoding_)
 	{
@@ -59,7 +58,7 @@ void texture::setup(unsigned width, unsigned height, aspect::image::encoding enc
 			format_components_ = GL_RGBA8;
 			format_internal_ = GL_BGRA;
 			bpp_ = 2;
-			output_width_ /= 2;
+			output_size_.width /= 2;
 			shader_ = engine_.get_integrated_shader(engine::integrated_shader_YCbCr8);
 		} break;
 
@@ -97,7 +96,7 @@ void texture::setup(unsigned width, unsigned height, aspect::image::encoding enc
 	}
 	else
 	{
-		std::fill_n((float*)image_data.data(), width_* height_, 0.175f);
+		std::fill_n((float*)image_data.data(), size_.width * size_.height, 0.175f);
 	}
 #endif 
 
@@ -105,10 +104,9 @@ void texture::setup(unsigned width, unsigned height, aspect::image::encoding enc
 	_err = glGetError();
 	_aspect_assert(_err == GL_NO_ERROR);
 
-	//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data.data());
-	//							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, width_, height_, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, image_data.data());
-//	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, format_internal_, output_width_, height_, 0, format_components_, is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, image_data.data());
-	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, format_components_, output_width_, height_, 0, format_internal_, is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, image_data.data());
+	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, format_components_,
+		output_size_.width, size_.height, 0, format_internal_,
+		is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, image_data.data());
 
 	_err = glGetError();
 	_aspect_assert(_err == GL_NO_ERROR);
@@ -148,8 +146,7 @@ void texture::upload()
 	if ((flags_ & SETUP) == 0)
 	{
 
-//		setup(1024, 1024, image::RGBA8);
-		setup(1024, 1024, image::RGBA8);
+		setup(image_size(1024, 1024), image::RGBA8);
 // =>		setup(f.get_width(),f.get_height(),f.get_source_encoding()); // asy.11
 //		setup(f.get_width(),f.get_height(),av::YCbCr8); // asy.11
 	}
@@ -173,7 +170,7 @@ void texture::upload()
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, id_, 0);
 
 		glPushAttrib(GL_VIEWPORT_BIT);
-		glViewport(0, 0, width_, height_);
+		glViewport(0, 0, size_.width, size_.height);
 
 		glOrtho(-1.0, 1.0, -1.0, 1.0, 0.0, 1.0);
 		glMatrixMode(GL_MODELVIEW);
@@ -362,7 +359,7 @@ void texture::unmap_pbo(size_t idx)
 
 	glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB); // release pointer to mapping buffer
 
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, output_width_, height_, format_internal_, GL_UNSIGNED_BYTE, 0);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, output_size_.width, size_.height, format_internal_, GL_UNSIGNED_BYTE, 0);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
 	pbo_buffer_ = nullptr;
