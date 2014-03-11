@@ -4,15 +4,9 @@ require("rte");
 
 var log = require("log");
 
-//var oxygen = require("oxygen");
-
-//log.info("loading hydrogen");
-var hydrogen = require("hydrogen");
-//log.info("hydrogen loaded");
-
-
 log.info("loading oxygen");
 var oxygen = require("oxygen");
+
 log.info("loading hydrogen");
 var hydrogen = require("hydrogen");
 
@@ -28,7 +22,6 @@ var window = oxygen.Window({
 
 log.info("Window created...");
 
-
 dpc(500000, function(){
 	log.info("Destroying window...");
 	window.destroy();
@@ -36,7 +29,6 @@ dpc(500000, function(){
 
 var engine = new hydrogen.Engine(window, 
 	{
-		info { show: true },
+		info: { show: true },
 		vsync_interval: 1,
 	});
-
