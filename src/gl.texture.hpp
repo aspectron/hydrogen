@@ -13,19 +13,14 @@ class HYDROGEN_API texture
 public:
 	explicit texture(engine& eng)
 		: engine_(eng)
-		, flags_(0)
-		, size_(0, 0)
-		, output_size_(0, 0)
+		, mode_(FBO)
 		, bpp_(0)
 		, id_(0)
 		, draw_cache_list_(0)
-		, pbo_()
+		, pbo_count_(0)
 		, fbo_(0)
 		, pbo_buffer_(nullptr)
-		, mapped_pbo_idx_(0)
 		, encoding_(image::UNKNOWN)
-		, trs_(0.0)
-		, cvt_(0.0)
 	{
 	}
 
@@ -34,47 +29,18 @@ public:
 		cleanup_async();
 	}
 
-	enum texture_processing
-	{
-		SETUP       = 0x00000001,
-		FBO         = 0x00000002,
-		PBO         = 0x00000004,
-		PBOx2       = 0x00000008,
-		//SUBTEXTURES = 0x00000010,
-		CONFIG      = 0x00000020,
-		INTERLACED  = 0x00000040,
-	};
-
-	bool is_config() const { return (flags_ & CONFIG) != 0; }
-	bool is_interlaced() const { return (flags_ & INTERLACED) != 0; }
-	bool is_pbo_mapped() const { return (flags_ & PBO) != 0; }
+	enum mode { FBO, PBO, PBOx2 };
 
 	void configure(GLint filter, GLint wrap);
-	//void _update_pixels(GLubyte* dst);
-	void setup(image_size const& size, image::encoding encoding, uint32_t flags = 0);
+	void setup(image_size const& size, image::encoding encoding, mode m = FBO);
 
 	void upload();
 
 	void upload(image::shared_bitmap const& bitmap, image_point const& offset, std::vector<image_rect> const& update_rects, size_t pbo_index);
 
-	GLuint id() const { return id_; }
-
-	GLvoid* pbo_buffer() { return pbo_buffer_; }
-
-	bool map_pbo(size_t idx = 0);
-	void unmap_pbo(size_t idx = 0);
-
-	// ~~~
-
-	GLuint pbo(size_t idx) const { return pbo_[idx]; }
-	image::encoding encoding() const { return encoding_; }
-	GLuint format_components() const { return format_components_; }
-	GLuint format_internal() const { return format_internal_; }
-
-	// ~~ aux helper functions
-
-	unsigned width() const { return size_.width; }
-	unsigned height() const { return size_.height; }
+	size_t pbo_count() const { return pbo_count_; }
+	void* map_pbo(size_t idx);
+	void unmap_pbo(size_t idx);
 
 	image_size const& size() const { return size_; }
 	image_size const& output_size() const { return output_size_; }
@@ -87,6 +53,7 @@ public:
 	void draw_sprite(math::vec2 const& size, bool cache);
 
 	static uint64_t bytes_transferred;
+
 private:
 	void bind(bool enabled);
 
@@ -94,25 +61,21 @@ private:
 	void cleanup_sync();
 
 private:
+	enum { MAX_PBO = 2 };
+
 	engine& engine_;
-
-	unsigned flags_;
-
 	image_size size_, output_size_;
+	mode mode_;
 	size_t bpp_;
-
 	image::encoding encoding_;
 	GLenum format_components_;
 	GLenum format_internal_;
 
-	double trs_;
-	double cvt_;
-
 	GLuint id_;
 	GLuint draw_cache_list_;
-	std::vector<GLuint> pbo_;
+	GLuint pbo_[MAX_PBO];
+	GLsizei pbo_count_;
 	GLvoid* pbo_buffer_;
-	size_t mapped_pbo_idx_;
 	GLuint fbo_;
 
 	boost::shared_ptr<shader> shader_;

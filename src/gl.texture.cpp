@@ -19,39 +19,13 @@ void texture::configure(GLint filter, GLint wrap)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-
-	flags_ |= CONFIG;
 }
 
-#if 0
-void texture::_update_pixels(GLubyte* dst)
-{
-	static int color = 0;
-
-	if(!dst)
-		return;
-
-	int* ptr = (int*)dst;
-
-	// copy 4 bytes at once
-	for(int i = 0; i < size_.height; ++i)
-	{
-		for(int j = 0; j < row_bytes() / 4 ; ++j)
-		{
-			*ptr = color;
-			++ptr;
-		}
-		color += 257;   // add an arbitary number (no meaning)
-	}
-	++color;            // scroll down
-}
-#endif
-
-void texture::setup(image_size const& size, aspect::image::encoding encoding, uint32_t flags)
+void texture::setup(image_size const& size, aspect::image::encoding encoding, mode m)
 {
 	cleanup_sync();
 
-	flags_ |= flags;
+	mode_ = m;
 	encoding_ = encoding;
 	size_ = output_size_ = size;
 
@@ -114,48 +88,40 @@ void texture::setup(image_size const& size, aspect::image::encoding encoding, ui
 
 	_err = glGetError();
 	_aspect_assert(_err == GL_NO_ERROR);
-	const GLubyte *err0 = glewGetErrorString(_err);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	unsigned pbo_buffers = 0;
-	if (flags_ & PBO)
+	switch (mode_)
 	{
-		pbo_buffers = 1;
-	}
-	else if (flags_ & PBOx2)
-	{
-		pbo_buffers = 2;
+	case PBO:
+		pbo_count_ = 1;
+		break;
+	case PBOx2:
+		pbo_count_ = 2;
+		break;
+	default:
+		pbo_count_ = 0;
+		break;
 	}
 
-	for (unsigned in = 0; in < pbo_buffers; ++in)
+	if (pbo_count_) glGenBuffersARB(pbo_count_, pbo_);
+	for (GLsizei i = 0; i < pbo_count_; ++i)
 	{
-		GLuint pbo_id;
-		glGenBuffersARB(1, &pbo_id);
-		_aspect_assert(pbo_id && "error - unable to create pixel buffer object");
-		if (pbo_id)
+		_aspect_assert(pbo_[i] && "error - unable to create pixel buffer object");
+		if (pbo_[i])
 		{
-			pbo_.push_back(pbo_id);
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_id);
+			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_[i]);
 			glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, data_size(), 0, GL_STREAM_DRAW_ARB);
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 		}
 	}
-
-	flags_ |= SETUP;
 }
 
 void texture::upload()
 {
-	if ((flags_ & SETUP) == 0)
-	{
+	_aspect_assert(id_ && mode_ == FBO);
 
-		setup(image_size(1024, 1024), image::RGBA8);
-// =>		setup(f.get_width(),f.get_height(),f.get_source_encoding()); // asy.11
-//		setup(f.get_width(),f.get_height(),av::YCbCr8); // asy.11
-	}
-
-	if (flags_ & FBO)
+	if (id_ && mode_ == FBO)
 	{
 		if (!fbo_)
 		{
@@ -195,131 +161,20 @@ void texture::upload()
 		glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-	}
-	else // PBO
-	{
-		GLint ierr = 0;
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-		// PBO
-#if 0
-		if(!m_pbo)
-		{
-			glGenBuffersARB(1, &m_pbo);
-			_aspect_assert(m_pbo && "error - unable to create pbo (pixel buffer object)");
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_pbo());
-			glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_data_size(), 0, GL_STREAM_DRAW_ARB);
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-		}
-
-
-		glBindTexture(GL_TEXTURE_2D, get_id());
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_pbo());
-
-		// map the buffer object into client's memory
-		// Note that glMapBufferARB() causes sync issue.
-		// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
-		// for GPU to finish its job. To avoid waiting (stall), you can call
-		// first glBufferDataARB() with NULL pointer before glMapBufferARB().
-		// If you do that, the previous data in PBO will be discarded and
-		// glMapBufferARB() returns a new allocated pointer immediately
-		// even if GPU is still working with the previous data.
-		
-		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_data_size(), 0, GL_STREAM_DRAW_ARB);
-
-		GLubyte* ptr = (GLubyte*)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY_ARB);
-		if(ptr)
-		{
-//			m_cvt0 = tick_count::now();
-
-		//	_update_pixels(ptr);
-
-#if 0
-//									av::converter::config cfg(f.get_data(),f.get_row_bytes(),ptr,width_*4,height_,f.get_encoding());
-//									av::converter::execute(&cfg,false,10);
-
-			//gl::iface::texture::upload//accept//get_container(av::CbCr8);
-			//dgl::iface::texture::container f.get_container(av::CbCr8);
-
-
-			av::bitmap::container *container = f.get_container(get_encoding()); //av::YCbCr8);
-			_aspect_assert(container && "error - container with requested format is not available for pbo transfer");
-
-			if(container)
-			{
-
-
-				int row_bytes = get_row_bytes();
-
-				for(int i = 0; i < container->get_height(); i++)
-				{
-					memcpy(ptr + (i * get_row_bytes()), container->get_line(i),get_row_bytes());
-//										memcpy(ptr + (i * container->get_row_bytes()), container->get_line(i),container->get_row_bytes());
-				}
-			}
-#else
-
-			static int nn = 0;
-			nn++;
-
-			memset(ptr,nn,get_data_size());
-
-			/*
-			for(int y = 0; y < get_height(); y++)
-			{
-				GLubyte *p = ptr + (y * get_width() * 4);
-				for(int i = 0; i < get_width()*4;)
-				{
-					p[i++] = nn; //i % 255;
-
-
-
-					p[i++] = nn;//i % 255;
-					p[i++] = nn;//i % 255;
-					p[i++] = nn;//i % 255;
-					nn++;
-				}
-			}
-			*/
-
-#endif
-
-
-	// memset(ptr,56,get_data_size());
-
-			glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB); // release pointer to mapping buffer
-
-//			m_cvt1 = tick_count::now();
-//			m_cvt = (m_cvt1-m_cvt0).seconds();
-
-		}
-
-//								const GLubyte *err0 = glewGetErrorString(glGetError());
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, get_width(), get_height(), get_format_internal(), GL_UNSIGNED_BYTE, 0);
-//								glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, get_width(), get_height(), get_format(), GL_UNSIGNED_BYTE, 0);
-//								const GLubyte *err1 = glewGetErrorString(glGetError());
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-
-		glBindTexture(GL_TEXTURE_2D,0);
-
-#endif
-
 	}
 }
 
 void texture::upload(image::shared_bitmap const& bitmap, image_point const& offset, std::vector<image_rect> const& update_rects, size_t pbo_index)
 {
-	_aspect_assert(flags_ & PBOx2);
-	if (encoding_ != image::BGRA8 || (flags_ & PBOx2) == 0)
+	if (encoding_ != image::BGRA8 || mode_ != PBOx2)
 	{
 		_aspect_assert(false && "texture should be for PBOx2 with BGRA8 encoding");
 	}
 
-	size_t const buffer_size = std::accumulate(update_rects.begin(), update_rects.end(), 0,
+	size_t const buffer_size = std::accumulate(update_rects.begin(), update_rects.end(), size_t(0),
 		[](size_t res, image_rect const& rect) { return res + rect.width * rect.height * 4; });
 
-	if (update_rects.empty() || buffer_size == 0)
+	if (update_rects.empty() || buffer_size == 0 || pbo_index >= pbo_count_)
 	{
 		return;
 	}
@@ -361,24 +216,16 @@ void texture::upload(image::shared_bitmap const& bitmap, image_point const& offs
 	bytes_transferred += buffer_size;
 }
 
-bool texture::map_pbo(size_t idx)
+void* texture::map_pbo(size_t idx)
 {
-	GLint ierr = 0;
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	// PBO
-// 		if(!m_pbo)
-// 		{
-// 			glGenBuffersARB(1, &m_pbo);
-// 			_aspect_assert(m_pbo && "error - unable to create pbo (pixel buffer object)");
-// 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_pbo());
-// 			glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, get_data_size(), 0, GL_STREAM_DRAW_ARB);
-// 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-// 		}
-
+	if (!id_ || (mode_ != PBO && mode_ != PBOx2) || idx >= pbo_count_)
+	{
+		return nullptr;
+	}
+	_aspect_assert(!pbo_buffer_ && "PBO buffer already has been mapped");
 
 	glBindTexture(GL_TEXTURE_2D, id_);
-	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo(idx));
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_[idx]);
 
 	// map the buffer object into client's memory
 	// Note that glMapBufferARB() causes sync issue.
@@ -392,40 +239,35 @@ bool texture::map_pbo(size_t idx)
 	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, data_size(), 0, GL_STREAM_DRAW_ARB);
 
 	pbo_buffer_ = glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY_ARB);
-	_aspect_assert(pbo_buffer_);
-	mapped_pbo_idx_ = idx;
+	_aspect_assert(pbo_buffer_ && "failed to map texture pbo!");
 
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
-	if (pbo_buffer_)
-	{
-		flags_ |= PBO;
-		return true;
-	}
-
-	_aspect_assert(!"failed to map texture pbo!");
-	return false;
+	return pbo_buffer_;
 }
 
 void texture::unmap_pbo(size_t idx)
 {
-	_aspect_assert(pbo(idx) && "no pbo id present - did you call map_pbo() before?");
+	if (!id_ || (mode_ != PBO && mode_ != PBOx2) || idx >= pbo_count_)
+	{
+		return;
+	}
+	_aspect_assert(pbo_buffer_ && "no PBO buffer mapped");
 
 	glBindTexture(GL_TEXTURE_2D, id_);
-	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo(idx));
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_[idx]);
 
 	glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB); // release pointer to mapping buffer
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, output_size_.width, size_.height, format_internal_, GL_UNSIGNED_BYTE, 0);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
-	pbo_buffer_ = nullptr;
-//	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void texture::bind(bool enabled)
 {
-	_aspect_assert(is_config());
+	_aspect_assert(id_);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, enabled? id_ : 0);
@@ -467,14 +309,6 @@ void texture::draw(math::vec2 const& tl, math::vec2 const& br, bool cache, bool 
 				glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x,  br.y);
 			}
 
-/*
-glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
-glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
-glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
-glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
-
-*/
-
 			glEnd();
 			glEndList();
 		}
@@ -498,14 +332,6 @@ glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
 			glTexCoord2d(1.0, 1.0);   glVertex2d( br.x,  br.y);
 			glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x,  br.y);
 		}
-
-/*
-glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
-glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
-glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
-glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
-
-*/
 
 		glEnd();
 	}
@@ -549,14 +375,6 @@ void texture::draw_sprite(math::vec2 const& size, bool cache)
 		glTexCoord2d(1.0, 0.0);   glVertex2d( p.x,  p.y);
 		glTexCoord2d(0.0, 0.0);   glVertex2d(-p.x,  p.y);
 
-		/*
-		glTexCoord2d(0.0, 1.0);   glVertex2d(tl.x, tl.y);
-		glTexCoord2d(1.0, 1.0);   glVertex2d( br.x, tl.y);
-		glTexCoord2d(1.0, 0.0);   glVertex2d( br.x,  br.y);
-		glTexCoord2d(0.0, 0.0);   glVertex2d(tl.x,  br.y);
-
-		*/
-
 		glEnd();
 	}
 
@@ -567,17 +385,18 @@ class texture::cleanup_info : boost::noncopyable
 {
 public:
 	explicit cleanup_info(texture& t)
-		: pbo_()
-		, fbo_(0)
-		, draw_cache_list_(0)
-		, id_(0)
+		: pbo_count_(t.pbo_count_)
+		, fbo_(t.fbo_)
+		, draw_cache_list_(t.draw_cache_list_)
+		, id_(t.id_)
 	{
-		using std::swap;
+		_aspect_assert(!t.pbo_buffer_);
 
-		swap(t.pbo_, pbo_);
-		swap(t.fbo_, fbo_);
-		swap(t.draw_cache_list_, draw_cache_list_);
-		swap(t.id_, id_);
+		std::copy(t.pbo_, t.pbo_ + pbo_count_, pbo_);
+		t.pbo_count_ = 0;
+		t.fbo_ = 0;
+		t.draw_cache_list_ = 0;
+		t.id_ = 0;
 	}
 
 	~cleanup_info()
@@ -587,9 +406,9 @@ public:
 			glDeleteLists(draw_cache_list_, 1);
 		}
 
-		if (!pbo_.empty())
+		if (pbo_count_)
 		{
-			glDeleteBuffersARB(static_cast<GLsizei>(pbo_.size()), &pbo_[0]);
+			glDeleteBuffersARB(pbo_count_, &pbo_[0]);
 		}
 
 		if (fbo_)
@@ -609,8 +428,8 @@ public:
 	}
 
 private:
-	std::vector<GLuint> pbo_;
-	//unsigned char *pbo_buffer_;
+	GLuint pbo_[texture::MAX_PBO];
+	GLsizei pbo_count_;
 	GLuint fbo_;
 	GLuint draw_cache_list_;
 	GLuint id_;
@@ -621,18 +440,12 @@ void texture::cleanup_async()
 	_aspect_assert(!pbo_buffer_);
 
 	engine_.schedule(boost::bind(&cleanup_info::perform, boost::make_shared<cleanup_info>(*this)));
-
-//	shader_.reset();
-//	flags_ = 0;
 }
 
 
 void texture::cleanup_sync()
 {
 	cleanup_info cleanup(*this);
-
-//	shader_.reset();
-//	flags_ = 0;
 }
 
 }} // aspect::gl
