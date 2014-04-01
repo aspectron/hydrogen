@@ -92,7 +92,7 @@ private:
 	std::string debug_string_;
 #endif
 	box<int> viewport_;
-	double fps_, fps_unheld_, frt_;
+	double fps_, fps_unheld_, frt_, txt_transfer_;
 
 	v8pp::persistent_ptr<entity> world_;
 	v8pp::persistent_ptr<physics::bullet> bullet_;

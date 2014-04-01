@@ -4,7 +4,7 @@
 
 namespace aspect { namespace gl {
 
-uint64_t texture::bytes_transferred = 0;
+uint64_t texture::bytes_transferred_ = 0;
 
 void texture::configure(GLint filter, GLint wrap)
 {
@@ -213,7 +213,7 @@ void texture::upload(image::shared_bitmap const& bitmap, image_point const& offs
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	bytes_transferred += buffer_size;
+	bytes_transferred_ += buffer_size;
 }
 
 void* texture::map_pbo(size_t idx)
@@ -246,7 +246,7 @@ void* texture::map_pbo(size_t idx)
 	return pbo_buffer_;
 }
 
-void texture::unmap_pbo(size_t idx)
+void texture::unmap_pbo(size_t idx, uint64_t buffer_size)
 {
 	if (!id_ || (mode_ != PBO && mode_ != PBOx2) || idx >= pbo_count_)
 	{
@@ -263,6 +263,8 @@ void texture::unmap_pbo(size_t idx)
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	bytes_transferred_ += buffer_size;
 }
 
 void texture::bind(bool enabled)

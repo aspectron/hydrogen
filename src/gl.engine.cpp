@@ -56,7 +56,7 @@ void engine::init(aspect::gui::window& window)
 	engine_info_location_.y = 12;
 	hold_rendering_ = false;
 	hold_interval_ = 1000.0/60.0;
-	fps_ = fps_unheld_ = frt_ = 0;
+	fps_ = fps_unheld_ = frt_ = txt_transfer_ = 0;
 
 	entity* world = new entity;
 	entity::js_class::import_external(world);
@@ -153,11 +153,11 @@ void engine::main()
 		if (show_engine_info_)
 		{
 #if OS(WINDOWS)
-			wchar_t info[128];
-			swprintf(info, sizeof(info) / sizeof(*info), L"fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
-				fps_unheld_, fps_, frt_, viewport_.width, viewport_.height);
+			wchar_t info[256];
+			swprintf(info, sizeof(info) / sizeof(*info), L"fps: %1.2f (%1.2f) frt: %1.2f | txt Mb/s: %1.2f | w:%d h:%d",
+				fps_unheld_, fps_, frt_, txt_transfer_, viewport_.width, viewport_.height);
 #else
-			char info[128];
+			char info[256];
 			snprintf(info, sizeof(info) / sizeof(*info), "fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
 				fps_unheld_, fps_, frt_, viewport_.width, viewport_.height);
 #endif
@@ -203,6 +203,8 @@ void engine::main()
 		fps_unheld_ = (fps_unheld_ * 0.99 + total_delta_tsrt * 0.01);
 		fps_ = (fps_ * 0.99 + total_delta_ts2 * 0.01);
 		frt_ = frt_ * 0.99 + (ts_rt-ts0) * 0.01;
+
+		txt_transfer_ = txt_transfer_ * 0.99 + (texture::bytes_transferred() / 1024 / 1024) * total_delta_tsrt * 0.01;
 	}
 
 	world_->delete_all_children();

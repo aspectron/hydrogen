@@ -40,7 +40,7 @@ public:
 
 	size_t pbo_count() const { return pbo_count_; }
 	void* map_pbo(size_t idx);
-	void unmap_pbo(size_t idx);
+	void unmap_pbo(size_t idx, uint64_t buffer_size);
 
 	image_size const& size() const { return size_; }
 	image_size const& output_size() const { return output_size_; }
@@ -52,8 +52,12 @@ public:
 	void draw(math::vec2 const& top_left, math::vec2 const& bottom_right, bool cache = false, bool flip = false);
 	void draw_sprite(math::vec2 const& size, bool cache);
 
-	static uint64_t bytes_transferred;
-
+	static uint64_t bytes_transferred()
+	{
+		uint64_t const result = bytes_transferred_;
+		bytes_transferred_ = 0;
+		return result;
+	}
 private:
 	void bind(bool enabled);
 
@@ -81,6 +85,8 @@ private:
 	boost::shared_ptr<shader> shader_;
 
 	class cleanup_info;
+
+	static uint64_t bytes_transferred_;
 };
 
 }} // aspect::gl
