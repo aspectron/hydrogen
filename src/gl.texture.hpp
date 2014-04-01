@@ -55,6 +55,8 @@ public:
 
 	void upload();
 
+	void upload(image::shared_bitmap const& bitmap, image_point const& offset, std::vector<image_rect> const& update_rects, size_t pbo_index);
+
 	GLuint id() const { return id_; }
 
 	GLvoid* pbo_buffer() { return pbo_buffer_; }
@@ -84,6 +86,7 @@ public:
 	void draw(math::vec2 const& top_left, math::vec2 const& bottom_right, bool cache = false, bool flip = false);
 	void draw_sprite(math::vec2 const& size, bool cache);
 
+	static uint64_t bytes_transferred;
 private:
 	void bind(bool enabled);
 

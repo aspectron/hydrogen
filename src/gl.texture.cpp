@@ -1,6 +1,10 @@
 #include "hydrogen.hpp"
 
+#include <numeric>
+
 namespace aspect { namespace gl {
+
+uint64_t texture::bytes_transferred = 0;
 
 void texture::configure(GLint filter, GLint wrap)
 {
@@ -302,6 +306,59 @@ void texture::upload()
 #endif
 
 	}
+}
+
+void texture::upload(image::shared_bitmap const& bitmap, image_point const& offset, std::vector<image_rect> const& update_rects, size_t pbo_index)
+{
+	_aspect_assert(flags_ & PBOx2);
+	if (encoding_ != image::BGRA8 || (flags_ & PBOx2) == 0)
+	{
+		_aspect_assert(false && "texture should be for PBOx2 with BGRA8 encoding");
+	}
+
+	size_t const buffer_size = std::accumulate(update_rects.begin(), update_rects.end(), 0,
+		[](size_t res, image_rect const& rect) { return res + rect.width * rect.height * 4; });
+
+	if (update_rects.empty() || buffer_size == 0)
+	{
+		return;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, id_);
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_[pbo_index]);
+	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, buffer_size, 0, GL_STREAM_DRAW_ARB);
+
+	// transfer update_rects from bitmap to the PBO
+	uint8_t* dest = (uint8_t*)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+	uint8_t const* const src = bitmap->data();
+	uint32_t const stride = bitmap->width() * 4;
+	std::for_each(update_rects.begin(), update_rects.end(),
+		[&dest, src, stride](image_rect const& rc)
+		{
+			uint32_t const rect_stride = rc.width * 4;
+			uint32_t const bottom = rc.top + rc.height;
+			for (uint32_t y = rc.top, rect_y = 0; y < bottom; ++y, ++rect_y)
+			{
+				memcpy(dest + (rect_y * rect_stride), src +(y * stride) + rc.left * 4, rect_stride);
+			}
+			dest += rc.width * rc.height * 4;
+		});
+	glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB); // release pointer to mapping buffer
+
+	// update texture subimages
+	dest = 0; // offset in PBO
+	std::for_each(update_rects.begin(), update_rects.end(),
+		[&dest, offset, this](image_rect const& rc)
+		{
+			glTexSubImage2D(GL_TEXTURE_2D, 0, rc.left - offset.x, rc.top - offset.y, rc.width, rc.height,
+				format_internal_, GL_UNSIGNED_BYTE, dest);
+			dest += rc.width * rc.height * 4;
+		});
+
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	bytes_transferred += buffer_size;
 }
 
 bool texture::map_pbo(size_t idx)
