@@ -6,6 +6,22 @@ namespace aspect { namespace gl {
 
 uint64_t texture::bytes_transferred_ = 0;
 
+image_size const& texture::max_size()
+{
+	// maximum allowed texture size
+	static int const MAX_TEXTURE_SIZE = 4096;
+
+	static image_size result;
+	if (result.is_empty())
+	{
+		int texture_size = MAX_TEXTURE_SIZE;
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texture_size);
+		texture_size = std::min(texture_size, MAX_TEXTURE_SIZE);
+		result.width = result.height = texture_size;
+	}
+	return result;
+}
+
 void texture::configure(GLint filter, GLint wrap)
 {
 	_aspect_assert(id_);

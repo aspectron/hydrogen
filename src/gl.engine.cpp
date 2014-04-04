@@ -127,6 +127,7 @@ void engine::main()
 
 	iface_->set_active(true);
 
+	texture::max_size();
 	setup();
 
 	while (is_running_)

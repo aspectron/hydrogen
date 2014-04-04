@@ -34,6 +34,9 @@ public:
 	void configure(GLint filter, GLint wrap);
 	void setup(image_size const& size, image::encoding encoding, mode m = FBO);
 
+	/// Maximum texture size
+	static image_size const& max_size();
+
 	void upload();
 
 	void upload(image::shared_bitmap const& bitmap, image_point const& offset, std::vector<image_rect> const& update_rects, size_t pbo_index);
