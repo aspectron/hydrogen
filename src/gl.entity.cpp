@@ -32,6 +32,7 @@ entity::entity(Arguments const& args)
 
 entity::~entity()
 {
+	delete_all_children();
 	if (parent_)
 	{
 		parent_->detach(*this);
@@ -54,6 +55,8 @@ void entity::init()
 void entity::delete_all_children()
 {
 	boost::mutex::scoped_lock lock(children_mutex_);
+	std::for_each(children_.begin(), children_.end(),
+		[](entity_ptr& e) { if (e) e->parent_.reset(); });
 	children_.clear();
 }
 
