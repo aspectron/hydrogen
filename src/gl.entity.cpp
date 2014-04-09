@@ -75,8 +75,13 @@ entity& entity::detach(entity& e)
 	if (e.parent_.get() == this)
 	{
 		boost::mutex::scoped_lock lock(children_mutex_);
-		children_.remove_if([&e](entity_ptr& e2) { return &e == e2.get(); });
-
+		children_list::iterator it = std::find_if(children_.begin(), children_.end(),
+			[&e](entity_ptr& e2) { return &e == e2.get(); });
+		_aspect_assert(it != children_.end());
+		if (it != children_.end())
+		{
+			children_.erase(it);
+		}
 		e.parent_.reset();
 	}
 	return *this;
@@ -174,7 +179,7 @@ void entity::apply_rotation(math::quat const& q)
 void entity::sort_z()
 {
 	boost::mutex::scoped_lock lock(children_mutex_);
-	children_.sort(
+	std::sort(children_.begin(), children_.end(),
 		[](entity_ptr& lhs, entity_ptr& rhs)
 		{
 			return lhs->location().z < rhs->location().z;

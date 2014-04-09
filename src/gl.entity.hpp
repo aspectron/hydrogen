@@ -168,7 +168,7 @@ private:
 
 	entity_ptr parent_;
 
-	typedef std::list<entity_ptr> children_list;
+	typedef std::vector<entity_ptr> children_list;
 	children_list children_;
 	boost::mutex children_mutex_;
 
