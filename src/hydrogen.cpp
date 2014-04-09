@@ -122,10 +122,16 @@ Handle<Value> hydrogen_install()
 	gl::engine::js_class engine_class;
 	engine_class
 		/**
+		@property world {Entity}
+		Root entity, read-only
+		**/
+		.set("world", v8pp::property(&engine::world))
+
+		/**
 		@function attach(entity)
 		@param entity {Entity}
 		@return {Engine} `this` to chain calls
-		Attach an `entity` to the rendering engine
+		Attach an `entity` to the #Engine.world
 		**/
 		.set("attach", &engine::attach)
 
@@ -133,7 +139,7 @@ Handle<Value> hydrogen_install()
 		@function detach(entity)
 		@param entity {Entity}
 		@return {Engine} `this` to chain calls
-		Detach specified `entity` from the rendering engine
+		Detach specified `entity` from the #Engine.world
 		**/
 		.set("detach", &engine::detach)
 
@@ -214,6 +220,18 @@ Handle<Value> hydrogen_install()
 		Detach a child entity
 		**/
 		.set("detach", &entity::detach)
+
+		/**
+		@property parent {Entity}
+		Parent entity, undefined if no parent, read only
+		**/
+		.set("_parent", v8pp::property(&entity::parent))
+
+		/**
+		@property children {Array}
+		Array of child entities, read only copy
+		**/
+		.set("_children", v8pp::property(&entity::children))
 
 		/**
 		@property location {Vector3}

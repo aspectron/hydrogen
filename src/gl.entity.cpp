@@ -87,6 +87,19 @@ entity& entity::detach(entity& e)
 	return *this;
 }
 
+v8::Handle<v8::Value> entity::children() const
+{
+	boost::mutex::scoped_lock lock(children_mutex_);
+
+	v8::HandleScope scope;
+	v8::Handle<v8::Array> result = v8::Array::New(children_.size());
+	for (size_t i = 0, count = children_.size(); i != count; ++i)
+	{
+		result->Set(i, v8pp::to_v8(children_[i].get()));
+	}
+	return scope.Close(result);
+}
+
 math::matrix const& entity::transform_matrix() const
 {
 	if (physics_data_.rigid_body)

@@ -31,6 +31,9 @@ public:
 	entity& attach(entity& child);
 	entity& detach(entity& child);
 
+	entity* parent() { return parent_.get(); }
+	v8::Handle<v8::Value> children() const;
+
 	void delete_all_children();
 
 	bool is_hidden() const { return hidden_; }
@@ -170,7 +173,7 @@ private:
 
 	typedef std::vector<entity_ptr> children_list;
 	children_list children_;
-	boost::mutex children_mutex_;
+	mutable boost::mutex children_mutex_;
 
 	mutable transform transform_;
 

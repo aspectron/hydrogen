@@ -21,6 +21,8 @@ public:
 	engine& attach(entity& e) { world_->attach(e); return *this; }
 	engine& detach(entity& e) { world_->detach(e); return *this; }
 
+	entity& world() { return *world_; }
+
 	void show_engine_info(bool f) { show_engine_info_ = f; }
 	void set_engine_info_location(double x, double y) { engine_info_location_ = math::vec2(x,y); }
 
