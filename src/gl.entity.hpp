@@ -32,7 +32,11 @@ public:
 	entity& detach(entity& child);
 
 	entity* parent() { return parent_.get(); }
-	v8::Handle<v8::Value> children() const;
+
+	typedef std::vector<entity*> entities;
+
+	// Return sanpshot of children
+	entities children();
 
 	void delete_all_children();
 
