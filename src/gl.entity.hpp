@@ -89,6 +89,63 @@ public:
 		return p.distance(pb);
 	}
 
+	static bool segment_sphere_intersect(math::vec3 const& segment_point1, math::vec3 const& segment_point2,
+		math::vec3 const& sphere_center, double sphere_radius)
+	{
+#if 0
+		math::vec3 closest_point;
+		closest_point.get_nearest_point_on_line(sphere_center, segment_point1, segment_point2);
+
+		math::vec3 const distance = closest_point - sphere_center;
+		double const sqr_distance = distance.dot(distance);
+		double const sqr_radius = sphere_radius * sphere_radius;
+
+		return sqr_distance <= sqr_radius;
+#else
+		math::vec3 const p = segment_point1 - sphere_center; // ray_origin - sphere_center
+		math::vec3 const d = (segment_point2 - segment_point1).normalize(); // ray_direction
+
+		double const a = d.dot(d);
+		double const b = 2 * d.dot(p);
+		double const c = p.dot(p) - sphere_radius * sphere_radius;
+
+		double const D = b * b - 4 * a * c;
+
+		if (D >= 0)
+		{
+			/*
+			intersection points:
+
+			double t[2];
+			t[0] = (-b - sqrt(D)) / (2 * a);
+			t[1] = (-b + sqrt(D)) / (2 * a);
+
+			math::vec3 result[2];
+			result[0] = segment_point1 + d * t[0];
+			result[1] = segment_point1 + d * t[1];
+			*/
+			return true;
+		}
+		return false;
+#endif
+	}
+
+	static bool segment_plane_intersect(math::vec3 const& segment_point1, math::vec3 const& segment_point2,
+		math::vec3 const&  plane_p0, math::vec3 const&  plane_n, math::vec3& result)
+	{
+		math::vec3 const dir = (segment_point2 - segment_point1).normalize(); // ray direction
+		double const denom = plane_n.dot(dir);
+		if (math::is_zero(denom))
+		{
+			return false; // no intersection: ray is parallel to plane
+		}
+
+		math::vec3 const p1 = plane_p0 - segment_point1;
+		double const d = p1.dot(plane_n) / denom;
+		result = segment_point1 + dir * d; // intersection point
+		return true;
+	}
+
 public:
 // collision
 
