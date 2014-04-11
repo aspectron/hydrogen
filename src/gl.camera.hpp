@@ -39,9 +39,16 @@ public:
 
 	math::matrix const& modelview_matrix() { update_modelview_matrix(); return modelview_matrix_; }
 
+	// check all entites in engine.world for intersection with ray and
+	// emit `enter` and `leave` events to JavaScript
+	void hit_test(gl::engine& engine, math::vec3 const& ray_near, math::vec3 const& ray_far);
+
 private:
 	void render_impl(render_context& context);
 	void update_modelview_matrix();
+
+	void ray_test_impl(gl::entity* e, math::vec3 const& ray_near, math::vec3 const& ray_far, entities& result);
+	void emit_hit_events_v8(gl::engine* engine, std::string type, entities ents, math::vec3 ray_near, math::vec3 ray_far);
 
 private:
 	enum projection
@@ -54,6 +61,8 @@ private:
 	math::matrix look_at_;
 
 	entity_ptr target_;
+
+	entities last_hits_;
 };
 
 }} // aspect::gl

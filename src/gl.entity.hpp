@@ -1,6 +1,8 @@
 #ifndef _ASPECT_ENTITY_HPP_
 #define _ASPECT_ENTITY_HPP_
 
+#include "events.hpp"
+
 #define BT_NO_PROFILE
 #include "btBulletDynamicsCommon.h"
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
@@ -14,7 +16,7 @@ class entity;
 
 typedef v8pp::persistent_ptr<entity> entity_ptr;
 
-class HYDROGEN_API entity
+class HYDROGEN_API entity : public v8_core::event_emitter
 {
 public:
 	typedef v8pp::class_<gl::entity, v8pp::v8_args_factory> js_class;
@@ -66,6 +68,26 @@ public:
 	math::vec3 scale() const { return transform_.scale(); }
 
 	void apply_rotation(math::quat const& q);
+
+	/// Ray test with entity, default is intersection between ray and entity sphere
+	virtual bool ray_test(math::vec3 const& ray_near, math::vec3 const& ray_far) const
+	{
+		return distance(location(), ray_near, ray_far) <= radius();
+	}
+
+	/// Distance between point p and line segment p1, p2
+	static double distance(math::vec3 const& p, math::vec3 const& p1, math::vec3 const& p2)
+	{
+		math::vec3 const v = p2 - p1;
+		math::vec3 const w = p - p1;
+
+		double const c1 = w.dot(v);
+		double const c2 = v.dot(v);
+		double const b = c1 / c2;
+
+		math::vec3 const pb = p1 + v * b;
+		return p.distance(pb);
+	}
 
 public:
 // collision

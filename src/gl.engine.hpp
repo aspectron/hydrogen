@@ -1,9 +1,11 @@
 #ifndef __GL_ENGINE_HPP__
 #define __GL_ENGINE_HPP__
 
+#include "events.hpp"
+
 namespace aspect { namespace gl {
 
-class HYDROGEN_API engine
+class HYDROGEN_API engine : public v8_core::event_emitter
 {
 public:
 	typedef v8pp::class_<engine, v8pp::v8_args_factory> js_class;
@@ -11,6 +13,8 @@ public:
 	explicit engine(gui::window& window);
 	explicit engine(v8::Arguments const& args);
 	~engine();
+
+	gui::window& window() { return *window_; }
 
 	/// Callback function to schedule in the main engine thread
 	typedef boost::function<void ()> callback;

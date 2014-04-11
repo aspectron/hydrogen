@@ -161,4 +161,82 @@ bool camera::get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_f
 	return true;
 }
 
+void camera::ray_test_impl(gl::entity* e, math::vec3 const& ray_near, math::vec3 const& ray_far, entities& result)
+{
+	if (e != this && e->ray_test(ray_near, ray_far))
+	{
+		result.push_back(e);
+	}
+	entities const children = e->children();
+	std::for_each(children.begin(), children.end(),
+		[this, &ray_near, &ray_far, &result](entity* e) { ray_test_impl(e, ray_near, ray_far, result); });
+}
+
+void camera::hit_test(gl::engine& engine, math::vec3 const& ray_near, math::vec3 const& ray_far)
+{
+	entities new_hits;
+	ray_test_impl(&engine.world(), ray_near, ray_far, new_hits);
+
+	// search entered and leaved entities by comparing
+	// last_hits_ and new_hits vectors
+	//TODO: measure time to decide is the current comparing O(n^2) complexity is acceptable.
+	struct no_entity : std::unary_function<gl::entity*, bool>
+	{
+		entities const& existing;
+
+		explicit no_entity(entities const& existing)
+			: existing(existing)
+		{
+		}
+
+		bool operator()(gl::entity* e) const
+		{
+			return std::find(existing.begin(), existing.end(), e) == existing.end();
+		}
+	};
+
+	entities entered;
+	entered.reserve(new_hits.size());
+	std::copy_if(new_hits.begin(), new_hits.end(), std::back_inserter(entered),
+		no_entity(last_hits_));
+
+	entities leaved;
+	leaved.reserve(last_hits_.size());
+	std::copy_if(last_hits_.begin(), last_hits_.end(), std::back_inserter(leaved),
+		no_entity(new_hits));
+
+	last_hits_.swap(new_hits); // emulate move
+
+	if (!entered.empty())
+	{
+		runtime::main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
+			&engine, "enter", entered, ray_near, ray_far));
+	}
+	if (!leaved.empty())
+	{
+		runtime::main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
+			&engine, "leave", leaved, ray_near, ray_far));
+	}
+}
+
+void camera::emit_hit_events_v8(gl::engine* engine, std::string type,
+	entities ents, math::vec3 ray_near, math::vec3 ray_far)
+{
+	v8::HandleScope scope;
+
+	v8::Handle<v8::Value> args[4];
+	args[1] = v8pp::to_v8(this);
+	args[2] = v8pp::to_v8(ray_near);
+	args[3] = v8pp::to_v8(ray_far);
+
+	std::for_each(ents.begin(), ents.end(),
+		[this, engine, &type, &args](gl::entity* e)
+		{
+			args[0] = v8pp::to_v8(e);
+
+			engine->emit(type, 4, args);
+			e->emit(type, 3, args + 1);
+		});
+}
+
 }} // aspect::gl

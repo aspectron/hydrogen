@@ -108,6 +108,17 @@ Handle<Value> hydrogen_install()
 
 	Renders 3D scene of attached entities, see #Entity
 
+	Inherits from EventEmitter.
+
+	@event enter(entity, camera, ray_near, ray_far)
+	@event leave(entity, camera, ray_near, ray_far)
+	@param entity   {Entity}  - entity
+	@param camera   {Camera}  - camera
+	@param ray_near {Vector3} - hit ray near point
+	@param ray_far  {Vector3} - hit ray far point
+	**/
+
+	/**
 	@function Engine(window [, config])
 	@param window {oxygen.Window}
 	@param [config] {Object}
@@ -119,8 +130,15 @@ Handle<Value> hydrogen_install()
 	  * `rendering_hold`   rendering hold settings, see #Engine.setRenderingHold
 	  * `vsync_interval`   vsync interval value, Number
 	**/
-	gl::engine::js_class engine_class;
+	_aspect_assert(v8_core::event_emitter::js_binding);
+	gl::engine::js_class engine_class(*v8_core::event_emitter::js_binding);
 	engine_class
+		/**
+		@property window {oxygen.Window}
+		Output window, read only
+		**/
+		.set("window", v8pp::property(&engine::window))
+
 		/**
 		@property world {Entity}
 		Root entity, read-only
@@ -198,14 +216,24 @@ Handle<Value> hydrogen_install()
 	/**
 	@class Entity - 3D entity
 	A part of 3D scene rendered by an #Engine instance. May have children entities.
+	Inherits from EventEmitter.
 
+	@event enter(camera, ray_near, ray_far)
+	@event leave(camera, ray_near, ray_far)
+	@param camera   {Camera}  - camera
+	@param ray_near {Vector3} - hit ray near point
+	@param ray_far  {Vector3} - hit ray far point
+	**/
+
+	/**
 	@function Entity([config])
 	@param [config] {Object}
 	Constructor
 	Create an entity with optional configuration. Allowed attributes in `config`:
 	  * location `Vector3` entity location
 	**/
-	gl::entity::js_binding = new gl::entity::js_class;
+	_aspect_assert(v8_core::event_emitter::js_binding);
+	gl::entity::js_binding = new gl::entity::js_class(*v8_core::event_emitter::js_binding);
 	(*gl::entity::js_binding)
 		/**
 		@function attach(child)
