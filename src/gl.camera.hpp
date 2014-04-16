@@ -28,6 +28,7 @@ public:
 		gl::viewport::set_orthographic_projection(left, right, bottom, top, near_plane, far_plane);
 	}
 
+	entity* target() {return target_.get(); }
 	void set_target(entity* e) { target_.reset(e); }
 
 	// get a world-space ray representing the mouse pointer
