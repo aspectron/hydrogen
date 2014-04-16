@@ -8,8 +8,6 @@ namespace aspect { namespace gl {
 class HYDROGEN_API engine : public v8_core::event_emitter
 {
 public:
-	typedef v8pp::class_<engine, v8pp::v8_args_factory> js_class;
-
 	explicit engine(gui::window& window);
 	explicit engine(v8::Arguments const& args);
 	~engine();

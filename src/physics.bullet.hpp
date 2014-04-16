@@ -23,8 +23,6 @@ struct collision_callback
 class HYDROGEN_API bullet : boost::noncopyable
 {
 public:
-	typedef v8pp::class_<bullet, v8pp::v8_args_factory> js_class;
-
 	bullet();
 	explicit bullet(v8::Arguments const& args);
 	~bullet();

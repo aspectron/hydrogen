@@ -19,10 +19,6 @@ typedef v8pp::persistent_ptr<entity> entity_ptr;
 class HYDROGEN_API entity : public v8_core::event_emitter
 {
 public:
-	typedef v8pp::class_<gl::entity, v8pp::v8_args_factory> js_class;
-
-	static js_class* js_binding;
-
 	entity();
 	explicit entity(v8::Arguments const& args);
 	virtual ~entity();

@@ -59,7 +59,7 @@ void engine::init(aspect::gui::window& window)
 	fps_ = fps_unheld_ = frt_ = txt_transfer_ = 0;
 
 	entity* world = new entity;
-	entity::js_class::import_external(world);
+	v8pp::class_<entity>::import_external(world);
 	world_.reset(world);
 
 	// start main thread and wait for iface creation
@@ -367,14 +367,12 @@ void engine::capture_screen_gl(Persistent<Function> cb)
 
 void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function> cb)
 {
-	using namespace v8_core;
-
 	HandleScope scope;
 
 	//TODO: move data from shared_bitmap to buffer
-	v8_core::buffer* buf = new buffer((char const*)b->data(), b->data_size());
+	v8_core::buffer* buf = new v8_core::buffer((char const*)b->data(), b->data_size());
 
-	Handle<Value> args[] = { buffer::js_class::import_external(buf) };
+	Handle<Value> args[] = { v8pp::class_<v8_core::buffer>::import_external(buf) };
 	
 	TryCatch try_catch;
 	Handle<Value> result = cb->Call(v8pp::to_v8(this)->ToObject(), 1, args);

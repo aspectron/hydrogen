@@ -11,8 +11,6 @@ DECLARE_LIBRARY_ENTRYPOINTS(hydrogen_install, hydrogen_uninstall);
 
 static Persistent<Value> image_module;
 
-gl::entity::js_class* gl::entity::js_binding = nullptr;
-
 Handle<Value> hydrogen_install()
 {
 	using namespace aspect::gl;
@@ -56,7 +54,7 @@ Handle<Value> hydrogen_install()
 
 	See also #Bullet.setGravity, #Bullet.setDensities
 	**/
-	physics::bullet::js_class bullet_class;
+	v8pp::class_<physics::bullet> bullet_class(v8pp::v8_args_ctor);
 	bullet_class
 		/**
 		@function add(entity)
@@ -130,9 +128,9 @@ Handle<Value> hydrogen_install()
 	  * `rendering_hold`   rendering hold settings, see #Engine.setRenderingHold
 	  * `vsync_interval`   vsync interval value, Number
 	**/
-	_aspect_assert(v8_core::event_emitter::js_binding);
-	gl::engine::js_class engine_class(*v8_core::event_emitter::js_binding);
+	v8pp::class_<gl::engine> engine_class(v8pp::v8_args_ctor);
 	engine_class
+		.inherit<v8_core::event_emitter>()
 		/**
 		@property window {oxygen.Window}
 		Output window, read only
@@ -232,9 +230,10 @@ Handle<Value> hydrogen_install()
 	Create an entity with optional configuration. Allowed attributes in `config`:
 	  * location `Vector3` entity location
 	**/
-	_aspect_assert(v8_core::event_emitter::js_binding);
-	gl::entity::js_binding = new gl::entity::js_class(*v8_core::event_emitter::js_binding);
-	(*gl::entity::js_binding)
+	v8pp::class_<gl::entity> entity_class(v8pp::v8_args_ctor);
+	entity_class
+		.inherit<v8_core::event_emitter>()
+
 		/**
 		@function attach(child)
 		@param child {Entity}
@@ -395,14 +394,16 @@ Handle<Value> hydrogen_install()
 		**/
 		.set("setAngularVelocity", &entity::set_angular_velocity)
 		;
-	hydrogen_module.set("Entity", *gl::entity::js_binding);
+	hydrogen_module.set("Entity", entity_class);
 
 	/**
 	@class Camera - Camera entity
 	Camera in 3D space, derived from #Entity
 	**/
-	gl::camera::js_class camera_class(*gl::entity::js_binding);
+	v8pp::class_<gl::camera> camera_class(v8pp::v8_args_ctor);
 	camera_class
+		.inherit<gl::entity>()
+
 		/**
 		@function setPerspectiveProjection(width, height, near_plane, far_plane, fov)
 		@param width {Number}
@@ -441,15 +442,14 @@ void hydrogen_uninstall(Handle<Value> library)
 {
 	// destroy engine and bullet instances before entity
 	// to stop rendering and physics simulation
-	gl::engine::js_class::destroy_objects();
-	aspect::physics::bullet::js_class::destroy_objects();
+	v8pp::class_<gl::engine>::destroy_objects();
+	v8pp::class_<physics::bullet>::destroy_objects();
 
 	// it's now safe to destroy entity and camera instances
 	// after engine and bullet have been stopped
-	aspect::gl::camera::js_class::destroy_objects();
-	aspect::gl::entity::js_class::destroy_objects();
+	v8pp::class_<gl::camera>::destroy_objects();
+	v8pp::class_<gl::entity>::destroy_objects();
 
-	delete gl::entity::js_binding; gl::entity::js_binding = nullptr;
 	image_module.Dispose();
 }
 
