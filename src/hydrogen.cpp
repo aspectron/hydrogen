@@ -337,18 +337,52 @@ Handle<Value> hydrogen_install()
 		.set("setDamping", &entity::set_damping)
 
 		/**
+		@function getLinearFactor()
+		@return {Vector3}
+		**/
+		.set("getLinearFactor", &entity::linear_factor)
+
+		/**
 		@function setLinearFactor(factor)
 		@param factor {Vector3}
-		Set linear factor
 		**/
 		.set("setLinearFactor", &entity::set_linear_factor)
 
 		/**
+		@function getAngularFactor()
+		@return {Vector3}
+		**/
+		.set("getAngularFactor", &entity::angular_factor)
+
+		/**
 		@function setAngularFactor(factor)
 		@param factor {Vector3}
-		Set angular factor
 		**/
 		.set("setAngularFactor", &entity::set_angular_factor)
+
+		/**
+		@function getLinearVelocity()
+		@return {Vector3}
+		**/
+		.set("getLinearVelocity", &entity::linear_velocity)
+
+		/**
+		@function setLinearVelocity(velocity)
+		@param velocity {Vector3}
+		**/
+		.set("setLinearVelocity", &entity::set_linear_velocity)
+
+		/**
+		@function getAngularVelocity()
+		@return {Vector3}
+		**/
+		.set("getAngularVelocity", &entity::angular_velocity)
+
+		/**
+		@function setAngularVelocity(velocity)
+		@param velocity {Vector3}
+		**/
+		.set("setAngularVelocity", &entity::set_angular_velocity)
 
 		/**
 		@function applyImpulse(impulse, rel_pos)
@@ -381,18 +415,6 @@ Handle<Value> hydrogen_install()
 		@param impulse {Vector3}
 		**/
 		.set("applyAbsoluteImpulse", &entity::apply_absolute_impulse)
-
-		/**
-		@function setLinearVelocity(velocity)
-		@param velocity {Vector3}
-		**/
-		.set("setLinearVelocity", &entity::set_linear_velocity)
-
-		/**
-		@function setAngularVelocity(velocity)
-		@param velocity {Vector3}
-		**/
-		.set("setAngularVelocity", &entity::set_angular_velocity)
 		;
 	hydrogen_module.set("Entity", entity_class);
 

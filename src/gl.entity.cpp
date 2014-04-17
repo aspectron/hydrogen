@@ -206,96 +206,89 @@ void entity::set_location(math::vec3 const& loc)
 void entity::disable_contact_response()
 {
 	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		physics_data_.rigid_body->setCollisionFlags(physics_data_.rigid_body->getCollisionFlags()
+			| btCollisionObject::CF_NO_CONTACT_RESPONSE);
+	}
+}
 
-	physics_data_.rigid_body->setCollisionFlags(physics_data_.rigid_body->getCollisionFlags()
-		| btCollisionObject::CF_NO_CONTACT_RESPONSE);
+math::vec3 entity::linear_factor() const
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		btVector3 const& factor = physics_data_.rigid_body->getLinearFactor();
+		return math::vec3(factor.x(), factor.y(), factor.z());
+	}
+	else
+	{
+		return math::vec3(0, 0, 0);
+	}
 }
 
 void entity::set_linear_factor(math::vec3 const& factor)
 {
 	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		physics_data_.rigid_body->setLinearFactor(btVector3(factor.x, factor.y, factor.z));
+	}
+}
 
-	physics_data_.rigid_body->setLinearFactor(btVector3(factor.x, factor.y, factor.z));
+math::vec3 entity::angular_factor() const
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		btVector3 const& factor = physics_data_.rigid_body->getAngularFactor();
+		return math::vec3(factor.x(), factor.y(), factor.z());
+	}
+	else
+	{
+		return math::vec3(0, 0, 0);
+	}
 }
 
 void entity::set_angular_factor(math::vec3 const& factor)
 {
 	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
-
-	physics_data_.rigid_body->setAngularFactor(btVector3(factor.x, factor.y, factor.z));
+	if (physics_data_.rigid_body)
+	{
+		physics_data_.rigid_body->setAngularFactor(btVector3(factor.x, factor.y, factor.z));
+	}
 }
 
-void entity::apply_impulse(math::vec3 const& impulse, math::vec3 const& rel_pos)
+math::vec3 entity::linear_velocity() const
 {
 	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
-
-	physics_data_.rigid_body->applyImpulse(btVector3(impulse.x, impulse.y, impulse.z),
-		btVector3(rel_pos.x, rel_pos.y, rel_pos.z));
-}
-
-void entity::apply_force(math::vec3 const& force, math::vec3 const& rel_pos)
-{
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
-
-	physics_data_.rigid_body->applyForce(btVector3(force.x, force.y, force.z),
-		btVector3(rel_pos.x, rel_pos.y, rel_pos.z));
-}
-
-void entity::set_damping(double linear, double angular)
-{
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
-
-	physics_data_.damping = math::vec2(linear, angular);
-	physics_data_.rigid_body->setDamping(linear, angular);
-}
-
-math::vec3 entity::calculate_relative_vector(math::vec3 const& relative_vector) const
-{
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
-
-	btVector3 const relative_v(relative_vector.x, relative_vector.y, relative_vector.z);
-	btMatrix3x3 const& rotation_matrix = physics_data_.rigid_body->getWorldTransform().getBasis();
-	btVector3 const absolute_vector = rotation_matrix * relative_v;
-
-	return math::vec3(absolute_vector.x(), absolute_vector.y(), absolute_vector.z());
-}
-
-void entity::apply_relative_force(math::vec3 const& relative_f)
-{
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
-
-	btVector3 const relative_force(relative_f.x, relative_f.y, relative_f.z);
-	btMatrix3x3 const& rotation_matrix = physics_data_.rigid_body->getWorldTransform().getBasis();
-
-	physics_data_.rigid_body->applyCentralForce(rotation_matrix * relative_force);
-}
-
-void entity::apply_relative_impulse(math::vec3 const& relative_f)
-{
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
-
-	btVector3 const relative_force(relative_f.x, relative_f.y, relative_f.z);
-	btMatrix3x3 const& rotation_matrix = physics_data_.rigid_body->getWorldTransform().getBasis();
-
-	physics_data_.rigid_body->applyImpulse(rotation_matrix * relative_force, btVector3(0, 0, 0));
-}
-
-void entity::apply_absolute_impulse(math::vec3 const& absolute_f)
-{
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
-
-	btVector3 const absolute_force(absolute_f.x, absolute_f.y, absolute_f.z);
-
-	physics_data_.rigid_body->applyImpulse(absolute_force, btVector3(0, 0, 0));
+	if (physics_data_.rigid_body)
+	{
+		btVector3 const& linear_v = physics_data_.rigid_body->getLinearVelocity();
+		return math::vec3(linear_v.x(), linear_v.y(), linear_v.z());
+	}
+	else
+	{
+		return math::vec3(0, 0, 0);
+	}
 }
 
 void entity::set_linear_velocity(math::vec3 const& linear_v)
 {
 	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		btVector3 const linear_velocity(linear_v.x, linear_v.y, linear_v.z);
+		physics_data_.rigid_body->setLinearVelocity(linear_velocity);
+	}
+}
 
-	btVector3 const linear_velocity(linear_v.x, linear_v.y, linear_v.z);
+math::vec3 entity::angular_velocity() const
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
 
-	physics_data_.rigid_body->setLinearVelocity(linear_velocity);
+	btVector3 const& angular_v = physics_data_.rigid_body->getAngularVelocity();
+	return math::vec3(angular_v.x(), angular_v.y(), angular_v.z());
 }
 
 void entity::set_angular_velocity(math::vec3 const& angular_v)
@@ -305,6 +298,89 @@ void entity::set_angular_velocity(math::vec3 const& angular_v)
 	btVector3 const angular_velocity(angular_v.x, angular_v.y, angular_v.z);
 
 	physics_data_.rigid_body->setAngularVelocity(angular_velocity);
+}
+
+void entity::apply_impulse(math::vec3 const& impulse, math::vec3 const& rel_pos)
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		physics_data_.rigid_body->applyImpulse(
+			btVector3(impulse.x, impulse.y, impulse.z),
+			btVector3(rel_pos.x, rel_pos.y, rel_pos.z));
+	}
+}
+
+void entity::apply_force(math::vec3 const& force, math::vec3 const& rel_pos)
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		physics_data_.rigid_body->applyForce(
+			btVector3(force.x, force.y, force.z),
+			btVector3(rel_pos.x, rel_pos.y, rel_pos.z));
+	}
+}
+
+void entity::set_damping(double linear, double angular)
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		physics_data_.damping = math::vec2(linear, angular);
+		physics_data_.rigid_body->setDamping(linear, angular);
+	}
+}
+
+math::vec3 entity::calculate_relative_vector(math::vec3 const& relative_vector) const
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		btVector3 const relative_v(relative_vector.x, relative_vector.y, relative_vector.z);
+		btMatrix3x3 const& rotation_matrix = physics_data_.rigid_body->getWorldTransform().getBasis();
+		btVector3 const absolute_vector = rotation_matrix * relative_v;
+		return math::vec3(absolute_vector.x(), absolute_vector.y(), absolute_vector.z());
+	}
+	else
+	{
+		return math::vec3(0, 0, 0);
+	}
+}
+
+void entity::apply_relative_force(math::vec3 const& relative_f)
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		btVector3 const relative_force(relative_f.x, relative_f.y, relative_f.z);
+		btMatrix3x3 const& rotation_matrix = physics_data_.rigid_body->getWorldTransform().getBasis();
+
+		physics_data_.rigid_body->applyCentralForce(rotation_matrix * relative_force);
+	}
+}
+
+void entity::apply_relative_impulse(math::vec3 const& relative_f)
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		btVector3 const relative_force(relative_f.x, relative_f.y, relative_f.z);
+		btMatrix3x3 const& rotation_matrix = physics_data_.rigid_body->getWorldTransform().getBasis();
+
+		physics_data_.rigid_body->applyImpulse(rotation_matrix * relative_force, btVector3(0, 0, 0));
+	}
+}
+
+void entity::apply_absolute_impulse(math::vec3 const& absolute_f)
+{
+	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	if (physics_data_.rigid_body)
+	{
+		btVector3 const absolute_force(absolute_f.x, absolute_f.y, absolute_f.z);
+
+		physics_data_.rigid_body->applyImpulse(absolute_force, btVector3(0, 0, 0));
+	}
 }
 
 }} // aspect::gl

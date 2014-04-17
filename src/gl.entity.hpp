@@ -221,8 +221,19 @@ public:
 public:
 // physics manipulation
 	void set_damping(double linear, double angular);
+
+	math::vec3 linear_factor() const;
 	void set_linear_factor(math::vec3 const& factor);
+
+	math::vec3 entity::angular_factor() const;
 	void set_angular_factor(math::vec3 const& factor);
+
+	math::vec3 linear_velocity() const;
+	void set_linear_velocity(math::vec3 const& linear_v);
+
+	math::vec3 angular_velocity() const;
+	void set_angular_velocity(math::vec3 const& angular_v);
+
 	void apply_impulse(math::vec3 const& impulse, math::vec3 const& rel_pos);
 	//void apply_torque(math::vec3 const& torque);
 	void apply_force(math::vec3 const& force, math::vec3 const& rel_pos);
@@ -231,8 +242,6 @@ public:
 
 	void apply_relative_impulse(math::vec3 const& relative_force);
 	void apply_absolute_impulse(math::vec3 const& relative_force);
-	void set_linear_velocity(math::vec3 const& linear_v);
-	void set_angular_velocity(math::vec3 const& angular_v);
 
 private:
 	void init();
