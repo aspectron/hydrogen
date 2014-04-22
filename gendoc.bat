@@ -4,7 +4,7 @@ pushd %~dp0
 
 if not defined JSX_ROOT set JSX_ROOT=%CD%\..\jsx
 
-set BUILDDOC="%JSX_ROOT%\build\doc\generate.bat"
+set BUILDDOC="%JSX_ROOT%\gendoc.bat"
 if not exist %BUILDDOC% (
 	echo %BUILDDOC% not found, please set JSX_ROOT environment variable
 	exit /b -1
