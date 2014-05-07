@@ -18,6 +18,7 @@ subject to the following restrictions:
 #define BT_VECTOR3_H
 
 //#include <stdint.h>
+#include <string.h>
 #include "btScalar.h"
 #include "btMinMax.h"
 #include "btAlignedAllocator.h"

@@ -22,7 +22,7 @@
 
 
 #if OS(WINDOWS)
-#include "glew/include/glew.h"
+#include "glew.h"
 //#include <GL/glew.h>
 #include "gl.iface.windows.hpp"
 #elif OS(LINUX)
