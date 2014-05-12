@@ -225,7 +225,7 @@ public:
 	math::vec3 linear_factor() const;
 	void set_linear_factor(math::vec3 const& factor);
 
-	math::vec3 entity::angular_factor() const;
+	math::vec3 angular_factor() const;
 	void set_angular_factor(math::vec3 const& factor);
 
 	math::vec3 linear_velocity() const;

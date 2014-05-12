@@ -191,7 +191,7 @@ void entity::sort_z()
 {
 	boost::mutex::scoped_lock lock(children_mutex_);
 	std::sort(children_.begin(), children_.end(),
-		[](entity_ptr& lhs, entity_ptr& rhs)
+		[](entity_ptr const& lhs, entity_ptr const& rhs)
 		{
 			return lhs->location().z < rhs->location().z;
 		});
