@@ -10,7 +10,7 @@
             {
                 'variables': {
                     'gl_include_dirs': [],
-                    'gl_libraries': ['-lglew'],
+                    'gl_libraries': ['-lGLEW'],
                 },
             }
         ],
