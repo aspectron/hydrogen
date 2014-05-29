@@ -27,6 +27,7 @@
             'msvs_guid': '0F581191-E1FC-407D-A535-738EED3C9216',
             'dependencies': [
                 '<(jsx)/sdk/core/core.gyp:core',
+                '<(jsx)/extern/extern.gyp:*',
                 '<(jsx)/../image/image.gyp:image',
                 '<(jsx)/../math/math.gyp:math',
                 '<(jsx)/../oxygen/oxygen.gyp:oxygen',
