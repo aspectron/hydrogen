@@ -202,7 +202,7 @@ void texture::upload(image::shared_bitmap const& bitmap, image_point const& offs
 	// transfer update_rects from bitmap to the PBO
 	uint8_t* dest = (uint8_t*)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 	uint8_t const* const src = bitmap->data();
-	uint32_t const stride = bitmap->width() * 4;
+	size_t const stride = bitmap->row_bytes();
 	std::for_each(update_rects.begin(), update_rects.end(),
 		[&dest, src, stride](image_rect const& rc)
 		{
