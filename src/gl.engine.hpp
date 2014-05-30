@@ -80,8 +80,8 @@ private:
 	void setup_shaders();
 	void cleanup_shaders();
 
-	void capture_screen_gl(v8::Persistent<v8::Function> cb);
-	void capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function> cb);
+	void capture_screen_gl(v8::Persistent<v8::Function> cb, std::string format);
+	void capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function> cb, std::string format);
 private:
 	v8pp::persistent_ptr<gui::window> window_;
 	std::vector<boost::shared_ptr<gl::shader>> shaders_;

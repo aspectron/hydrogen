@@ -202,10 +202,28 @@ Handle<Value> hydrogen_install()
 		.set("setPhysics", &engine::set_physics)
 
 		/**
-		@function capture(callback)
+		@function capture(format, callback)
+		@param format {String}
 		@param callback {Function}
-		Capture rendering output as a BGRA8 bitmap.
-		Call function `callback(bitmap)` on complete, where bitmap is a `Buffer` instance.
+		Capture rendering output in a specified format and provide result data in a callback function.
+
+		Allowed formats are:
+		  * `png`  - PNG image
+		  * `jpeg` - JPEG image
+		  * `bmp`  - BMP image
+		  * `none` - No compression, data in the callback is a BGRA pixels
+
+		Function `callback(format, size, data)` would be called on capture complete,
+		where arguments are:
+		  * `format` is the image format, `String`
+		  * `size` is the image dimensions, `{width, height}` object
+		  * `data` is the captured image data, `Buffer` instance
+
+		```
+		// Capture engine output and save it to a file `capture.png`
+		engine.capture('png', function(format, size, data) {
+			fs.writeFile('capture.' + format, data) });
+		```
 		**/
 		.set("capture", &engine::capture)
 		;

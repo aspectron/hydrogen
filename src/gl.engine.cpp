@@ -1,6 +1,7 @@
 #include "hydrogen.hpp"
 
 #include "v8_buffer.hpp"
+#include "encoder.hpp"
 
 namespace aspect { namespace gl {
 
@@ -356,26 +357,52 @@ void engine::set_camera(gl::camera* camera)
 	context_.set_camera(camera);
 }
 
-void engine::capture_screen_gl(Persistent<Function> cb)
+void engine::capture_screen_gl(Persistent<Function> cb, std::string format)
 {
-	image::shared_bitmap b = boost::make_shared<image::bitmap>(viewport_.width, viewport_.height, image::BGRA8);
+	image::shared_bitmap b = boost::make_shared<image::bitmap>(viewport_, image::BGRA8);
 
-	glReadPixels(0, 0,viewport_.width, viewport_.height, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
+	glReadPixels(0, 0, viewport_.width, viewport_.height, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
 
-	runtime::main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb));
+	runtime::main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb, format));
 }
 
-void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function> cb)
+void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function> cb, std::string format)
 {
 	HandleScope scope;
 
-	//TODO: move data from shared_bitmap to buffer
-	v8_core::buffer* buf = new v8_core::buffer((char const*)b->data(), b->data_size());
+	buffer data;
+	if (format == "png")
+	{
+		image::generate_png(*b, data, true);
+	}
+	else if (format == "jpeg")
+	{
+		image::generate_jpeg(*b, data, true);
+	}
+	else if (format == "bmp")
+	{
+		image::generate_bmp(*b, data, true);
+	}
+	else if (format == "none" || format.empty())
+	{
+		data.assign(b->data(), b->data() + b->data_size());
+	}
+	else
+	{
+		v8pp::throw_ex("unknown format to capture: " + format);
+	}
 
-	Handle<Value> args[] = { v8pp::class_<v8_core::buffer>::import_external(buf) };
-	
+	v8_core::buffer* buf = new v8_core::buffer;
+	buf->swap(data);
+
+	Handle<Value> args[] = {
+		v8pp::to_v8(format),
+		v8pp::to_v8(b->size()),
+		v8pp::class_<v8_core::buffer>::import_external(buf),
+	};
+
 	TryCatch try_catch;
-	Handle<Value> result = cb->Call(v8pp::to_v8(this)->ToObject(), 1, args);
+	Handle<Value> result = cb->Call(v8pp::to_v8(this)->ToObject(), 3, args);
 	if ( try_catch.HasCaught() )
 	{
 		v8_core::report_exception(try_catch);
@@ -385,13 +412,24 @@ void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function
 
 void engine::capture(v8::Arguments const& args)
 {
-	if (!args[0]->IsFunction())
+	if (!args[0]->IsString() || !args[1]->IsFunction())
 	{
-		throw std::invalid_argument("capture requires function callback");
+		throw std::invalid_argument("capture requires format and function callback");
 	}
 
-	Persistent<Function> cb = Persistent<Function>::New(args[0].As<Function>());
-	schedule(boost::bind(&engine::capture_screen_gl, this, cb));
+	char const* const allowed_formats[] =
+	{
+		"png", "jpeg", "bmp", "none"
+	};
+	std::string const format =v8pp::from_v8<std::string>(args[0]);
+	if (std::find(boost::begin(allowed_formats), boost::end(allowed_formats), format) == boost::end(allowed_formats))
+	{
+		throw std::invalid_argument("unknow format  to capture: " + format);
+	}
+
+	Persistent<Function> cb = Persistent<Function>::New(args[1].As<Function>());
+
+	schedule(boost::bind(&engine::capture_screen_gl, this, cb, format));
 }
 
 void engine::show_info(v8::Handle<v8::Value> settings)
