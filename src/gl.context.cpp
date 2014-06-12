@@ -1,4 +1,5 @@
 #include "hydrogen.hpp"
+#include "gl.context.hpp"
 
 namespace aspect { namespace gl {
 

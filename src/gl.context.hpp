@@ -1,5 +1,5 @@
-#ifndef _ASPECT_RENDER_CONTEXT_HPP_
-#define _ASPECT_RENDER_CONTEXT_HPP_
+#ifndef HYDROGEN_GL_CONTEXT_HPP_INCLUDED
+#define HYDROGEN_GL_CONTEXT_HPP_INCLUDED
 
 namespace aspect { namespace gl {
 
@@ -30,4 +30,4 @@ private:
 
 }} // aspect::gl
 
-#endif // _ASPECT_RENDER_CONTEXT_HPP_
+#endif // HYDROGEN_GL_CONTEXT_HPP_INCLUDED

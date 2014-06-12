@@ -1,4 +1,5 @@
 #include "hydrogen.hpp"
+#include "gl.texture.hpp"
 
 #include <numeric>
 

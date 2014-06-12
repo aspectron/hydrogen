@@ -1,49 +1,59 @@
-#ifndef __GL_IFACE_WINDOWS_HPP__
-#define __GL_IFACE_WINDOWS_HPP__
-
-#if OS(WINDOWS)
+#ifndef HYDROGEN_GL_IFACE_WGL_HPP_INCLUDED
+#define HYDROGEN_GL_IFACE_WGL_HPP_INCLUDED
 
 namespace aspect { namespace gl {
 
+/// Windows OpenGL context (WGL)
 class HYDROGEN_API iface
 {
 public:
+	/// Create a context associated with Oxygen window
 	explicit iface(gui::window& window);
 
 	~iface();
 
+	/// Associated Oxygen window
 	gui::window& window() { return window_; }
 
+	/// Activate/deactivate the WGL context
 	void set_active(bool active)
 	{
+		HGLRC current_context = wglGetCurrentContext();
 		if (active)
 		{
-			if (hdc_ && hglrc_ && wglGetCurrentContext() != hglrc_)
-				wglMakeCurrent(hdc_, hglrc_);
+			if (current_context != context_)
+				wglMakeCurrent(hdc_, context_);
 		}
 		else
 		{
-			if (wglGetCurrentContext() == hglrc_)
+			if (current_context == context_)
 				wglMakeCurrent(NULL, NULL);
 		}
 	}
 
+	/// Update WGL on window geometry change
+	void update() {}
+
+	/// Swap OpenGL buffers
 	void swap_buffers()
 	{
 		::SwapBuffers(hdc_);
 	}
 
-	bool is_vsync_enabled() const
+	/// Get vsync interval
+	int vsync_interval() const
 	{
-		return wglGetSwapIntervalEXT_ && wglGetSwapIntervalEXT_() > 0;
+		return wglGetSwapIntervalEXT_? wglGetSwapIntervalEXT_() : 0;
 	}
 
+	/// Set vsync interval
 	void set_vsync_interval(int interval)
 	{
 		if (wglSwapIntervalEXT_)
 			wglSwapIntervalEXT_(interval);
 	}
 
+	/// Draw text at point (x,y) with optional clear color
 	void output_text(double x, double y, wchar_t const* text, GLdouble const* clr = nullptr);
 
 private:
@@ -51,10 +61,8 @@ private:
 
 	gui::window& window_;
 
-	HGLRC hglrc_;
 	HDC hdc_;
-	PIXELFORMATDESCRIPTOR pfd_;
-	int pixel_format_;
+	HGLRC context_;
 	GLuint font_base_;
 
 	// wgl vsync support
@@ -67,6 +75,4 @@ private:
 
 }} // namespace aspect::gl
 
-#endif
-
-#endif // __GL_IFACE_WINDOWS_HPP__
+#endif // HYDROGEN_GL_IFACE_WGL_HPP_INCLUDED

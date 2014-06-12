@@ -1,5 +1,5 @@
-#ifndef _PHYSICS_BULLET_HPP_
-#define _PHYSICS_BULLET_HPP_
+#ifndef HYDROGEN_PHYSICS_BULLET_HPP_INCLUDELD
+#define HYDROGEN_PHYSICS_BULLET_HPP_INCLUDELD
 
 #include "v8_core.hpp"
 #include "math.vector3.hpp"
@@ -89,4 +89,4 @@ private:
 
 }} // aspect::physics
 
-#endif // _PHYSICS_BULLET_HPP_
+#endif // HYDROGEN_PHYSICS_BULLET_HPP_INCLUDELD

@@ -1,4 +1,5 @@
 #include "hydrogen.hpp"
+#include "physics.bullet.hpp"
 
 #define BT_NO_PROFILE
 #include "btBulletDynamicsCommon.h"

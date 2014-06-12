@@ -1,5 +1,5 @@
-#ifndef _ASPECT_TRANSFORM_HPP_
-#define _ASPECT_TRANSFORM_HPP_
+#ifndef HYDROGEN_GL_TRANSFORM_HPP_INCLUDED
+#define HYDROGEN_GL_TRANSFORM_HPP_INCLUDED
 
 namespace aspect { namespace gl {
 
@@ -59,4 +59,4 @@ private:
 
 }} // aspect::gl
 
-#endif // _ASPECT_TRANSFORM_HPP_
+#endif // HYDROGEN_GL_TRANSFORM_HPP_INCLUDED

@@ -1,5 +1,5 @@
-#ifndef __GL_SHADER_HPP__
-#define __GL_SHADER_HPP__
+#ifndef HYDROGEN_GL_SHADER_HPP_INCLUDED
+#define HYDROGEN_GL_SHADER_HPP_INCLUDED
 
 namespace aspect { namespace gl {
 
@@ -29,7 +29,7 @@ private:
 	{
 		if (program_)
 		{
-			glDeleteObjectARB(program_);
+			glDeleteProgram(program_);
 			program_ = 0;
 		}
 
@@ -109,7 +109,7 @@ private:
 
 	GLint link()
 	{
-		program_ = glCreateProgramObjectARB();
+		program_ = glCreateProgram();
 
 		glAttachShader(program_, id_);
 
@@ -140,4 +140,4 @@ private:
 
 }} // aspect::gl
 
-#endif // __GL_SHADER_HPP__
+#endif // HYDROGEN_GL_SHADER_HPP_INCLUDED

@@ -1,5 +1,5 @@
-#ifndef _ASPECT_ENTITY_HPP_
-#define _ASPECT_ENTITY_HPP_
+#ifndef HYDROGEN_GL_ENTITY_HPP_INCLUDED
+#define HYDROGEN_GL_ENTITY_HPP_INCLUDED
 
 #include "events.hpp"
 
@@ -282,4 +282,4 @@ extern uint32_t global_entity_count;
 
 }} // namespace aspect::gl
 
-#endif // _ASPECT_ENTITY_HPP_
+#endif // HYDROGEN_GL_ENTITY_HPP_INCLUDED

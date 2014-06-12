@@ -1,5 +1,5 @@
-#ifndef _GL_VIEWPORT_HPP_
-#define _GL_VIEWPORT_HPP_
+#ifndef HYDROGEN_GL_VIEWPORT_HPP_INCLUDED
+#define HYDROGEN_GL_VIEWPORT_HPP_INCLUDED
 
 namespace aspect { namespace gl {
 
@@ -120,4 +120,4 @@ private:
 
 }} // aspect::gl
 
-#endif // _GL_VIEWPORT_HPP_
+#endif // HYDROGEN_GL_VIEWPORT_HPP_INCLUDED

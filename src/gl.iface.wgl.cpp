@@ -1,37 +1,34 @@
 #include "hydrogen.hpp"
-
-#if OS(WINDOWS)
+#include "gl.iface.wgl.hpp"
 
 namespace aspect { namespace gl {
 
 iface::iface(gui::window& window)
 	: window_(window)
-	, hglrc_(nullptr)
 	, hdc_(::GetDC(window))
-	, pfd_()
-	, pixel_format_(0)
+	, context_(nullptr)
+	, font_base_(0)
 	, wglSwapIntervalEXT_(nullptr)
 	, wglGetSwapIntervalEXT_(nullptr)
-	, font_base_(0)
 {
-	pfd_.nSize = sizeof(pfd_);
-	pfd_.nVersion = 1;
-	pfd_.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	PIXELFORMATDESCRIPTOR pfd = {};
+	pfd.nSize = sizeof(pfd);
+	pfd.nVersion = 1;
+	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 			//| PFD_SUPPORT_COMPOSITION
 			//| PFD_SWAP_EXCHANGE
 			//| PFD_SWAP_COPY
 
-	pfd_.iPixelType = PFD_TYPE_RGBA;
-	pfd_.cColorBits = 24;
-	pfd_.iLayerType = PFD_MAIN_PLANE;
+	pfd.iPixelType = PFD_TYPE_RGBA;
+	pfd.cColorBits = 24;
+	pfd.iLayerType = PFD_MAIN_PLANE;
 
-	// Set the pixel format
-	pixel_format_ = ::ChoosePixelFormat(hdc_, &pfd_);
-	::SetPixelFormat(hdc_, pixel_format_, &pfd_);
+	int const pixel_format = ::ChoosePixelFormat(hdc_, &pfd);
+	::SetPixelFormat(hdc_, pixel_format, &pfd);
 
 	//////////////////////////////////////////////////////////////////////////
-	hglrc_ = ::wglCreateContext(hdc_);
-	if (!::wglMakeCurrent(hdc_, hglrc_))
+	context_ = ::wglCreateContext(hdc_);
+	if (!context_)
 	{
 		throw std::runtime_error("Failed to create an OpenGL context for this window");
 	}
@@ -55,6 +52,7 @@ iface::iface(gui::window& window)
 			wglGetProcAddress("wglGetSwapIntervalEXT");
 	}
 
+	set_active(true);
 	set_vsync_interval(1);
 
 	//////////////////////////////////////////////////////////////////////////
@@ -71,9 +69,9 @@ iface::iface(gui::window& window)
 
 iface::~iface()
 {
-	::wglMakeCurrent(NULL,NULL);
-	if (hglrc_) ::wglDeleteContext(hglrc_);
-	if (hdc_) ::ReleaseDC(window_, hdc_);
+	set_active(false);
+	::wglDeleteContext(context_);
+	::ReleaseDC(window_, hdc_);
 }
 
 void iface::setup_fonts()
@@ -144,5 +142,3 @@ void iface::output_text(double x, double y, wchar_t const* text, GLdouble const*
 }
 
 }} // namespace aspect::gl
-
-#endif

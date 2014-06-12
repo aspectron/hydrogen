@@ -24,13 +24,14 @@
 #if OS(WINDOWS)
 #include "glew.h"
 //#include <GL/glew.h>
-#include "gl.iface.windows.hpp"
-#elif OS(LINUX)
+#include "gl.iface.wgl.hpp"
+#elif OS(DARWIN)
+#include <OpenGL/gl.h>
+#include "gl.iface.nsgl.hpp"
+#else
 #include <GL/glxew.h>
 #include <GL/glew.h>
-#include "gl.iface.linux.hpp"
-#else
-#error "Unsupported platform"
+#include "gl.iface.glx.hpp"
 #endif
 
 #ifdef None

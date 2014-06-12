@@ -1,4 +1,5 @@
 #include "hydrogen.hpp"
+#include "gl.engine.hpp"
 
 #include "v8_buffer.hpp"
 #include "encoder.hpp"
@@ -317,6 +318,8 @@ void engine::validate_iface()
 {
 	if (iface_->window().size() != viewport_)
 	{
+		iface_->update();
+		
 		update_viewport();
 		setup_viewport();
 	}
@@ -346,9 +349,9 @@ math::vec2 engine::map_pixel_to_view(math::vec2 const& v) const
 	return math::vec2((v.x + 0.5) / viewport_.width, (v.y + 0.5) / viewport_.height);
 }
 
-void engine::set_vsync_interval( int i )
+void engine::set_vsync_interval(int value)
 {
-	schedule(boost::bind(&gl::iface::set_vsync_interval, iface_.get(), i));
+	schedule(boost::bind(&gl::iface::set_vsync_interval, iface_.get(), value));
 }
 
 void engine::set_camera(gl::camera* camera)

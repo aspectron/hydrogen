@@ -1,19 +1,19 @@
 #include "hydrogen.hpp"
-
-#if OS(LINUX)
+#include "gl.iface.glx.hpp"
 
 namespace aspect { namespace gl {
 
 iface::iface(gui::window& window)
 	: window_(window)
 {
-	glx_context_ = glXCreateContext(gui::g_display, &window_.current_visual(), glXGetCurrentContext(), true);
-	if (!glx_context_)
+	context_ = glXCreateContext(gui::g_display, &window_.current_visual(), glXGetCurrentContext(), true);
+	if (!context_)
 	{
 		throw std::runtime_error("Failed to create an OpenGL context for this window");
 	}
 
-	glXMakeCurrent(gui::g_display, window_, glx_context_);
+	set_active(true);
+	set_vsync_interval(1);
 
 	GLenum const glew_err = glewInit();
 	if(glew_err != GLEW_OK)
@@ -33,42 +33,59 @@ iface::iface(gui::window& window)
 	if (extensions)
 		trace("GLX extensions: %s\n",extensions);
 #endif
-
-	//set_vsync_interval(1);
-	set_vsync_interval(0);
 }
 
 iface::~iface()
 {
-	if (glx_context_) glXDestroyContext(gui::g_display, glx_context_);
+	set_active(false);
+	glXDestroyContext(gui::g_display, context_);
+}
+
+int iface::vsync_interval() const
+{
+	if (glXGetProcAddress((GLubyte const*)"glXSwapIntervalEXT"))
+	{
+		unsigned int interval;
+		glXQueryDrawable(gui::g_display, window_, GLX_SWAP_INTERVAL_EXT, &interval);
+		return interval;
+	}
+	
+	typedef int(*glXGetSwapIntervalMESA_fun)();
+	glXGetSwapIntervalMESA_fun glXGetSwapIntervalMESA = (glXGetSwapIntervalMESA_fun)glXGetProcAddress((GLubyte const*)"glXGetSwapIntervalMESA");
+	if (glXGetSwapIntervalMESA)
+	{
+		return glXGetSwapIntervalMESA();
+	}
+
+	return 0;
 }
 
 void iface::set_vsync_interval(int interval)
 {
-#if 1
-	const GLubyte* ProcAddress = reinterpret_cast<const GLubyte*>("glXSwapIntervalMESA");
-	PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalMESA = reinterpret_cast<PFNGLXSWAPINTERVALSGIPROC>(glXGetProcAddress(ProcAddress));
+	typedef void (*glXSwapIntervalEXT_fun)(Display*,GLXDrawable,int);
+	typedef int(*glXSwapIntervalSGI_fun)(int);
+
+	glXSwapIntervalEXT_fun glXSwapIntervalEXT = (glXSwapIntervalEXT_fun)glXGetProcAddress((GLubyte const*)"glXSwapIntervalEXT");
+	if (glXSwapIntervalEXT)
+	{
+		glXSwapIntervalEXT(gui::g_display, window_, interval);
+		return;
+	}	
+
+	glXSwapIntervalSGI_fun glXSwapIntervalMESA = (glXSwapIntervalSGI_fun)glXGetProcAddress((GLubyte const*)"glXSwapIntervalMESA");
 	if (glXSwapIntervalMESA)
 	{
-		glXSwapIntervalMESA(interval); //Enabled ? 1 : 0);
-		printf("[MESA] setting vsync interval to: %d\n",interval);
+		glXSwapIntervalMESA(interval);
+		return;
 	}
-	else
-	{
-		const GLubyte* ProcAddress = reinterpret_cast<const GLubyte*>("glXSwapIntervalSGI");
-		PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = reinterpret_cast<PFNGLXSWAPINTERVALSGIPROC>(glXGetProcAddress(ProcAddress));
-		if (glXSwapIntervalSGI)
-		{
-			glXSwapIntervalSGI(interval); //Enabled ? 1 : 0);
-			printf("[SGI] setting vsync interval to: %d\n",interval);
-		}
-	}
-#else
-//			printf("setting vsync interval to: %d\n",interval);
-//			glXSwapIntervalMESA(interval);
-#endif
-}
 
+	glXSwapIntervalSGI_fun glXSwapIntervalSGI = (glXSwapIntervalSGI_fun)glXGetProcAddress((GLubyte const*)"glXSwapIntervalSGI");
+	if (glXSwapIntervalSGI)
+	{
+		glXSwapIntervalSGI(interval);
+		return;
+	}
+}
 
 void iface::output_text(double x, double y, char const* text, GLdouble const* clr)
 {
@@ -110,5 +127,3 @@ void iface::output_text(double x, double y, char const* text, GLdouble const* cl
 }
 
 }} // namespace aspect::gl
-
-#endif

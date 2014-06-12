@@ -1,5 +1,5 @@
-#ifndef __GL_ENGINE_HPP__
-#define __GL_ENGINE_HPP__
+#ifndef HYDROGEN_GL_ENGINE_HPP_INCLUDED
+#define HYDROGEN_GL_ENGINE_HPP_INCLUDED
 
 #include "events.hpp"
 
@@ -31,7 +31,7 @@ public:
 	void enable_rendering_hold(bool f) { hold_rendering_ = f; }
 	void set_rendering_hold_interval(double d) { hold_interval_ = d; }
 
-	void set_vsync_interval(int i);
+	void set_vsync_interval(int value);
 
 #if OS(WINDOWS)
 	void set_debug_string(std::wstring const& str)
@@ -116,4 +116,4 @@ private:
 
 }} // aspect::gl
 
-#endif // __GL_ENGINE_HPP__
+#endif // HYDROGEN_GL_ENGINE_HPP_INCLUDED

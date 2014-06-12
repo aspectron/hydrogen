@@ -1,5 +1,5 @@
-#ifndef _ASPECT_CAMERA_HPP_
-#define _ASPECT_CAMERA_HPP_
+#ifndef HYDROGEN_GL_CAMERA_HPP_INCLUDED
+#define HYDROGEN_GL_CAMERA_HPP_INCLUDED
 
 #include "gl.entity.hpp"
 #include "gl.viewport.hpp"
@@ -66,4 +66,4 @@ private:
 
 }} // aspect::gl
 
-#endif // _ASPECT_CAMERA_HPP_
+#endif // HYDROGEN_GL_CAMERA_HPP_INCLUDED

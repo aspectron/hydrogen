@@ -1,4 +1,5 @@
 #include "hydrogen.hpp"
+#include "gl.entity.hpp"
 
 #define _jsx_assert(condition, msg) if(!(condition) && runtime::is_v8_thread()) throw std::runtime_error(msg); else if(!(condition)) { _aspect_assert(condition && #msg); }
 

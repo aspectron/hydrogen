@@ -1,19 +1,23 @@
 {
     'conditions': [
-        ['OS=="win"',
-            {
-                'variables': {
-                    'gl_include_dirs': ['extern/glew/include'],
-                    'gl_libraries': ['-lopengl32', 'extern/glew/lib/$(ShortPlatform)/glew32.lib'],
-                },
+        ['OS=="win"', {
+            'variables': {
+                'gl_include_dirs': ['extern/glew/include'],
+                'gl_libraries': ['-lopengl32', 'extern/glew/lib/$(ShortPlatform)/glew32.lib'],
             },
-            {
-                'variables': {
-                    'gl_include_dirs': [],
-                    'gl_libraries': ['-lGLEW'],
-                },
-            }
-        ],
+        }],
+        ['OS=="mac"', {
+            'variables': {
+                'gl_include_dirs': [],
+                'gl_libraries': ['OpenGL.framework', 'AppKit.framework'],
+            },
+        }],
+        ['OS=="linux"', {
+            'variables': {
+                'gl_include_dirs': [],
+                'gl_libraries': ['-lGLEW'],
+            },
+        }],
     ],
 
     'variables': {
@@ -63,14 +67,20 @@
             'conditions': [
                 ['OS=="win"', {
                     'sources': [
-                        'src/gl.iface.windows.cpp',
-                        'src/gl.iface.windows.hpp',
+                        'src/gl.iface.wgl.cpp',
+                        'src/gl.iface.wgl.hpp',
+                    ],
+                }],
+                ['OS=="mac"', {
+                    'sources': [
+                        'src/gl.iface.nsgl.mm',
+                        'src/gl.iface.nsgl.hpp',
                     ],
                 }],
                 ['OS=="linux"', {
                     'sources': [
-                        'src/gl.iface.linux.cpp',
-                        'src/gl.iface.linux.hpp',
+                        'src/gl.iface.glx.cpp',
+                        'src/gl.iface.glx.hpp',
                     ],
                 }],
             ],
@@ -86,6 +96,7 @@
                 'include_dirs': ['<(bullet_dir)'],
             },
             'include_dirs': ['<(bullet_dir)'],
+            'cflags_cc': ['-Wno-c++11-narrowing'],
             'sources': [
                 '<(bullet_dir)/btBulletCollisionCommon.h',
                 '<(bullet_dir)/btBulletDynamicsCommon.h',

@@ -1,5 +1,5 @@
-#ifndef __GL_TEXTURE_HPP__
-#define __GL_TEXTURE_HPP__
+#ifndef HYDROGEN_GL_TEXTURE_HPP_INCLUDED
+#define HYDROGEN_GL_TEXTURE_HPP_INCLUDED
 
 #include "geometry.hpp"
 
@@ -94,4 +94,4 @@ private:
 
 }} // aspect::gl
 
-#endif // __GL_TEXTURE_HPP__
+#endif // HYDROGEN_GL_TEXTURE_HPP_INCLUDED

@@ -1,4 +1,5 @@
 #include "hydrogen.hpp"
+#include "gl.camera.hpp"
 
 namespace aspect { namespace gl {
 
