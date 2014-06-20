@@ -84,9 +84,6 @@
                     ],
                 }],
             ],
-            'all_dependent_settings': {
-                'include_dirs': ['src'],
-            },
         },
         {
             'target_name': 'bullet',

@@ -74,8 +74,6 @@ private:
 	void cleanup();
 
 	void validate_iface();
-	void update_viewport();
-	void setup_viewport();
 
 	void setup_shaders();
 	void cleanup_shaders();
@@ -95,7 +93,6 @@ private:
 #else
 	std::string debug_string_;
 #endif
-	box<int> viewport_;
 	double fps_, fps_unheld_, frt_, txt_transfer_;
 
 	v8pp::persistent_ptr<entity> world_;

@@ -136,7 +136,7 @@ void engine::main()
 	{
 		double const ts0 = utils::get_ts();
 
-		validate_iface();
+		iface_->validate();
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		//glLoadIdentity();
@@ -158,11 +158,11 @@ void engine::main()
 #if OS(WINDOWS)
 			wchar_t info[256];
 			swprintf(info, sizeof(info) / sizeof(*info), L"fps: %1.2f (%1.2f) frt: %1.2f | txt Mb/s: %1.2f | w:%d h:%d",
-				fps_unheld_, fps_, frt_, txt_transfer_, viewport_.width, viewport_.height);
+				fps_unheld_, fps_, frt_, txt_transfer_, iface_->viewport().width, iface_->viewport().height);
 #else
 			char info[256];
 			snprintf(info, sizeof(info) / sizeof(*info), "fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
-				fps_unheld_, fps_, frt_, viewport_.width, viewport_.height);
+				fps_unheld_, fps_, frt_, iface_->viewport().width, iface_->viewport().height);
 #endif
 			iface_->output_text(engine_info_location_.x, engine_info_location_.y, info);
 
@@ -254,9 +254,6 @@ void engine::setup()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	update_viewport();
-	setup_viewport();
-
 	setup_shaders();
 }
 
@@ -314,39 +311,9 @@ void engine::cleanup_shaders()
 	shaders_.clear();
 }
 
-void engine::validate_iface()
-{
-	if (iface_->window().size() != viewport_)
-	{
-		iface_->update();
-		
-		update_viewport();
-		setup_viewport();
-	}
-}
-
-void engine::update_viewport()
-{
-	viewport_.width = std::max(1, iface_->window().width());
-	viewport_.height = std::max(1, iface_->window().height());
-
-	glViewport(0, 0, viewport_.width, viewport_.height);
-}
-
-void engine::setup_viewport()
-{
-	// reset the projection matrix
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	// lastly, reset the modelview matrix
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-}
-
 math::vec2 engine::map_pixel_to_view(math::vec2 const& v) const
 {
-	return math::vec2((v.x + 0.5) / viewport_.width, (v.y + 0.5) / viewport_.height);
+	return math::vec2((v.x + 0.5) / iface_->viewport().width, (v.y + 0.5) / iface_->viewport().height);
 }
 
 void engine::set_vsync_interval(int value)
@@ -362,9 +329,9 @@ void engine::set_camera(gl::camera* camera)
 
 void engine::capture_screen_gl(Persistent<Function> cb, std::string format)
 {
-	image::shared_bitmap b = boost::make_shared<image::bitmap>(viewport_, image::BGRA8);
+	image::shared_bitmap b = boost::make_shared<image::bitmap>(iface_->viewport(), image::BGRA8);
 
-	glReadPixels(0, 0, viewport_.width, viewport_.height, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
+	glReadPixels(0, 0, iface_->viewport().width, iface_->viewport().height, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
 
 	runtime::main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb, format));
 }

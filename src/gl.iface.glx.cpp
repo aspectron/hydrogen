@@ -4,7 +4,7 @@
 namespace aspect { namespace gl {
 
 iface::iface(gui::window& window)
-	: window_(window)
+	: iface_base(window)
 {
 	context_ = glXCreateContext(gui::g_display, &window_.current_visual(), glXGetCurrentContext(), true);
 	if (!context_)

@@ -4,7 +4,7 @@
 namespace aspect { namespace gl {
 
 iface::iface(gui::window& window)
-	: window_(window)
+	: iface_base(window)
 {
 
     NSOpenGLPixelFormatAttribute attributes [] =
@@ -12,6 +12,7 @@ iface::iface(gui::window& window)
         NSOpenGLPFAWindow,
         NSOpenGLPFADoubleBuffer,
 		NSOpenGLPFAClosestPolicy,
+		NSOpenGLPFAAccelerated,
 //		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
 //		NSOpenGLPFAColorSize, 24,
 //		NSOpenGLPFADepthSize, 24,
@@ -28,6 +29,11 @@ iface::iface(gui::window& window)
 		throw std::runtime_error("Failed to create an OpenGL context for this window");
 	}
 
+    if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6)
+    {
+		[window_.view setWantsBestResolutionOpenGLSurface:YES];
+		window_.handle_resize();
+	}
 	[context_ setView:window_.view];
 
 	set_active(true);
@@ -42,19 +48,35 @@ iface::~iface()
 
 void iface::update()
 {
+	viewport_ = window_.size();
+	viewport_.width = std::max(1, viewport_.width);
+	viewport_.height = std::max(1, viewport_.height);
+
+	box<int> framebuffer_size = viewport_;
+
+	if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6)
+	{
+		NSRect rect = [window_.view frame];
+		rect = [window_.view convertRectToBacking:rect];
+		framebuffer_size.width = rect.size.width;
+		framebuffer_size.height = rect.size.height;
+	}
+
+	glViewport(0, 0, framebuffer_size.width, framebuffer_size.height);
 	[context_ update];
 }
 
 void iface::set_active(bool active)
 {
+	NSOpenGLContext* current_context = [NSOpenGLContext currentContext];
 	if (active)
 	{
-		if ([NSOpenGLContext currentContext] != context_)
+		if (current_context != context_)
 			[context_ makeCurrentContext];
 	}
 	else
 	{
-		if ([NSOpenGLContext currentContext] == context_)
+		if (current_context == context_)
 			[NSOpenGLContext clearCurrentContext];
 	}
 }
