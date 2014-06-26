@@ -94,8 +94,12 @@ bool engine::schedule(callback cb)
 
 void engine::execute_callbacks(size_t limit)
 {
-	limit = std::min(limit, size_t(10000));
-
+	size_t const MAX_CALLBACKS = 10000;
+	if (!limit || limit > MAX_CALLBACKS)
+	{
+		limit = MAX_CALLBACKS;
+	}
+	
 	boost::mutex::scoped_lock lock(callbacks_mutex_);
 	for (size_t cb_handled = 0; !callbacks_.empty() && cb_handled < limit; ++cb_handled)
 	{
