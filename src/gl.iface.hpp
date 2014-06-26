@@ -37,6 +37,9 @@ public:
 	/// Current viewport size
 	box<int> const& viewport() const { return viewport_; }
 
+	/// Framebuffer size
+	virtual box<int> const& framebuffer() const { return viewport_; }
+
 	/// Update on window geometry change
 	void validate()
 	{

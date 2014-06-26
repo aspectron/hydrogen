@@ -72,7 +72,7 @@ entity& entity::attach(entity& child)
 
 entity& entity::detach(entity& e)
 {
-	_aspect_assert(e.parent_.get() == this);
+	_aspect_assert(!e.parent_.get() || e.parent_.get() == this);
 	if (e.parent_.get() == this)
 	{
 		boost::mutex::scoped_lock lock(children_mutex_);

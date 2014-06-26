@@ -6,7 +6,6 @@ namespace aspect { namespace gl {
 iface::iface(gui::window& window)
 	: iface_base(window)
 {
-
     NSOpenGLPixelFormatAttribute attributes [] =
 	{
         NSOpenGLPFAWindow,
@@ -29,12 +28,12 @@ iface::iface(gui::window& window)
 		throw std::runtime_error("Failed to create an OpenGL context for this window");
 	}
 
-    if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6)
+    if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
     {
 		[window_.view setWantsBestResolutionOpenGLSurface:YES];
-		window_.handle_resize();
 	}
 	[context_ setView:window_.view];
+	[window_.object disableScreenUpdatesUntilFlush];
 
 	set_active(true);
 	set_vsync_interval(1);
@@ -49,20 +48,9 @@ iface::~iface()
 void iface::update()
 {
 	viewport_ = window_.size();
-	viewport_.width = std::max(1, viewport_.width);
-	viewport_.height = std::max(1, viewport_.height);
+	framebuffer_ = window_.backing_size();
 
-	box<int> framebuffer_size = viewport_;
-
-	if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6)
-	{
-		NSRect rect = [window_.view frame];
-		rect = [window_.view convertRectToBacking:rect];
-		framebuffer_size.width = rect.size.width;
-		framebuffer_size.height = rect.size.height;
-	}
-
-	glViewport(0, 0, framebuffer_size.width, framebuffer_size.height);
+	glViewport(0, 0, framebuffer_.width, framebuffer_.height);
 	[context_ update];
 }
 

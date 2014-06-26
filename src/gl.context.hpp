@@ -21,8 +21,6 @@ public:
 	gl::camera const* camera() const { return camera_; }
 	void set_camera(gl::camera const* camera) { camera_ = camera; }
 
-	math::vec2 map_pixel_to_view(math::vec2 const& v) const;
-
 private:
 	gl::engine& engine_;
 	gl::camera const* camera_;

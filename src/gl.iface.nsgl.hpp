@@ -18,15 +18,17 @@ public:
 	explicit iface(gui::window& window);
 	~iface();
 
+
+	box<int> const& framebuffer() const { return framebuffer_; }
 	void update();
 	void set_active(bool active);
 	void swap_buffers();
 	int vsync_interval() const;
 	void set_vsync_interval(int interval);
 	void output_text(double x, double y, char const* text, GLdouble const* clr = nullptr);
-
 private:
 	NSOpenGLContext* context_;
+	box<int> framebuffer_;
 };
 
 }} // namespace aspect::gl

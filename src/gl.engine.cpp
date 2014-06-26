@@ -317,7 +317,8 @@ void engine::cleanup_shaders()
 
 math::vec2 engine::map_pixel_to_view(math::vec2 const& v) const
 {
-	return math::vec2((v.x + 0.5) / iface_->viewport().width, (v.y + 0.5) / iface_->viewport().height);
+	return math::vec2((v.x + 0.5) / iface_->framebuffer().width,
+		(v.y + 0.5) / iface_->framebuffer().height);
 }
 
 void engine::set_vsync_interval(int value)

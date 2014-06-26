@@ -48,7 +48,6 @@
                 'src/gl.camera.cpp',
                 'src/gl.camera.hpp',
                 'src/gl.color.hpp',
-                'src/gl.context.cpp',
                 'src/gl.context.hpp',
                 'src/gl.engine.cpp',
                 'src/gl.engine.hpp',
