@@ -65,6 +65,12 @@ iface::iface(gui::window& window)
 		std::string const err_str = (char const*)glewGetErrorString(glew_err);
 		throw std::runtime_error("glew error: " + err_str);
 	}
+#if 0
+	if (!GLEW_VERSION_2_0)
+	{
+		throw std::runtime_error("OpenGL 2.0 required");
+	}
+#endif
 }
 
 iface::~iface()

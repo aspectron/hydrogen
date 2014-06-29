@@ -33,11 +33,7 @@ public:
 
 	void set_vsync_interval(int value);
 
-#if OS(WINDOWS)
-	void set_debug_string(std::wstring const& str)
-#else
 	void set_debug_string(std::string const& str)
-#endif
 	{
 		debug_string_ = str;
 	}
@@ -88,11 +84,7 @@ private:
 	math::vec2 engine_info_location_;
 	bool hold_rendering_;
 	double hold_interval_;
-#if OS(WINDOWS)
-	std::wstring debug_string_;
-#else
 	std::string debug_string_;
-#endif
 	double fps_, fps_unheld_, frt_, txt_transfer_;
 
 	v8pp::persistent_ptr<entity> world_;

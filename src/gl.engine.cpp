@@ -159,15 +159,9 @@ void engine::main()
 
 		if (show_engine_info_)
 		{
-#if OS(WINDOWS)
-			wchar_t info[256];
-			swprintf(info, sizeof(info) / sizeof(*info), L"fps: %1.2f (%1.2f) frt: %1.2f | txt Mb/s: %1.2f | w:%d h:%d",
-				fps_unheld_, fps_, frt_, txt_transfer_, iface_->viewport().width, iface_->viewport().height);
-#else
 			char info[256];
 			snprintf(info, sizeof(info) / sizeof(*info), "fps: %1.2f (%1.2f) frt: %1.2f | w:%d h:%d",
 				fps_unheld_, fps_, frt_, iface_->viewport().width, iface_->viewport().height);
-#endif
 			iface_->output_text(engine_info_location_.x, engine_info_location_.y, info);
 
 			if (!debug_string_.empty())
