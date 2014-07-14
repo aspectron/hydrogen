@@ -55,14 +55,14 @@ private:
 		if (strstr(filename, ".vsl"))
 			return GL_VERTEX_SHADER;
 
-		trace("error - unable to determine shader type: %s\n", filename);
+		//trace("error - unable to determine shader type: %s\n", filename);
 
 		return 0;
 	}
 
 	bool read_file(char const* filename)
 	{
-		trace("loading shader: %s\n", filename);
+		//trace("loading shader: %s\n", filename);
 
 		GLuint const type = shader_type_from_filename(filename);
 		if (!type)
@@ -101,7 +101,7 @@ private:
 			{
 				std::vector<char> buf(size);
 				glGetShaderInfoLog(id_, size, NULL, &buf[0]);
-				aspect::error("shader compilation failed\n%s\n", &buf[0]);
+				//aspect::error("shader compilation failed\n%s\n", &buf[0]);
 			}
 		}
 		return status;
@@ -125,7 +125,7 @@ private:
 			{
 				std::vector<char> buf(size);
 				glGetProgramInfoLog(program_, size, NULL, &buf[0]);
-				error("program link failed","\n%s\n", &buf[0]);
+				//error("program link failed","\n%s\n", &buf[0]);
 			}
 		}
 

@@ -33,7 +33,7 @@ iface::iface(gui::window& window)
 		[window_.view setWantsBestResolutionOpenGLSurface:YES];
 	}
 	[context_ setView:window_.view];
-	[window_.object disableScreenUpdatesUntilFlush];
+//	[window_.object disableScreenUpdatesUntilFlush];
 
 	set_active(true);
 	set_vsync_interval(1);
@@ -90,7 +90,7 @@ void iface::set_vsync_interval(int interval)
 
 void iface::output_text(double x, double y, char const* text, GLdouble const* clr)
 {
-	trace("%s\n", text);
+	window_.rt().trace("%s\n", text);
 }
 
 }} // namespace aspect::gl

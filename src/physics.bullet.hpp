@@ -24,7 +24,7 @@ class HYDROGEN_API bullet : boost::noncopyable
 {
 public:
 	bullet();
-	explicit bullet(v8::Arguments const& args);
+	explicit bullet(v8::FunctionCallbackInfo<v8::Value> const& args);
 	~bullet();
 
 	void set_gravity(math::vec3 const& vec3);

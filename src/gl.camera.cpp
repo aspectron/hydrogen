@@ -3,12 +3,7 @@
 
 namespace aspect { namespace gl {
 
-camera::camera()
-{
-	modelview_matrix_.set_identity();
-}
-
-camera::camera(v8::Arguments const& args)
+camera::camera(v8::FunctionCallbackInfo<v8::Value> const& args)
 	: gl::entity(args)
 {
 	modelview_matrix_.set_identity();
@@ -210,12 +205,12 @@ void camera::hit_test(gl::engine& engine, math::vec3 const& ray_near, math::vec3
 
 	if (!entered.empty())
 	{
-		runtime::main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
+		engine.rt().main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
 			&engine, "enter", entered, ray_near, ray_far));
 	}
 	if (!leaved.empty())
 	{
-		runtime::main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
+		engine.rt().main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
 			&engine, "leave", leaved, ray_near, ray_far));
 	}
 }
@@ -223,20 +218,22 @@ void camera::hit_test(gl::engine& engine, math::vec3 const& ray_near, math::vec3
 void camera::emit_hit_events_v8(gl::engine* engine, std::string type,
 	entities ents, math::vec3 ray_near, math::vec3 ray_far)
 {
-	v8::HandleScope scope;
+	v8::Isolate* isolate = engine->rt().isolate();
+
+	v8::HandleScope scope(isolate);
 
 	v8::Handle<v8::Value> args[4];
-	args[1] = v8pp::to_v8(this);
-	args[2] = v8pp::to_v8(ray_near);
-	args[3] = v8pp::to_v8(ray_far);
+	args[1] = v8pp::to_v8(isolate, this);
+	args[2] = v8pp::to_v8(isolate, ray_near);
+	args[3] = v8pp::to_v8(isolate, ray_far);
 
 	std::for_each(ents.begin(), ents.end(),
-		[this, engine, &type, &args](gl::entity* e)
+		[this, engine, isolate, &type, &args](gl::entity* e)
 		{
-			args[0] = v8pp::to_v8(e);
+			args[0] = v8pp::to_v8(isolate, e);
 
-			engine->emit(type, 4, args);
-			e->emit(type, 3, args + 1);
+			engine->emit(isolate, type, 4, args);
+			e->emit(isolate, type, 3, args + 1);
 		});
 }
 

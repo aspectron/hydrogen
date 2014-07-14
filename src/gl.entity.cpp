@@ -1,32 +1,33 @@
 #include "hydrogen.hpp"
 #include "gl.entity.hpp"
 
-#define _jsx_assert(condition, msg) if(!(condition) && runtime::is_v8_thread()) throw std::runtime_error(msg); else if(!(condition)) { _aspect_assert(condition && #msg); }
-
-using namespace v8;
-
 namespace aspect { namespace gl {
 
-uint32_t global_entity_count = 0;
+size_t global_entity_count = 0;
 
-entity::entity()
+entity::entity(v8::FunctionCallbackInfo<v8::Value> const& args)
+	: isolate_(args.GetIsolate())
+	, hidden_(false)
+	, fade_ts_(0)
+	, fade_duration_(0)
+	, transparency_(0)
+	, entity_type_(0)
+	, collision_candidates_(0)
 {
-	init();
-}
+	transparency_targets_.fill(0);
+	++global_entity_count;
 
-entity::entity(Arguments const& args)
-{
-	init();
-
-	HandleScope scope;
 	if (args[0]->IsObject())
 	{
-		Handle<Object> config = args[0].As<Object>();
+		v8::Isolate* isolate = args.GetIsolate();
+		v8::HandleScope scope(isolate);
 
-		Handle<Value> value;
-		if (get_option(config, "location", value))
+		v8::Local<v8::Object> config = args[0].As<v8::Object>();
+
+		v8::Local<v8::Value> value;
+		if (get_option(isolate, config, "location", value))
 		{
-			set_location(v8pp::from_v8<math::vec3>(value));
+			set_location(v8pp::from_v8<math::vec3>(isolate, value));
 		}
 	}
 }
@@ -41,18 +42,6 @@ entity::~entity()
 	--global_entity_count;
 }
 
-void entity::init()
-{
-	hidden_ = false;
-	fade_ts_ = 0;
-	fade_duration_ = 0;
-	transparency_targets_.fill(0);
-	transparency_ = 0;
-	entity_type_ = 0;
-	collision_candidates_ = 0;
-	++global_entity_count;
-}
-
 void entity::delete_all_children()
 {
 	boost::mutex::scoped_lock lock(children_mutex_);
@@ -64,8 +53,8 @@ void entity::delete_all_children()
 entity& entity::attach(entity& child)
 {
 	boost::mutex::scoped_lock lock(children_mutex_);
-	children_.push_back(entity_ptr(&child));
-	child.parent_.reset(this);
+	children_.emplace_back(entity_ptr(child.isolate_, &child));
+	child.parent_.reset(isolate_, this);
 
 	return *this;
 }
@@ -136,27 +125,6 @@ void entity::set_transform_matrix(math::matrix const& transform)
 	}
 }
 
-/*
-boost::shared_ptr<entity> entity::instance( uint32_t flags )
-{
-	boost::shared_ptr<entity> target(create_instance()); //new entity;
-
-	if(flags & INSTANCE_COPY_TRANSFORM)
-		target->entity_transform.copy(entity_transform);
-
-	boost::recursive_mutex::scoped_lock lock(children_mutex_);
-
-	std::vector<boost::shared_ptr<entity>>::iterator child_iterator;
-	for(child_iterator = children_.begin(); child_iterator != children_.end(); child_iterator++)
-	{
-		boost::shared_ptr<entity> child = (*child_iterator)->instance(flags);
-		target->attach(child);
-	}
-
-	return target;
-}
-*/
-
 void entity::render(render_context& context)
 {
 	boost::mutex::scoped_lock lock(children_mutex_);
@@ -206,7 +174,7 @@ void entity::set_location(math::vec3 const& loc)
 
 void entity::disable_contact_response()
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->setCollisionFlags(physics_data_.rigid_body->getCollisionFlags()
@@ -216,7 +184,7 @@ void entity::disable_contact_response()
 
 math::vec3 entity::linear_factor() const
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const& factor = physics_data_.rigid_body->getLinearFactor();
@@ -230,7 +198,7 @@ math::vec3 entity::linear_factor() const
 
 void entity::set_linear_factor(math::vec3 const& factor)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->setLinearFactor(btVector3(factor.x, factor.y, factor.z));
@@ -239,7 +207,7 @@ void entity::set_linear_factor(math::vec3 const& factor)
 
 math::vec3 entity::angular_factor() const
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const& factor = physics_data_.rigid_body->getAngularFactor();
@@ -253,7 +221,7 @@ math::vec3 entity::angular_factor() const
 
 void entity::set_angular_factor(math::vec3 const& factor)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->setAngularFactor(btVector3(factor.x, factor.y, factor.z));
@@ -262,7 +230,7 @@ void entity::set_angular_factor(math::vec3 const& factor)
 
 math::vec3 entity::linear_velocity() const
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const& linear_v = physics_data_.rigid_body->getLinearVelocity();
@@ -276,7 +244,7 @@ math::vec3 entity::linear_velocity() const
 
 void entity::set_linear_velocity(math::vec3 const& linear_v)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const linear_velocity(linear_v.x, linear_v.y, linear_v.z);
@@ -286,7 +254,7 @@ void entity::set_linear_velocity(math::vec3 const& linear_v)
 
 math::vec3 entity::angular_velocity() const
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 
 	btVector3 const& angular_v = physics_data_.rigid_body->getAngularVelocity();
 	return math::vec3(angular_v.x(), angular_v.y(), angular_v.z());
@@ -294,7 +262,7 @@ math::vec3 entity::angular_velocity() const
 
 void entity::set_angular_velocity(math::vec3 const& angular_v)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 
 	btVector3 const angular_velocity(angular_v.x, angular_v.y, angular_v.z);
 
@@ -303,7 +271,7 @@ void entity::set_angular_velocity(math::vec3 const& angular_v)
 
 void entity::apply_impulse(math::vec3 const& impulse, math::vec3 const& rel_pos)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->applyImpulse(
@@ -314,7 +282,7 @@ void entity::apply_impulse(math::vec3 const& impulse, math::vec3 const& rel_pos)
 
 void entity::apply_force(math::vec3 const& force, math::vec3 const& rel_pos)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->applyForce(
@@ -325,7 +293,7 @@ void entity::apply_force(math::vec3 const& force, math::vec3 const& rel_pos)
 
 void entity::set_damping(double linear, double angular)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.damping = math::vec2(linear, angular);
@@ -335,7 +303,7 @@ void entity::set_damping(double linear, double angular)
 
 math::vec3 entity::calculate_relative_vector(math::vec3 const& relative_vector) const
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const relative_v(relative_vector.x, relative_vector.y, relative_vector.z);
@@ -351,7 +319,7 @@ math::vec3 entity::calculate_relative_vector(math::vec3 const& relative_vector) 
 
 void entity::apply_relative_force(math::vec3 const& relative_f)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const relative_force(relative_f.x, relative_f.y, relative_f.z);
@@ -363,7 +331,7 @@ void entity::apply_relative_force(math::vec3 const& relative_f)
 
 void entity::apply_relative_impulse(math::vec3 const& relative_f)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const relative_force(relative_f.x, relative_f.y, relative_f.z);
@@ -375,7 +343,7 @@ void entity::apply_relative_impulse(math::vec3 const& relative_f)
 
 void entity::apply_absolute_impulse(math::vec3 const& absolute_f)
 {
-	_jsx_assert(physics_data_.rigid_body, "physics data has not been defined");
+	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const absolute_force(absolute_f.x, absolute_f.y, absolute_f.z);

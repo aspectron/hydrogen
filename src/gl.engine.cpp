@@ -6,63 +6,32 @@
 
 namespace aspect { namespace gl {
 
-using namespace v8;
-
-engine::engine(gui::window& window)
-	: context_(*this)
+engine::engine(v8::FunctionCallbackInfo<v8::Value> const& args)
+	: rt_(runtime::instance(args.GetIsolate()))
+	, context_(*this)
+	, show_engine_info_(false)
+	, engine_info_location_(0, 12)
+	, hold_rendering_(false)
+	, hold_interval_(1000.0/60.0)
+	, fps_(0)
+	, fps_unheld_(0)
+	, frt_(0)
+	, txt_transfer_(0)
 {
-	init(window);
-}
+	v8::Isolate* isolate = args.GetIsolate();
 
-engine::engine(v8::Arguments const& args)
-	: context_(*this)
-{
-	HandleScope scope;
+	v8::HandleScope scope(isolate);
 
-	gui::window* wnd = v8pp::from_v8<gui::window*>(args[0]);
-	if (!wnd)
+	gui::window* window = v8pp::from_v8<gui::window*>(isolate, args[0]);
+	if (!window)
 	{
 		throw std::invalid_argument("Hydrogen Engine constructor requires an Oxygen Window argument");
 	}
-	init(*wnd);
+	window_.reset(isolate, window);
 
-	if (args[1]->IsObject())
-	{
-		Handle<Object> config = args[1].As<Object>();
-
-		Handle<Value> info;
-		if (get_option(config, "info", info))
-		{
-			show_info(info);
-		}
-
-		Handle<Value> rendering_hold;
-		if (get_option(config, "rendering_hold", rendering_hold))
-		{
-			set_rendering_hold(rendering_hold);
-		}
-
-		int vsync_interval;
-		if (get_option(config, "vsync_interval", vsync_interval))
-		{
-			set_vsync_interval(vsync_interval);
-		}
-	}
-}
-
-void engine::init(aspect::gui::window& window)
-{
-	window_.reset(&window);
-	show_engine_info_ = false;
-	engine_info_location_.x = 0;
-	engine_info_location_.y = 12;
-	hold_rendering_ = false;
-	hold_interval_ = 1000.0/60.0;
-	fps_ = fps_unheld_ = frt_ = txt_transfer_ = 0;
-
-	entity* world = new entity;
-	v8pp::class_<entity>::import_external(world);
-	world_.reset(world);
+	entity* world = new entity(args);
+	v8pp::class_<entity>::import_external(isolate, world);
+	world_.reset(isolate, world);
 
 	// start main thread and wait for iface creation
 	is_running_ = true;
@@ -71,6 +40,29 @@ void engine::init(aspect::gui::window& window)
 	while (!iface_)
 	{
 		iface_cv_.wait(iface_lock);
+	}
+
+	if (args[1]->IsObject())
+	{
+		v8::Local<v8::Object> config = args[1].As<v8::Object>();
+
+		v8::Local<v8::Value> info;
+		if (get_option(isolate, config, "info", info))
+		{
+			show_info(isolate, info);
+		}
+
+		v8::Local<v8::Value> rendering_hold;
+		if (get_option(isolate, config, "rendering_hold", rendering_hold))
+		{
+			set_rendering_hold(isolate, rendering_hold);
+		}
+
+		int vsync_interval;
+		if (get_option(isolate, config, "vsync_interval", vsync_interval))
+		{
+			set_vsync_interval(vsync_interval);
+		}
 	}
 }
 
@@ -322,22 +314,23 @@ void engine::set_vsync_interval(int value)
 
 void engine::set_camera(gl::camera* camera)
 {
-	camera_.reset(camera);
+	camera_.reset(rt_.isolate(), camera);
 	context_.set_camera(camera);
 }
 
-void engine::capture_screen_gl(Persistent<Function> cb, std::string format)
+void engine::capture_screen_gl(v8::Persistent<v8::Function>* cb, std::string format)
 {
 	image::shared_bitmap b = boost::make_shared<image::bitmap>(iface_->viewport(), image::BGRA8);
 
 	glReadPixels(0, 0, iface_->viewport().width, iface_->viewport().height, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
-
-	runtime::main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb, format));
+	rt_.main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb, format));
 }
 
-void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function> cb, std::string format)
+void engine::capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function>* cb, std::string format)
 {
-	HandleScope scope;
+	v8::Isolate* isolate = rt_.isolate();
+
+	v8::HandleScope scope(isolate);
 
 	buffer data;
 	if (format == "png")
@@ -358,29 +351,32 @@ void engine::capture_screen_complete(image::shared_bitmap b, Persistent<Function
 	}
 	else
 	{
-		v8pp::throw_ex("unknown format to capture: " + format);
+		throw std::runtime_error("unknown format to capture: " + format);
 	}
 
 	v8_core::buffer* buf = new v8_core::buffer;
 	buf->swap(data);
 
-	Handle<Value> args[] = {
-		v8pp::to_v8(format),
-		v8pp::to_v8(b->size()),
-		v8pp::class_<v8_core::buffer>::import_external(buf),
+	v8::Handle<v8::Value> args[] = {
+		v8pp::to_v8(isolate, format),
+		v8pp::to_v8(isolate, b->size()),
+		v8pp::class_<v8_core::buffer>::import_external(isolate, buf),
 	};
 
-	TryCatch try_catch;
-	Handle<Value> result = cb->Call(v8pp::to_v8(this)->ToObject(), 3, args);
+	v8::TryCatch try_catch;
+	v8pp::to_local(isolate, *cb)->Call(v8pp::to_v8(isolate, this)->ToObject(), 3, args);
 	if ( try_catch.HasCaught() )
 	{
-		v8_core::report_exception(try_catch);
+		rt_.core().report_exception(try_catch);
 	}
-	cb.Dispose();
+	cb->Reset();
+	delete cb;
 }
 
-void engine::capture(v8::Arguments const& args)
+void engine::capture(v8::FunctionCallbackInfo<v8::Value> const& args)
 {
+	v8::Isolate* isolate = args.GetIsolate();
+
 	if (!args[0]->IsString() || !args[1]->IsFunction())
 	{
 		throw std::invalid_argument("capture requires format and function callback");
@@ -390,18 +386,19 @@ void engine::capture(v8::Arguments const& args)
 	{
 		"png", "jpeg", "bmp", "none"
 	};
-	std::string const format =v8pp::from_v8<std::string>(args[0]);
+	std::string const format =v8pp::from_v8<std::string>(isolate, args[0]);
 	if (std::find(boost::begin(allowed_formats), boost::end(allowed_formats), format) == boost::end(allowed_formats))
 	{
 		throw std::invalid_argument("unknow format  to capture: " + format);
 	}
 
-	Persistent<Function> cb = Persistent<Function>::New(args[1].As<Function>());
+	v8::Persistent<v8::Function>* cb = new v8::Persistent<v8::Function>(isolate,
+		args[1].As<v8::Function>());
 
 	schedule(boost::bind(&engine::capture_screen_gl, this, cb, format));
 }
 
-void engine::show_info(v8::Handle<v8::Value> settings)
+void engine::show_info(v8::Isolate* isolate, v8::Handle<v8::Value> settings)
 {
 	if (settings->IsBoolean())
 	{
@@ -409,25 +406,25 @@ void engine::show_info(v8::Handle<v8::Value> settings)
 	}
 	else if (settings->IsObject())
 	{
-		HandleScope scope;
-		Handle<Object> obj = settings.As<Object>();
+		v8::HandleScope scope(isolate);
+		v8::Local<v8::Object> obj = settings.As<v8::Object>();
 		
-		get_option(obj, "show", show_engine_info_);
-		get_option(obj, "location", engine_info_location_);
-		get_option(obj, "string", debug_string_);
+		get_option(isolate, obj, "show", show_engine_info_);
+		get_option(isolate, obj, "location", engine_info_location_);
+		get_option(isolate, obj, "string", debug_string_);
 	}
 	else throw std::invalid_argument("require object");
 }
 
-void engine::set_rendering_hold(v8::Handle<v8::Value> settings)
+void engine::set_rendering_hold(v8::Isolate* isolate, v8::Handle<v8::Value> settings)
 {
 	if (settings->IsObject())
 	{
-		HandleScope scope;
-		Handle<Object> obj = settings.As<Object>();
+		v8::HandleScope scope(isolate);
+		v8::Local<v8::Object> obj = settings.As<v8::Object>();
 		
-		get_option(obj, "enable", hold_rendering_);
-		get_option(obj, "interval", hold_interval_);
+		get_option(isolate, obj, "enable", hold_rendering_);
+		get_option(isolate, obj, "interval", hold_interval_);
 	}
 	else throw std::invalid_argument("require object");
 }

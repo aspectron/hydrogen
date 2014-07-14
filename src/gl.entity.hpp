@@ -19,8 +19,7 @@ typedef v8pp::persistent_ptr<entity> entity_ptr;
 class HYDROGEN_API entity : public v8_core::event_emitter
 {
 public:
-	entity();
-	explicit entity(v8::Arguments const& args);
+	explicit entity(v8::FunctionCallbackInfo<v8::Value> const& args);
 	virtual ~entity();
 
 	// main stuff
@@ -244,8 +243,6 @@ public:
 	void apply_absolute_impulse(math::vec3 const& relative_force);
 
 private:
-	void init();
-
 	// perform real rendering
 	virtual void render_impl(render_context&) {}
 
@@ -257,6 +254,7 @@ private:
 		fade_duration_ = msec;
 	}
 
+	v8::Isolate* isolate_;
 	entity_ptr parent_;
 
 	typedef std::vector<entity_ptr> children_list;
@@ -278,7 +276,7 @@ private:
 //	double age_;
 };
 
-extern uint32_t global_entity_count;
+extern size_t global_entity_count;
 
 }} // namespace aspect::gl
 

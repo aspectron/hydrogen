@@ -2,15 +2,17 @@
 #define HYDROGEN_GL_ENGINE_HPP_INCLUDED
 
 #include "events.hpp"
+#include "runtime.hpp"
 
 namespace aspect { namespace gl {
 
 class HYDROGEN_API engine : public v8_core::event_emitter
 {
 public:
-	explicit engine(gui::window& window);
-	explicit engine(v8::Arguments const& args);
+	explicit engine(v8::FunctionCallbackInfo<v8::Value> const& args);
 	~engine();
+
+	runtime& rt() { return rt_; }
 
 	gui::window& window() { return *window_; }
 
@@ -40,7 +42,10 @@ public:
 
 	void set_camera(gl::camera* camera);
 
-	void set_physics(physics::bullet& bullet) { bullet_.reset(&bullet); }
+	void set_physics(physics::bullet& bullet)
+	{
+		bullet_.reset(rt_.isolate(), &bullet);
+	}
 
 	enum integrated_shaders
 	{
@@ -56,13 +61,11 @@ public:
 
 	math::vec2 map_pixel_to_view(math::vec2 const& v) const;
 
-	void capture(v8::Arguments const& args);
-	void show_info(v8::Handle<v8::Value> settings);
-	void set_rendering_hold(v8::Handle<v8::Value> settings);
+	void capture(v8::FunctionCallbackInfo<v8::Value> const& args);
+	void show_info(v8::Isolate* isolate, v8::Handle<v8::Value> settings);
+	void set_rendering_hold(v8::Isolate* isolate, v8::Handle<v8::Value> settings);
 
 private:
-	void init(gui::window& window);
-
 	void main();
 	void execute_callbacks(size_t limit = 10);
 
@@ -74,9 +77,10 @@ private:
 	void setup_shaders();
 	void cleanup_shaders();
 
-	void capture_screen_gl(v8::Persistent<v8::Function> cb, std::string format);
-	void capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function> cb, std::string format);
+	void capture_screen_gl(v8::Persistent<v8::Function>* cb, std::string format);
+	void capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function>* cb, std::string format);
 private:
+	runtime& rt_;
 	v8pp::persistent_ptr<gui::window> window_;
 	std::vector<boost::shared_ptr<gl::shader>> shaders_;
 

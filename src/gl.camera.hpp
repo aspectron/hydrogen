@@ -9,8 +9,7 @@ namespace aspect { namespace gl {
 class HYDROGEN_API camera : public entity, public gl::viewport
 {
 public:
-	camera();
-	explicit camera(v8::Arguments const& args);
+	explicit camera(v8::FunctionCallbackInfo<v8::Value> const& args);
 
 	bool is_perspective_projection() const { return projection_ == PERSPECTIVE; }
 	bool is_orthographic_projection() const { return projection_ == ORTHOGRAPHIC; }
@@ -29,7 +28,7 @@ public:
 	}
 
 	entity* target() {return target_.get(); }
-	void set_target(entity* e) { target_.reset(e); }
+	void set_target(v8::Isolate* isolate, entity* e) { target_.reset(isolate, e); }
 
 	// get a world-space ray representing the mouse pointer
 	bool get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far) const;

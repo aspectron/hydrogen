@@ -76,22 +76,23 @@ bullet::bullet()
 	init();
 }
 
-bullet::bullet(v8::Arguments const& args)
+bullet::bullet(v8::FunctionCallbackInfo<v8::Value> const& args)
 {
 	init();
 	if (args[0]->IsObject())
 	{
-		v8::HandleScope scope;
-		v8::Handle<v8::Object> obj = args[0].As<v8::Object>();
+		v8::Isolate* isolate = args.GetIsolate();
+		v8::HandleScope scope(isolate);
+		v8::Local<v8::Object> obj = args[0].As<v8::Object>();
 
 		math::vec3 gravity, water_normal;
 		double air_density = 0, water_density = 0, water_offset = 0;
 
-		get_option(obj, "gravity", gravity);
-		get_option(obj, "air_density", air_density);
-		get_option(obj, "water_density", water_density);
-		get_option(obj, "water_offset", water_offset);
-		get_option(obj, "water_normal", water_normal);
+		get_option(isolate, obj, "gravity", gravity);
+		get_option(isolate, obj, "air_density", air_density);
+		get_option(isolate, obj, "water_density", water_density);
+		get_option(isolate, obj, "water_offset", water_offset);
+		get_option(isolate, obj, "water_normal", water_normal);
 
 		set_gravity(gravity);
 		set_densities(air_density, water_density, water_offset, water_normal);

@@ -20,7 +20,22 @@ var window = oxygen.Window({
 	style : oxygen.styles.APPLICATION
 })
 
-log.info("Window created...");
+window.on('close', function(){ rt.exit(0); });
+window.on('keydown', function(e)
+{
+	switch (e.vk_code)
+	{
+	case oxygen.keys.ESCAPE:
+		window.destroy();
+		rt.exit(0);
+		break;
+	case oxygen.keys.F:
+		window.toggle_fullscreen();
+		break;
+	}
+});
+
+log.info("Window created. Press <ESC> to exit, <F> toggles fullscreen");
 
 dpc(500000, function(){
 	log.info("Destroying window...");
@@ -29,6 +44,6 @@ dpc(500000, function(){
 
 var engine = new hydrogen.Engine(window, 
 	{
-		info: { show: true },
+		info: { show: rt.platform=="windows" },
 		vsync_interval: 1,
 	});

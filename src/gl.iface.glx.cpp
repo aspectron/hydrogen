@@ -89,7 +89,7 @@ void iface::set_vsync_interval(int interval)
 
 void iface::output_text(double x, double y, char const* text, GLdouble const* clr)
 {
-	trace("%s\n", text);
+	window_.rt().trace("%s\n", text);
 #if 0
 	//y+= 10;
 	static double const default_color[] = {1.0,1.0,1.0,1.0};

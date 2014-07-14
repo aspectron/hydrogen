@@ -3,23 +3,18 @@
 
 #include "math.hpp"
 
-using namespace v8;
-
 namespace aspect {
 
 DECLARE_LIBRARY_ENTRYPOINTS(hydrogen_install, hydrogen_uninstall);
 
-static Persistent<Value> image_module;
-
-Handle<Value> hydrogen_install()
+v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 {
 	using namespace aspect::gl;
 	using namespace aspect::physics;
 
-	image_module = Persistent<Value>::New(load_library("image"));
-	if (image_module.IsEmpty())
+	if (runtime::instance(isolate).core().load_library("image").IsEmpty())
 	{
-		return v8pp::throw_ex("image module required");
+		return v8pp::throw_ex(isolate, "image module required");
 	}
 
 	/**
@@ -35,7 +30,7 @@ Handle<Value> hydrogen_install()
 
 	Vectors also could be constructed from an array with number elements `[x, y, z]`
 	**/
-	v8pp::module hydrogen_module;
+	v8pp::module hydrogen_module(isolate);
 
 	/**
 	@class Bullet
@@ -54,7 +49,7 @@ Handle<Value> hydrogen_install()
 
 	See also #Bullet.setGravity, #Bullet.setDensities
 	**/
-	v8pp::class_<physics::bullet> bullet_class(v8pp::v8_args_ctor);
+	v8pp::class_<physics::bullet> bullet_class(isolate, v8pp::v8_args_ctor);
 	bullet_class
 		/**
 		@function add(entity)
@@ -128,7 +123,7 @@ Handle<Value> hydrogen_install()
 	  * `rendering_hold`   rendering hold settings, see #Engine.setRenderingHold
 	  * `vsync_interval`   vsync interval value, Number
 	**/
-	v8pp::class_<gl::engine> engine_class(v8pp::v8_args_ctor);
+	v8pp::class_<gl::engine> engine_class(isolate, v8pp::v8_args_ctor);
 	engine_class
 		.inherit<v8_core::event_emitter>()
 		/**
@@ -248,7 +243,7 @@ Handle<Value> hydrogen_install()
 	Create an entity with optional configuration. Allowed attributes in `config`:
 	  * location `Vector3` entity location
 	**/
-	v8pp::class_<gl::entity> entity_class(v8pp::v8_args_ctor);
+	v8pp::class_<gl::entity> entity_class(isolate, v8pp::v8_args_ctor);
 	entity_class
 		.inherit<v8_core::event_emitter>()
 
@@ -440,7 +435,7 @@ Handle<Value> hydrogen_install()
 	@class Camera - Camera entity
 	Camera in 3D space, derived from #Entity
 	**/
-	v8pp::class_<gl::camera> camera_class(v8pp::v8_args_ctor);
+	v8pp::class_<gl::camera> camera_class(isolate, v8pp::v8_args_ctor);
 	camera_class
 		.inherit<gl::entity>()
 
@@ -478,19 +473,17 @@ Handle<Value> hydrogen_install()
 	return hydrogen_module.new_instance();
 }
 
-void hydrogen_uninstall(Handle<Value> library)
+void hydrogen_uninstall(v8::Isolate* isolate, v8::Handle<v8::Value> library)
 {
 	// destroy engine and bullet instances before entity
 	// to stop rendering and physics simulation
-	v8pp::class_<gl::engine>::destroy_objects();
-	v8pp::class_<physics::bullet>::destroy_objects();
+	v8pp::class_<gl::engine>::destroy_objects(isolate);
+	v8pp::class_<physics::bullet>::destroy_objects(isolate);
 
 	// it's now safe to destroy entity and camera instances
 	// after engine and bullet have been stopped
-	v8pp::class_<gl::camera>::destroy_objects();
-	v8pp::class_<gl::entity>::destroy_objects();
-
-	image_module.Dispose();
+	v8pp::class_<gl::camera>::destroy_objects(isolate);
+	v8pp::class_<gl::entity>::destroy_objects(isolate);
 }
 
 } // aspect
