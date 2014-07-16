@@ -118,39 +118,10 @@ math::vec2 camera::get_zero_plane_world_to_screen_scale()
 void camera::render_impl()
 {
 	glMatrixMode(GL_PROJECTION);
-	// glLoadIdentity();
+	glLoadMatrixd(projection_ == ORTHOGRAPHIC? projection_matrix().v : modelview_matrix().v);
 
-	if (projection_ == ORTHOGRAPHIC)
-	{
-		//glOrtho(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 10.0f);
-		glLoadMatrixd(projection_matrix().v);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-	}
-	else
-	{
-		//glLoadMatrixd((GLdouble*)get_projection_matrix_ptr());
-
-		//gluPerspective(60.0f, (float)1920 / (float)1080, 0.01f, 100.0f);
-		//glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixd(modelview_matrix().v);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		
-		/*
-
-		math::matrix m;
-//			m.invert(get_transform_matrix());
-		if(!target_.get())
-			m.invert(get_modelview_matrix());
-		else
-			m = get_modelview_matrix();
-
-		glLoadMatrixd((GLdouble*)&m);//get_transform_matrix_ptr());
-		*/
-		//glLoadMatrixd((GLdouble*)get_transform_matrix_ptr());
-	}
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
 	// set ourselves as current camera into context
 	engine().set_camera(this);
