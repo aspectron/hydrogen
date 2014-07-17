@@ -5,8 +5,21 @@ namespace aspect { namespace gl {
 
 size_t global_entity_count = 0;
 
+entity::entity(gl::engine& engine)
+	: engine_(engine)
+	, hidden_(false)
+	, fade_ts_(0)
+	, fade_duration_(0)
+	, transparency_(0)
+	, entity_type_(0)
+	, collision_candidates_(0)
+{
+	transparency_targets_.fill(0);
+	++global_entity_count;
+}
+
 entity::entity(v8::FunctionCallbackInfo<v8::Value> const& args)
-	: isolate_(args.GetIsolate())
+	: engine_(v8pp::from_v8<gl::engine&>(args.GetIsolate(), args[0]))
 	, hidden_(false)
 	, fade_ts_(0)
 	, fade_duration_(0)
@@ -17,12 +30,12 @@ entity::entity(v8::FunctionCallbackInfo<v8::Value> const& args)
 	transparency_targets_.fill(0);
 	++global_entity_count;
 
-	if (args[0]->IsObject())
+	if (args[1]->IsObject())
 	{
 		v8::Isolate* isolate = args.GetIsolate();
 		v8::HandleScope scope(isolate);
 
-		v8::Local<v8::Object> config = args[0].As<v8::Object>();
+		v8::Local<v8::Object> config = args[1].As<v8::Object>();
 
 		v8::Local<v8::Value> value;
 		if (get_option(isolate, config, "location", value))
@@ -52,9 +65,11 @@ void entity::delete_all_children()
 
 entity& entity::attach(entity& child)
 {
+	v8::Isolate* isolate = engine_.rt().isolate();
+
 	boost::mutex::scoped_lock lock(children_mutex_);
-	children_.emplace_back(entity_ptr(child.isolate_, &child));
-	child.parent_.reset(isolate_, this);
+	children_.emplace_back(entity_ptr(isolate, &child));
+	child.parent_.reset(isolate, this);
 
 	return *this;
 }
@@ -125,7 +140,7 @@ void entity::set_transform_matrix(math::matrix const& transform)
 	}
 }
 
-void entity::render(render_context& context)
+void entity::render()
 {
 	boost::mutex::scoped_lock lock(children_mutex_);
 
@@ -145,10 +160,10 @@ void entity::render(render_context& context)
 		transparency_ = transparency_targets_[0] * (1.0 - delta) - transparency_targets_[1] * delta;
 	}
 
-	render_impl(context);
+	render_impl();
 
 	std::for_each(children_.begin(), children_.end(),
-		[&context] (entity_ptr& child) { child->render(context); });
+		[] (entity_ptr& child) { child->render(); });
 }
 
 void entity::apply_rotation(math::quat const& q)

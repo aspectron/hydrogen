@@ -8,7 +8,7 @@ namespace aspect { namespace gl {
 
 engine::engine(v8::FunctionCallbackInfo<v8::Value> const& args)
 	: rt_(runtime::instance(args.GetIsolate()))
-	, context_(*this)
+	, camera_(nullptr)
 	, show_engine_info_(false)
 	, engine_info_location_(0, 12)
 	, hold_rendering_(false)
@@ -29,7 +29,7 @@ engine::engine(v8::FunctionCallbackInfo<v8::Value> const& args)
 	}
 	window_.reset(isolate, window);
 
-	entity* world = new entity(args);
+	entity* world = new entity(*this);
 	v8pp::class_<entity>::import_external(isolate, world);
 	world_.reset(isolate, world);
 
@@ -147,7 +147,7 @@ void engine::main()
 			bullet_->render(hold_interval_ / 1000.0, 10);//, 1.0/60.0);
 		}
 
-		world_->render(context_);
+		world_->render();
 
 		if (show_engine_info_)
 		{
@@ -301,6 +301,14 @@ void engine::cleanup_shaders()
 	shaders_.clear();
 }
 
+math::vec2 engine::output_scale() const
+{
+	math::vec2 scale;
+	scale.x = (double)iface_->framebuffer().width / iface_->viewport().width;
+	scale.y = (double)iface_->framebuffer().height / iface_->viewport().height;
+	return scale;
+}
+
 math::vec2 engine::map_pixel_to_view(math::vec2 const& v) const
 {
 	return math::vec2((v.x + 0.5) / iface_->framebuffer().width,
@@ -310,12 +318,6 @@ math::vec2 engine::map_pixel_to_view(math::vec2 const& v) const
 void engine::set_vsync_interval(int value)
 {
 	schedule(boost::bind(&gl::iface::set_vsync_interval, iface_.get(), value));
-}
-
-void engine::set_camera(gl::camera* camera)
-{
-	camera_.reset(rt_.isolate(), camera);
-	context_.set_camera(camera);
 }
 
 void engine::capture_screen_gl(v8::Persistent<v8::Function>* cb, std::string format)

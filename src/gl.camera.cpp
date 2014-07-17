@@ -1,12 +1,36 @@
 #include "hydrogen.hpp"
 #include "gl.camera.hpp"
 
+#include "gl.engine.hpp"
+
 namespace aspect { namespace gl {
+
+camera::camera(gl::engine& engine)
+	: gl::entity(engine)
+{
+	modelview_matrix_.set_identity();
+}
 
 camera::camera(v8::FunctionCallbackInfo<v8::Value> const& args)
 	: gl::entity(args)
 {
 	modelview_matrix_.set_identity();
+}
+
+double camera::set_perspective_projection_fov(double width, double height,
+		double near_plane, double far_plane, double fov)
+{
+	projection_ = PERSPECTIVE;
+	math::vec2 const scale = engine().output_scale();
+	return gl::viewport::set_perspective_projection_fov(width, height, near_plane, far_plane, fov)
+		* std::max(scale.x, scale.y);
+}
+
+void camera::set_orthographic_projection(double left, double right, double bottom, double top,
+		double near_plane, double far_plane)
+{
+	projection_ = ORTHOGRAPHIC;
+	gl::viewport::set_orthographic_projection(left, right, bottom, top, near_plane, far_plane);
 }
 
 void camera::update_modelview_matrix()
@@ -91,7 +115,7 @@ math::vec2 camera::get_zero_plane_world_to_screen_scale()
 	return math::vec2(pt2.x - pt1.x, pt2.y - pt1.y);
 }
 
-void camera::render_impl(render_context& context)
+void camera::render_impl()
 {
 	glMatrixMode(GL_PROJECTION);
 	// glLoadIdentity();
@@ -129,7 +153,7 @@ void camera::render_impl(render_context& context)
 	}
 
 	// set ourselves as current camera into context
-	context.set_camera(this);
+	engine().set_camera(this);
 }
 
 bool camera::get_mouse_ray(int x, int y, math::vec3& out_near, math::vec3& out_far) const
@@ -168,10 +192,10 @@ void camera::ray_test_impl(gl::entity* e, math::vec3 const& ray_near, math::vec3
 		[this, &ray_near, &ray_far, &result](entity* e) { ray_test_impl(e, ray_near, ray_far, result); });
 }
 
-void camera::hit_test(gl::engine& engine, math::vec3 const& ray_near, math::vec3 const& ray_far)
+void camera::hit_test(math::vec3 const& ray_near, math::vec3 const& ray_far)
 {
 	entities new_hits;
-	ray_test_impl(&engine.world(), ray_near, ray_far, new_hits);
+	ray_test_impl(&engine().world(), ray_near, ray_far, new_hits);
 
 	// search entered and leaved entities by comparing
 	// last_hits_ and new_hits vectors
@@ -205,20 +229,19 @@ void camera::hit_test(gl::engine& engine, math::vec3 const& ray_near, math::vec3
 
 	if (!entered.empty())
 	{
-		engine.rt().main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
-			&engine, "enter", entered, ray_near, ray_far));
+		engine().rt().main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
+			"enter", entered, ray_near, ray_far));
 	}
 	if (!leaved.empty())
 	{
-		engine.rt().main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
-			&engine, "leave", leaved, ray_near, ray_far));
+		engine().rt().main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
+			"leave", leaved, ray_near, ray_far));
 	}
 }
 
-void camera::emit_hit_events_v8(gl::engine* engine, std::string type,
-	entities ents, math::vec3 ray_near, math::vec3 ray_far)
+void camera::emit_hit_events_v8(std::string type, entities ents, math::vec3 ray_near, math::vec3 ray_far)
 {
-	v8::Isolate* isolate = engine->rt().isolate();
+	v8::Isolate* isolate = engine().rt().isolate();
 
 	v8::HandleScope scope(isolate);
 
@@ -228,11 +251,11 @@ void camera::emit_hit_events_v8(gl::engine* engine, std::string type,
 	args[3] = v8pp::to_v8(isolate, ray_far);
 
 	std::for_each(ents.begin(), ents.end(),
-		[this, engine, isolate, &type, &args](gl::entity* e)
+		[this, isolate, &type, &args](gl::entity* e)
 		{
 			args[0] = v8pp::to_v8(isolate, e);
 
-			engine->emit(isolate, type, 4, args);
+			this->engine().emit(isolate, type, 4, args);
 			e->emit(isolate, type, 3, args + 1);
 		});
 }

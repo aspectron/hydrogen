@@ -44,7 +44,6 @@
 
 #include "gl.transform.hpp"
 
-#include "gl.context.hpp"
 #include "gl.entity.hpp"
 #include "gl.camera.hpp"
 

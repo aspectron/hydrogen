@@ -11,7 +11,7 @@
 
 namespace aspect { namespace gl {
 
-class render_context;
+class engine;
 class entity;
 
 typedef v8pp::persistent_ptr<entity> entity_ptr;
@@ -19,11 +19,15 @@ typedef v8pp::persistent_ptr<entity> entity_ptr;
 class HYDROGEN_API entity : public v8_core::event_emitter
 {
 public:
+	explicit entity(gl::engine& engine);
 	explicit entity(v8::FunctionCallbackInfo<v8::Value> const& args);
 	virtual ~entity();
 
+	gl::engine& engine() { return engine_; }
+	gl::engine const& engine() const { return engine_; }
+
 	// main stuff
-	void render(render_context& context);
+	void render();
 
 	entity& attach(entity& child);
 	entity& detach(entity& child);
@@ -244,7 +248,7 @@ public:
 
 private:
 	// perform real rendering
-	virtual void render_impl(render_context&) {}
+	virtual void render_impl() {}
 
 	void fade(bool in, double msec)
 	{
@@ -254,7 +258,7 @@ private:
 		fade_duration_ = msec;
 	}
 
-	v8::Isolate* isolate_;
+	gl::engine& engine_;
 	entity_ptr parent_;
 
 	typedef std::vector<entity_ptr> children_list;

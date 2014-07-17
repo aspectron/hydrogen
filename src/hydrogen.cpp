@@ -183,13 +183,6 @@ v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 		.set("setVsyncInterval", &engine::set_vsync_interval)
 
 		/**
-		@function setCamera(camera)
-		@param camera {Camera}
-		Set current camera
-		**/
-		.set("setCamera", &engine::set_camera)
-
-		/**
 		@function setPhysics(physics)
 		@param physics {Bullet}
 		Set physics engine
@@ -237,10 +230,12 @@ v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 	**/
 
 	/**
-	@function Entity([config])
+	@function Entity(engine [, config])
+	@param engine {Engine}
 	@param [config] {Object}
 	Constructor
-	Create an entity with optional configuration. Allowed attributes in `config`:
+	Create an entity in engine with optional configuration object.
+	Allowed attributes in `config`:
 	  * location `Vector3` entity location
 	**/
 	v8pp::class_<gl::entity> entity_class(isolate, v8pp::v8_args_ctor);

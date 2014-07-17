@@ -1,22 +1,15 @@
-pragma("event-queue");
+pragma('event-queue');
 
-require("rte");
+require('rte');
 
-var log = require("log");
-
-log.info("loading oxygen");
-var oxygen = require("oxygen");
-
-log.info("loading hydrogen");
-var hydrogen = require("hydrogen");
-
-log.info("Creating window...");
+var oxygen = require('oxygen');
+var hydrogen = require('hydrogen');
 
 var window = oxygen.Window({
 	width: 640,
 	height: 480,
 	bpp: 32,
-	caption: "OXYGEN",
+	caption: 'HYDROGEN',
 	style : oxygen.styles.APPLICATION
 })
 
@@ -26,7 +19,6 @@ window.on('keydown', function(e)
 	switch (e.vk_code)
 	{
 	case oxygen.keys.ESCAPE:
-		window.destroy();
 		rt.exit(0);
 		break;
 	case oxygen.keys.F:
@@ -35,15 +27,16 @@ window.on('keydown', function(e)
 	}
 });
 
-log.info("Window created. Press <ESC> to exit, <F> toggles fullscreen");
-
-dpc(500000, function(){
-	log.info("Destroying window...");
-	window.destroy();
-})
-
 var engine = new hydrogen.Engine(window, 
 	{
-		info: { show: rt.platform=="windows" },
+		info: { show: rt.platform == 'windows' },
 		vsync_interval: 1,
 	});
+
+var entity = new hydrogen.Entity(engine);
+engine.world.attach(entity);
+
+var camera = new hydrogen.Camera(engine);
+engine.world.attach(camera);
+
+console.log('Engine started. Press <ESC> to exit, <F> toggles fullscreen');

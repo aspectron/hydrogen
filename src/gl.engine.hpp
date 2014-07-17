@@ -6,6 +6,8 @@
 
 namespace aspect { namespace gl {
 
+class camera;
+
 class HYDROGEN_API engine : public v8_core::event_emitter
 {
 public:
@@ -15,6 +17,8 @@ public:
 	runtime& rt() { return rt_; }
 
 	gui::window& window() { return *window_; }
+
+	math::vec2 output_scale() const;
 
 	/// Callback function to schedule in the main engine thread
 	typedef boost::function<void ()> callback;
@@ -40,7 +44,8 @@ public:
 		debug_string_ = str;
 	}
 
-	void set_camera(gl::camera* camera);
+	gl::camera* camera() { return camera_; }
+	void set_camera(gl::camera* camera) { camera_ = camera; }
 
 	void set_physics(physics::bullet& bullet)
 	{
@@ -93,10 +98,9 @@ private:
 
 	v8pp::persistent_ptr<entity> world_;
 	v8pp::persistent_ptr<physics::bullet> bullet_;
-	v8pp::persistent_ptr<gl::camera> camera_;
 
 	boost::scoped_ptr<gl::iface> iface_;
-	render_context context_;
+	gl::camera* camera_;
 
 	boost::mutex iface_mutex_;
 	boost::condition_variable iface_cv_;

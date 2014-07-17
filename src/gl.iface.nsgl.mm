@@ -6,17 +6,17 @@ namespace aspect { namespace gl {
 iface::iface(gui::window& window)
 	: iface_base(window)
 {
-    NSOpenGLPixelFormatAttribute attributes [] =
+	NSOpenGLPixelFormatAttribute attributes [] =
 	{
-        NSOpenGLPFAWindow,
-        NSOpenGLPFADoubleBuffer,
+		NSOpenGLPFAWindow,
+		NSOpenGLPFADoubleBuffer,
 		NSOpenGLPFAClosestPolicy,
 		NSOpenGLPFAAccelerated,
 //		NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
 //		NSOpenGLPFAColorSize, 24,
 //		NSOpenGLPFADepthSize, 24,
-        0,
-    };
+		0,
+	};
 	NSOpenGLPixelFormat* pixel_format = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
 
 	context_ = [[NSOpenGLContext alloc]
@@ -28,8 +28,8 @@ iface::iface(gui::window& window)
 		throw std::runtime_error("Failed to create an OpenGL context for this window");
 	}
 
-    if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
-    {
+	if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
+	{
 		[window_.view setWantsBestResolutionOpenGLSurface:YES];
 	}
 	[context_ setView:window_.view];
