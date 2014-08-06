@@ -36,6 +36,7 @@
                 '<(jsx)/../math/math.gyp:math',
                 '<(jsx)/../oxygen/oxygen.gyp:oxygen',
                 'bullet',
+                'hydrogen_doc',
             ],
             'direct_dependent_settings': {
                 'include_dirs': ['src', '<(bullet_dir)', '<@(gl_include_dirs)'],
@@ -252,6 +253,36 @@
                 '<(bullet_dir)/MiniCL/MiniCL.cpp',
                 '<(bullet_dir)/MiniCL/MiniCLTaskScheduler.cpp',
                 '<(bullet_dir)/MiniCL/MiniCLTask/MiniCLTask.cpp',
+            ],
+        },
+        {
+            'target_name': 'hydrogen_doc',
+            'type': 'none',
+            'dependencies': [
+                '<(jsx)/apps/jsx/jsx.gyp:*',
+            ],
+
+            'variables': {
+                'jsx_app': '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)jsx<(EXECUTABLE_SUFFIX)',
+                'doc_dir': 'doc/hydrogen',
+            },
+            'conditions': [
+                ['OS=="linux"', {
+                    'variables': { 'jsx_app': '<(out_dir)/<(EXECUTABLE_PREFIX)jsx<(EXECUTABLE_SUFFIX)' },
+                }],
+            ],
+
+            'actions': [
+                {
+                    'action_name': 'build_doc',
+                    'inputs': ['rte/hydrogen.js', 'src/hydrogen.cpp'],
+                    'outputs': ['<(doc_dir)/all.md'],
+                    'action': ['<(jsx_app)', '<(jsx)/build/tools/gendoc/run.js',
+                        '<(doc_dir)', 'rte/.+[.]js', 'src/.+[.]cpp',
+                    ],
+                    'msvs_cygwin_shell': 0,
+                    'message': 'Building documentation...',
+                },
             ],
         },
     ],
