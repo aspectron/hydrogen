@@ -1,7 +1,7 @@
 #ifndef HYDROGEN_GL_ENTITY_HPP_INCLUDED
 #define HYDROGEN_GL_ENTITY_HPP_INCLUDED
 
-#include "events.hpp"
+#include "jsx/events.hpp"
 
 #define BT_NO_PROFILE
 #include "btBulletDynamicsCommon.h"

@@ -7,7 +7,7 @@
 struct NSOpenGLContext;
 #endif
 
-#include "gl.iface.hpp"
+#include "hydrogen/gl.iface.hpp"
 
 namespace aspect { namespace gl {
 

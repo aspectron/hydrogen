@@ -1,8 +1,8 @@
-#include "hydrogen.hpp"
-#include "gl.engine.hpp"
+#include "hydrogen/hydrogen.hpp"
+#include "hydrogen/gl.engine.hpp"
 
-#include "v8_buffer.hpp"
-#include "encoder.hpp"
+#include "jsx/v8_buffer.hpp"
+#include "image/encoder.hpp"
 
 namespace aspect { namespace gl {
 

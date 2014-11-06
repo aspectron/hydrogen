@@ -1,7 +1,7 @@
 #ifndef HYDROGEN_GL_TEXTURE_HPP_INCLUDED
 #define HYDROGEN_GL_TEXTURE_HPP_INCLUDED
 
-#include "geometry.hpp"
+#include "jsx/geometry.hpp"
 
 namespace aspect { namespace gl {
 

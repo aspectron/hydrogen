@@ -1,7 +1,6 @@
-#include "hydrogen.hpp"
-#include "library.hpp"
+#include "hydrogen/hydrogen.hpp"
 
-#include "math.hpp"
+#include "jsx/library.hpp"
 
 namespace aspect {
 

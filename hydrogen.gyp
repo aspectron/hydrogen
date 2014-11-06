@@ -30,57 +30,57 @@
             'type': 'shared_library',
             'msvs_guid': '0F581191-E1FC-407D-A535-738EED3C9216',
             'dependencies': [
-                '<(jsx)/sdk/core/core.gyp:core',
+                '<(jsx)/jsx-lib.gyp:jsx-lib',
                 '<(jsx)/extern/extern.gyp:*',
                 '<(jsx)/../image/image.gyp:image',
                 '<(jsx)/../math/math.gyp:math',
                 '<(jsx)/../oxygen/oxygen.gyp:oxygen',
                 'bullet',
-                'hydrogen_doc',
+                'hydrogen-doc',
             ],
             'direct_dependent_settings': {
-                'include_dirs': ['src', '<(bullet_dir)', '<@(gl_include_dirs)'],
+                'include_dirs': ['include', '<(bullet_dir)', '<@(gl_include_dirs)'],
                 'libraries': ['<@(gl_libraries)'],
             },
             'defines': ['HYDROGEN_EXPORTS'],
-            'include_dirs': [ '<@(gl_include_dirs)'],
+            'include_dirs': ['include', '<@(gl_include_dirs)'],
             'libraries': ['<@(gl_libraries)'],
             'sources': [
+                'include/hydrogen/gl.camera.hpp',
+                'include/hydrogen/gl.color.hpp',
+                'include/hydrogen/gl.engine.hpp',
+                'include/hydrogen/gl.entity.hpp',
+                'include/hydrogen/gl.iface.hpp',
+                'include/hydrogen/gl.shader.hpp',
+                'include/hydrogen/gl.texture.hpp',
+                'include/hydrogen/gl.transform.hpp',
+                'include/hydrogen/gl.viewport.hpp',
+                'include/hydrogen/hydrogen.hpp',
+                'include/hydrogen/physics.bullet.hpp',
                 'src/gl.camera.cpp',
-                'src/gl.camera.hpp',
-                'src/gl.color.hpp',
                 'src/gl.engine.cpp',
-                'src/gl.engine.hpp',
                 'src/gl.entity.cpp',
-                'src/gl.entity.hpp',
-                'src/gl.iface.hpp',
-                'src/gl.shader.hpp',
                 'src/gl.texture.cpp',
-                'src/gl.texture.hpp',
-                'src/gl.transform.hpp',
-                'src/gl.viewport.hpp',
                 'src/hydrogen.cpp',
-                'src/hydrogen.hpp',
                 'src/physics.bullet.cpp',
-                'src/physics.bullet.hpp',
             ],
             'conditions': [
                 ['OS=="win"', {
                     'sources': [
+                        'include/hydrogen/gl.iface.wgl.hpp',
                         'src/gl.iface.wgl.cpp',
-                        'src/gl.iface.wgl.hpp',
                     ],
                 }],
                 ['OS=="mac"', {
                     'sources': [
+                        'include/hydrogen/gl.iface.nsgl.hpp',
                         'src/gl.iface.nsgl.mm',
-                        'src/gl.iface.nsgl.hpp',
                     ],
                 }],
                 ['OS=="linux"', {
                     'sources': [
+                        'include/hydrogen/gl.iface.glx.hpp',
                         'src/gl.iface.glx.cpp',
-                        'src/gl.iface.glx.hpp',
                     ],
                 }],
             ],
@@ -256,32 +256,27 @@
             ],
         },
         {
-            'target_name': 'hydrogen_doc',
+            'target_name': 'hydrogen-doc',
             'type': 'none',
-            'dependencies': [
-                '<(jsx)/apps/jsx/jsx.gyp:*',
-            ],
-
+            'dependencies': ['<(jsx)/jsx-app.gyp:jsx-app'],
             'variables': {
                 'jsx_app': '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)jsx<(EXECUTABLE_SUFFIX)',
                 'doc_dir': 'doc/hydrogen',
+                'conditions': [
+                    ['OS=="linux"', {
+                        'jsx_app': '<(out_dir)/<(EXECUTABLE_PREFIX)jsx<(EXECUTABLE_SUFFIX)'
+                    }],
+                ],
             },
-            'conditions': [
-                ['OS=="linux"', {
-                    'variables': { 'jsx_app': '<(out_dir)/<(EXECUTABLE_PREFIX)jsx<(EXECUTABLE_SUFFIX)' },
-                }],
-            ],
 
             'actions': [
                 {
-                    'action_name': 'build_doc',
+                    'action_name': 'gendoc',
                     'inputs': ['rte/hydrogen.js', 'src/hydrogen.cpp'],
                     'outputs': ['<(doc_dir)/all.md'],
-                    'action': ['<(jsx_app)', '<(jsx)/build/tools/gendoc/run.js',
-                        '<(doc_dir)', 'rte/.+[.]js', 'src/.+[.]cpp',
-                    ],
+                    'action': ['<(jsx_app)', '<(jsx)/build/tools/gendoc/run.js', '<(doc_dir)', '<@(_inputs)'],
                     'msvs_cygwin_shell': 0,
-                    'message': 'Building documentation...',
+                    'message': 'Building JavaScript API documentation...',
                 },
             ],
         },

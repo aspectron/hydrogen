@@ -1,11 +1,12 @@
 #pragma once
 
-#include "core.hpp"
-#include "v8_core.hpp"
-#include "geometry.hpp"
-#include "image.hpp"
-#include "math.hpp"
-#include "oxygen.hpp"
+#include "jsx/core.hpp"
+#include "jsx/v8_core.hpp"
+#include "jsx/geometry.hpp"
+
+#include "image/image.hpp"
+#include "math/math.hpp"
+#include "oxygen/oxygen.hpp"
 
 #if OS(WINDOWS)
 //	#pragma warning ( disable : 4251 )
@@ -24,30 +25,28 @@
 #if OS(WINDOWS)
 #include "glew.h"
 //#include <GL/glew.h>
-#include "gl.iface.wgl.hpp"
+#include "hydrogen/gl.iface.wgl.hpp"
 #elif OS(DARWIN)
 #include <OpenGL/gl.h>
-#include "gl.iface.nsgl.hpp"
+#include "hydrogen/gl.iface.nsgl.hpp"
 #else
 #include <GL/glxew.h>
 #include <GL/glew.h>
-#include "gl.iface.glx.hpp"
+#include "hydrogen/gl.iface.glx.hpp"
 #endif
 
 #ifdef None
 #undef None
 #endif
 
-#include "gl.color.hpp"
-#include "gl.shader.hpp"
-#include "gl.texture.hpp"
-
-#include "gl.transform.hpp"
-
-#include "gl.entity.hpp"
-#include "gl.camera.hpp"
+#include "hydrogen/gl.color.hpp"
+#include "hydrogen/gl.shader.hpp"
+#include "hydrogen/gl.texture.hpp"
+#include "hydrogen/gl.transform.hpp"
+#include "hydrogen/gl.entity.hpp"
+#include "hydrogen/gl.camera.hpp"
 
 // #define BT_USE_DOUBLE_PRECISION
-#include "physics.bullet.hpp"
+#include "hydrogen/physics.bullet.hpp"
 
-#include "gl.engine.hpp"
+#include "hydrogen/gl.engine.hpp"

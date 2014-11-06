@@ -1,7 +1,9 @@
-#include "hydrogen.hpp"
-#include "gl.texture.hpp"
+#include "hydrogen/hydrogen.hpp"
+#include "hydrogen/gl.texture.hpp"
 
 #include <numeric>
+
+#include "jsx/types.hpp"
 
 namespace aspect { namespace gl {
 

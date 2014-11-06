@@ -1,8 +1,8 @@
 #ifndef HYDROGEN_PHYSICS_BULLET_HPP_INCLUDELD
 #define HYDROGEN_PHYSICS_BULLET_HPP_INCLUDELD
 
-#include "v8_core.hpp"
-#include "math.vector3.hpp"
+#include "jsx/v8_core.hpp"
+#include "math/vector3.hpp"
 
 namespace aspect { namespace physics {
 

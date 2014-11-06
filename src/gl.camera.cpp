@@ -1,7 +1,7 @@
-#include "hydrogen.hpp"
-#include "gl.camera.hpp"
+#include "hydrogen/hydrogen.hpp"
+#include "hydrogen/gl.camera.hpp"
 
-#include "gl.engine.hpp"
+#include "hydrogen/gl.engine.hpp"
 
 namespace aspect { namespace gl {
 

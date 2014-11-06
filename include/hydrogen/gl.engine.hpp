@@ -1,8 +1,8 @@
 #ifndef HYDROGEN_GL_ENGINE_HPP_INCLUDED
 #define HYDROGEN_GL_ENGINE_HPP_INCLUDED
 
-#include "events.hpp"
-#include "runtime.hpp"
+#include "jsx/events.hpp"
+#include "jsx/runtime.hpp"
 
 namespace aspect { namespace gl {
 

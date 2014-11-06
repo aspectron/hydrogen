@@ -1,5 +1,5 @@
-#include "hydrogen.hpp"
-#include "gl.iface.wgl.hpp"
+#include "hydrogen/hydrogen.hpp"
+#include "hydrogen/gl.iface.wgl.hpp"
 
 namespace aspect { namespace gl {
 
