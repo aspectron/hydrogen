@@ -1,20 +1,18 @@
 #include "hydrogen/hydrogen.hpp"
 
-#include "jsx/library.hpp"
+#include <node.h>
+
+#include <v8pp/module.hpp>
+#include <v8pp/class.hpp>
+
+#include "nitrogen/nodeutil.hpp"
 
 namespace aspect {
 
-DECLARE_LIBRARY_ENTRYPOINTS(hydrogen_install, hydrogen_uninstall);
-
-v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
+static v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 {
 	using namespace aspect::gl;
 	using namespace aspect::physics;
-
-	if (runtime::instance(isolate).core().load_library("image").IsEmpty())
-	{
-		return v8pp::throw_ex(isolate, "image module required");
-	}
 
 	/**
 	@module hydrogen Hydrogen
@@ -34,22 +32,24 @@ v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 	/**
 	@class Bullet
 	Physics engine. Real-Time Physics Simulation, see http://bulletphysics.org
-
-	@function Bullet([config]) - Constructor
-	@param [config] {Object}
-
-	Create a new instance of physics engine. Optional parameter `config` is an object
-	with following possible configuration attributes:
-	  * gravity `Vector3`
-	  * air_density `Number`
-	  * water_density `Number`
-	  * water_offset `Number`
-	  * water_normal `Vector3`
-
-	See also #Bullet.setGravity, #Bullet.setDensities
 	**/
-	v8pp::class_<physics::bullet> bullet_class(isolate, v8pp::v8_args_ctor);
+	v8pp::class_<physics::bullet> bullet_class(isolate);
 	bullet_class
+		/**
+		@function Bullet([config]) - Constructor
+		@param [config] {Object}
+
+		Create a new instance of physics engine. Optional parameter `config` is an object
+		with following possible configuration attributes:
+		* gravity `Vector3`
+		* air_density `Number`
+		* water_density `Number`
+		* water_offset `Number`
+		* water_normal `Vector3`
+
+		See also #Bullet.setGravity, #Bullet.setDensities
+		**/
+		.ctor<v8::FunctionCallbackInfo<v8::Value> const&>()
 		/**
 		@function add(entity)
 		@param entity {Entity}
@@ -93,7 +93,7 @@ v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 		**/
 		.set("setDensities", &bullet::set_densities)
 		;
-	hydrogen_module.set("Bullet",  bullet_class);
+	hydrogen_module.set("Bullet", bullet_class);
 
 	/**
 	@class Engine - Rendering engine
@@ -109,22 +109,22 @@ v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 	@param ray_near {Vector3} - hit ray near point
 	@param ray_far  {Vector3} - hit ray far point
 	**/
-
-	/**
-	@function Engine(window [, config])
-	@param window {oxygen.Window}
-	@param [config] {Object}
-	Constructor
-
-	Create a new rendering engine instance with specified output `window` parameter.
-	Optional `config` object might have the following attributes:
-	  * `info`             render information settings, see #Engine.showInfo
-	  * `rendering_hold`   rendering hold settings, see #Engine.setRenderingHold
-	  * `vsync_interval`   vsync interval value, Number
-	**/
-	v8pp::class_<gl::engine> engine_class(isolate, v8pp::v8_args_ctor);
+	v8pp::class_<gl::engine> engine_class(isolate);
 	engine_class
-		.inherit<v8_core::event_emitter>()
+		/**
+		@function Engine(window [, config])
+		@param window {oxygen.Window}
+		@param [config] {Object}
+		Constructor
+
+		Create a new rendering engine instance with specified output `window` parameter.
+		Optional `config` object might have the following attributes:
+		* `info`             render information settings, see #Engine.showInfo
+		* `rendering_hold`   rendering hold settings, see #Engine.setRenderingHold
+		* `vsync_interval`   vsync interval value, Number
+		**/
+		.ctor<v8::FunctionCallbackInfo<v8::Value> const&>()
+		.inherit<event_emitter>()
 		/**
 		@property window {oxygen.Window}
 		Output window, read only
@@ -227,19 +227,19 @@ v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 	@param ray_near {Vector3} - hit ray near point
 	@param ray_far  {Vector3} - hit ray far point
 	**/
-
-	/**
-	@function Entity(engine [, config])
-	@param engine {Engine}
-	@param [config] {Object}
-	Constructor
-	Create an entity in engine with optional configuration object.
-	Allowed attributes in `config`:
-	  * location `Vector3` entity location
-	**/
-	v8pp::class_<gl::entity> entity_class(isolate, v8pp::v8_args_ctor);
+	v8pp::class_<gl::entity> entity_class(isolate);
 	entity_class
-		.inherit<v8_core::event_emitter>()
+		/**
+		@function Entity(engine [, config])
+		@param engine {Engine}
+		@param [config] {Object}
+		Constructor
+		Create an entity in engine with optional configuration object.
+		Allowed attributes in `config`:
+		* location `Vector3` entity location
+		**/
+		.ctor<v8::FunctionCallbackInfo<v8::Value> const&>()
+		.inherit<event_emitter>()
 
 		/**
 		@function attach(child)
@@ -429,8 +429,9 @@ v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 	@class Camera - Camera entity
 	Camera in 3D space, derived from #Entity
 	**/
-	v8pp::class_<gl::camera> camera_class(isolate, v8pp::v8_args_ctor);
+	v8pp::class_<gl::camera> camera_class(isolate);
 	camera_class
+		.ctor<v8::FunctionCallbackInfo<v8::Value> const&>()
 		.inherit<gl::entity>()
 
 		/**
@@ -467,8 +468,9 @@ v8::Handle<v8::Value> hydrogen_install(v8::Isolate* isolate)
 	return hydrogen_module.new_instance();
 }
 
-void hydrogen_uninstall(v8::Isolate* isolate, v8::Handle<v8::Value> library)
+static void hydrogen_uninstall()
 {
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 	// destroy engine and bullet instances before entity
 	// to stop rendering and physics simulation
 	v8pp::class_<gl::engine>::destroy_objects(isolate);
@@ -479,5 +481,16 @@ void hydrogen_uninstall(v8::Isolate* isolate, v8::Handle<v8::Value> library)
 	v8pp::class_<gl::camera>::destroy_objects(isolate);
 	v8pp::class_<gl::entity>::destroy_objects(isolate);
 }
+
+static void init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module)
+{
+	require(module, "nitrogen");
+	require(module, "math");
+	//require(module, "oxygen");
+	exports->SetPrototype(hydrogen_install(v8::Isolate::GetCurrent()));
+	node::AtExit([](void*) { hydrogen_uninstall(); }, nullptr);
+}
+
+NODE_MODULE(hydrogen, init)
 
 } // aspect

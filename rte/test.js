@@ -1,9 +1,5 @@
-pragma('event-queue');
-
-require('rte');
-
 var oxygen = require('oxygen');
-var hydrogen = require('hydrogen');
+var hydrogen = require('..');
 
 var window = oxygen.Window({
 	width: 640,
@@ -19,7 +15,7 @@ window.on('keydown', function(e)
 	switch (e.vk_code)
 	{
 	case oxygen.keys.ESCAPE:
-		rt.exit(0);
+		process.exit(0);
 		break;
 	case oxygen.keys.F:
 		window.toggle_fullscreen();
@@ -29,7 +25,7 @@ window.on('keydown', function(e)
 
 var engine = new hydrogen.Engine(window, 
 	{
-		info: { show: rt.platform == 'windows' },
+		info: { show: process.platform == 'win32' },
 		vsync_interval: 1,
 	});
 
@@ -40,3 +36,4 @@ var camera = new hydrogen.Camera(engine);
 engine.world.attach(camera);
 
 console.log('Engine started. Press <ESC> to exit, <F> toggles fullscreen');
+process.stdin.resume();

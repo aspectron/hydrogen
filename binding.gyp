@@ -1,50 +1,54 @@
 {
+    'includes': ['common.gypi'],
+    'variables': {
+        'bullet_dir': 'extern/bullet/src',
+        'deps': ['image', 'math', 'nitrogen', 'oxygen'],
+        'include_dirs': [
+            'include',
+            '<(bullet_dir)',
+            '<!(node -e require(\'v8pp\'))',
+            '<!@(pkgdeps include <@(deps))',
+        ],
+        'library_dirs': [],
+        'libraries': ['<!@(pkgdeps lib <@(deps))'],
+    },
     'conditions': [
         ['OS=="win"', {
             'variables': {
-                'gl_include_dirs': ['extern/glew/include'],
-                'gl_libraries': ['-lopengl32', 'extern/glew/lib/$(ShortPlatform)/glew32.lib'],
+                'include_dirs': ['extern/glew/include'],
+                'library_dirs': ['extern/glew/lib/$(PlatformShortName)'],
+                'libraries': ['-lopengl32', 'glew32.lib'],
             },
         }],
         ['OS=="mac"', {
             'variables': {
-                'gl_include_dirs': [],
-                'gl_libraries': ['OpenGL.framework', 'AppKit.framework'],
+                'libraries': ['OpenGL.framework', 'AppKit.framework'],
             },
         }],
         ['OS=="linux"', {
             'variables': {
-                'gl_include_dirs': [],
-                'gl_libraries': ['-lGLEW'],
+                'libraries': ['-lGLEW'],
             },
         }],
     ],
 
-    'variables': {
-        'bullet_dir': 'extern/bullet/src',
-    },
-
     'targets': [
         {
             'target_name': 'hydrogen',
-            'type': 'shared_library',
-            'msvs_guid': '0F581191-E1FC-407D-A535-738EED3C9216',
+            'msvs_settings': { 'VCLinkerTool': {
+                'DelayLoadDLLs': ['nitrogen.node', 'math.node', 'image.node', 'oxygen.node'],
+            }},
             'dependencies': [
-                '<(jsx)/jsx-lib.gyp:jsx-lib',
-                '<(jsx)/extern/extern.gyp:*',
-                '<(jsx)/../image/image.gyp:image',
-                '<(jsx)/../math/math.gyp:math',
-                '<(jsx)/../oxygen/oxygen.gyp:oxygen',
                 'bullet',
                 'hydrogen-doc',
             ],
             'direct_dependent_settings': {
-                'include_dirs': ['include', '<(bullet_dir)', '<@(gl_include_dirs)'],
-                'libraries': ['<@(gl_libraries)'],
+                'include_dirs': ['<@(include_dirs)'],
             },
             'defines': ['HYDROGEN_EXPORTS'],
-            'include_dirs': ['include', '<@(gl_include_dirs)'],
-            'libraries': ['<@(gl_libraries)'],
+            'include_dirs': ['<@(include_dirs)'],
+            'library_dirs': ['<@(library_dirs)'],
+            'libraries': ['<@(libraries)'],
             'sources': [
                 'include/hydrogen/gl.camera.hpp',
                 'include/hydrogen/gl.color.hpp',
@@ -70,6 +74,10 @@
                         'include/hydrogen/gl.iface.wgl.hpp',
                         'src/gl.iface.wgl.cpp',
                     ],
+                    'copies': [{
+                        'destination': '<(PRODUCT_DIR)',
+                        'files': ['extern/glew/bin/$(PlatformShortName)/glew32.dll']
+                    }],
                 }],
                 ['OS=="mac"', {
                     'sources': [
@@ -88,7 +96,6 @@
         {
             'target_name': 'bullet',
             'type': 'static_library',
-            'msvs_guid': '38CA01DD-8E64-41C3-9585-08FA77096317',
             'direct_dependent_settings': {
                 'include_dirs': ['<(bullet_dir)'],
             },
@@ -258,24 +265,12 @@
         {
             'target_name': 'hydrogen-doc',
             'type': 'none',
-            'dependencies': ['<(jsx)/jsx-app.gyp:jsx-app'],
-            'variables': {
-                'jsx_app': '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)jsx<(EXECUTABLE_SUFFIX)',
-                'doc_dir': 'doc/hydrogen',
-                'conditions': [
-                    ['OS=="linux"', {
-                        'jsx_app': '<(out_dir)/<(EXECUTABLE_PREFIX)jsx<(EXECUTABLE_SUFFIX)'
-                    }],
-                ],
-            },
-
             'actions': [
                 {
                     'action_name': 'gendoc',
-                    'inputs': ['rte/hydrogen.js', 'src/hydrogen.cpp'],
-                    'outputs': ['<(doc_dir)/all.md'],
-                    'action': ['<(jsx_app)', '<(jsx)/build/tools/gendoc/run.js', '<(doc_dir)', '<@(_inputs)'],
-                    'msvs_cygwin_shell': 0,
+                    'inputs': ['src/hydrogen.cpp'],
+                    'outputs': ['doc/all.md'],
+                    'action': ['gendoc Hydrogen', 'doc', '<@(_inputs)'],
                     'message': 'Building JavaScript API documentation...',
                 },
             ],

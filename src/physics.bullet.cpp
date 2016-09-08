@@ -88,11 +88,11 @@ bullet::bullet(v8::FunctionCallbackInfo<v8::Value> const& args)
 		math::vec3 gravity, water_normal;
 		double air_density = 0, water_density = 0, water_offset = 0;
 
-		get_option(isolate, obj, "gravity", gravity);
-		get_option(isolate, obj, "air_density", air_density);
-		get_option(isolate, obj, "water_density", water_density);
-		get_option(isolate, obj, "water_offset", water_offset);
-		get_option(isolate, obj, "water_normal", water_normal);
+		v8pp::get_option(isolate, obj, "gravity", gravity);
+		v8pp::get_option(isolate, obj, "air_density", air_density);
+		v8pp::get_option(isolate, obj, "water_density", water_density);
+		v8pp::get_option(isolate, obj, "water_offset", water_offset);
+		v8pp::get_option(isolate, obj, "water_normal", water_normal);
 
 		set_gravity(gravity);
 		set_densities(air_density, water_density, water_offset, water_normal);
@@ -152,7 +152,7 @@ void bullet::set_densities(double air_density, double water_density,
 
 bool bullet::add(gl::entity& e)
 {
-	boost::mutex::scoped_lock lock(mutex_);
+	std::unique_lock<std::mutex> lock(mutex_);
 
 	if (e.physics_data_.bounding_type == gl::entity::BOUNDING_NONE)
 		return false;
@@ -332,7 +332,7 @@ bool bullet::add(gl::entity& e)
 
 void bullet::remove(gl::entity& e)
 {
-	boost::mutex::scoped_lock lock(mutex_);
+	std::unique_lock<std::mutex> lock(mutex_);
 
 	if (!e.physics_data_.rigid_body && !e.physics_data_.soft_body)
 		return;

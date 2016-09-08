@@ -1,7 +1,7 @@
 #ifndef HYDROGEN_GL_TEXTURE_HPP_INCLUDED
 #define HYDROGEN_GL_TEXTURE_HPP_INCLUDED
 
-#include "jsx/geometry.hpp"
+#include "nitrogen/geometry.hpp"
 
 namespace aspect { namespace gl {
 
@@ -85,7 +85,7 @@ private:
 	GLvoid* pbo_buffer_;
 	GLuint fbo_;
 
-	boost::shared_ptr<shader> shader_;
+	std::shared_ptr<shader> shader_;
 
 	class cleanup_info;
 

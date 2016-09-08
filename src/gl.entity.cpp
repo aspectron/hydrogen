@@ -38,7 +38,7 @@ entity::entity(v8::FunctionCallbackInfo<v8::Value> const& args)
 		v8::Local<v8::Object> config = args[1].As<v8::Object>();
 
 		v8::Local<v8::Value> value;
-		if (get_option(isolate, config, "location", value))
+		if (v8pp::get_option(isolate, config, "location", value))
 		{
 			set_location(v8pp::from_v8<math::vec3>(isolate, value));
 		}
@@ -57,7 +57,7 @@ entity::~entity()
 
 void entity::delete_all_children()
 {
-	boost::mutex::scoped_lock lock(children_mutex_);
+	std::unique_lock<std::mutex> lock(children_mutex_);
 	std::for_each(children_.begin(), children_.end(),
 		[](entity_ptr& e) { if (e) e->parent_.reset(); });
 	children_.clear();
@@ -65,9 +65,9 @@ void entity::delete_all_children()
 
 entity& entity::attach(entity& child)
 {
-	v8::Isolate* isolate = engine_.rt().isolate();
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
-	boost::mutex::scoped_lock lock(children_mutex_);
+	std::unique_lock<std::mutex> lock(children_mutex_);
 	children_.emplace_back(entity_ptr(isolate, &child));
 	child.parent_.reset(isolate, this);
 
@@ -76,13 +76,13 @@ entity& entity::attach(entity& child)
 
 entity& entity::detach(entity& e)
 {
-	_aspect_assert(!e.parent_.get() || e.parent_.get() == this);
+	assert(!e.parent_.get() || e.parent_.get() == this);
 	if (e.parent_.get() == this)
 	{
-		boost::mutex::scoped_lock lock(children_mutex_);
+		std::unique_lock<std::mutex> lock(children_mutex_);
 		children_list::iterator it = std::find_if(children_.begin(), children_.end(),
 			[&e](entity_ptr& e2) { return &e == e2.get(); });
-		_aspect_assert(it != children_.end());
+		assert(it != children_.end());
 		if (it != children_.end())
 		{
 			children_.erase(it);
@@ -94,7 +94,7 @@ entity& entity::detach(entity& e)
 
 entity::entities entity::children()
 {
-	boost::mutex::scoped_lock lock(children_mutex_);
+	std::unique_lock<std::mutex> lock(children_mutex_);
 
 	entities result(children_.size());
 	std::transform(children_.begin(), children_.end(), result.begin(),
@@ -142,14 +142,14 @@ void entity::set_transform_matrix(math::matrix const& transform)
 
 void entity::render()
 {
-	boost::mutex::scoped_lock lock(children_mutex_);
+	std::unique_lock<std::mutex> lock(children_mutex_);
 
 	if (hidden_)
 		return;
 
 	if (fade_ts_ != 0.0)
 	{
-		double const ts = utils::get_ts();
+		double const ts = get_ts();
 		double const delta = (ts - fade_ts_) / fade_duration_;
 		if (delta > 1.0)
 		{
@@ -173,7 +173,7 @@ void entity::apply_rotation(math::quat const& q)
 
 void entity::sort_z()
 {
-	boost::mutex::scoped_lock lock(children_mutex_);
+	std::unique_lock<std::mutex> lock(children_mutex_);
 	std::sort(children_.begin(), children_.end(),
 		[](entity_ptr const& lhs, entity_ptr const& rhs)
 		{
@@ -189,7 +189,7 @@ void entity::set_location(math::vec3 const& loc)
 
 void entity::disable_contact_response()
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->setCollisionFlags(physics_data_.rigid_body->getCollisionFlags()
@@ -199,7 +199,7 @@ void entity::disable_contact_response()
 
 math::vec3 entity::linear_factor() const
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const& factor = physics_data_.rigid_body->getLinearFactor();
@@ -213,7 +213,7 @@ math::vec3 entity::linear_factor() const
 
 void entity::set_linear_factor(math::vec3 const& factor)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->setLinearFactor(btVector3(factor.x, factor.y, factor.z));
@@ -222,7 +222,7 @@ void entity::set_linear_factor(math::vec3 const& factor)
 
 math::vec3 entity::angular_factor() const
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const& factor = physics_data_.rigid_body->getAngularFactor();
@@ -236,7 +236,7 @@ math::vec3 entity::angular_factor() const
 
 void entity::set_angular_factor(math::vec3 const& factor)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->setAngularFactor(btVector3(factor.x, factor.y, factor.z));
@@ -245,7 +245,7 @@ void entity::set_angular_factor(math::vec3 const& factor)
 
 math::vec3 entity::linear_velocity() const
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const& linear_v = physics_data_.rigid_body->getLinearVelocity();
@@ -259,7 +259,7 @@ math::vec3 entity::linear_velocity() const
 
 void entity::set_linear_velocity(math::vec3 const& linear_v)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const linear_velocity(linear_v.x, linear_v.y, linear_v.z);
@@ -269,7 +269,7 @@ void entity::set_linear_velocity(math::vec3 const& linear_v)
 
 math::vec3 entity::angular_velocity() const
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 
 	btVector3 const& angular_v = physics_data_.rigid_body->getAngularVelocity();
 	return math::vec3(angular_v.x(), angular_v.y(), angular_v.z());
@@ -277,7 +277,7 @@ math::vec3 entity::angular_velocity() const
 
 void entity::set_angular_velocity(math::vec3 const& angular_v)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 
 	btVector3 const angular_velocity(angular_v.x, angular_v.y, angular_v.z);
 
@@ -286,7 +286,7 @@ void entity::set_angular_velocity(math::vec3 const& angular_v)
 
 void entity::apply_impulse(math::vec3 const& impulse, math::vec3 const& rel_pos)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->applyImpulse(
@@ -297,7 +297,7 @@ void entity::apply_impulse(math::vec3 const& impulse, math::vec3 const& rel_pos)
 
 void entity::apply_force(math::vec3 const& force, math::vec3 const& rel_pos)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.rigid_body->applyForce(
@@ -308,7 +308,7 @@ void entity::apply_force(math::vec3 const& force, math::vec3 const& rel_pos)
 
 void entity::set_damping(double linear, double angular)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		physics_data_.damping = math::vec2(linear, angular);
@@ -318,7 +318,7 @@ void entity::set_damping(double linear, double angular)
 
 math::vec3 entity::calculate_relative_vector(math::vec3 const& relative_vector) const
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const relative_v(relative_vector.x, relative_vector.y, relative_vector.z);
@@ -334,7 +334,7 @@ math::vec3 entity::calculate_relative_vector(math::vec3 const& relative_vector) 
 
 void entity::apply_relative_force(math::vec3 const& relative_f)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const relative_force(relative_f.x, relative_f.y, relative_f.z);
@@ -346,7 +346,7 @@ void entity::apply_relative_force(math::vec3 const& relative_f)
 
 void entity::apply_relative_impulse(math::vec3 const& relative_f)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const relative_force(relative_f.x, relative_f.y, relative_f.z);
@@ -358,7 +358,7 @@ void entity::apply_relative_impulse(math::vec3 const& relative_f)
 
 void entity::apply_absolute_impulse(math::vec3 const& absolute_f)
 {
-	_aspect_assert(physics_data_.rigid_body && "physics data has not been defined");
+	assert(physics_data_.rigid_body && "physics data has not been defined");
 	if (physics_data_.rigid_body)
 	{
 		btVector3 const absolute_force(absolute_f.x, absolute_f.y, absolute_f.z);

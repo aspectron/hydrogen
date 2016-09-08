@@ -1,0 +1,19 @@
+{
+  "name": "hydrogen",
+  "version": "1.0.0",
+  "description": "OpenGL",
+  "main": "./build/Release/hydrogen.node",
+  "repository": { "type": "git", "url": "git://github.com/aspectron/hydrogen.git" },
+  "author": "Aspectron Inc.",
+  "license": "MIT",
+  "bugs": { "url": "https://github.com/aspectron/hydrogen/issues" },
+  "homepage": "https://github.com/aspectron/hydrogen#readme",
+  "dependencies": {
+    "v8pp": "^1.0",
+    "gendoc": "https://github.com/aspectron/gendoc.git",
+    "nitrogen": "https://github.com/aspectron/nitrogen.git#nodejs",
+    "math": "https://github.com/aspectron/math.git#nodejs",
+    "image": "https://github.com/aspectron/image.git#nodejs",
+    "oxygen": "https://github.com/aspectron/oxygen.git#nodejs"
+  }
+}

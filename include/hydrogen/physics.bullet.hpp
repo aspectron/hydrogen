@@ -1,7 +1,6 @@
 #ifndef HYDROGEN_PHYSICS_BULLET_HPP_INCLUDELD
 #define HYDROGEN_PHYSICS_BULLET_HPP_INCLUDELD
 
-#include "jsx/v8_core.hpp"
 #include "math/vector3.hpp"
 
 namespace aspect { namespace physics {
@@ -20,11 +19,13 @@ struct collision_callback
 	virtual void physics_collision(info const&) = 0;
 };
 
-class HYDROGEN_API bullet : boost::noncopyable
+class HYDROGEN_API bullet
 {
 public:
 	bullet();
 	explicit bullet(v8::FunctionCallbackInfo<v8::Value> const& args);
+	bullet(bullet const&) = delete;
+	bullet& operator=(bullet const&) = delete;
 	~bullet();
 
 	void set_gravity(math::vec3 const& vec3);
@@ -38,7 +39,7 @@ public:
 
 	void render(float timestep, int sub_steps)
 	{
-		boost::mutex::scoped_lock lock(mutex_);
+		std::unique_lock<std::mutex> lock(mutex_);
 		if (state_ == PLAY)
 		{
 			btSoftRigidDynamicsWorld_->stepSimulation(timestep, sub_steps);
@@ -69,17 +70,17 @@ private:
 
 	collision_callback* user_collision_callback_;
 
-	boost::mutex mutex_;
+	std::mutex mutex_;
 
-	boost::scoped_ptr<btSoftBodyRigidBodyCollisionConfiguration> btSoftBodyRigidBodyCollisionConfiguration_;
-	boost::scoped_ptr<btCollisionDispatcher>                     btCollisionDispatcher_;
-	boost::scoped_ptr<btBroadphaseInterface>                     btBroadphaseInterface_;
-	boost::scoped_ptr<btConstraintSolver>                        btConstraintSolver_;
-	boost::scoped_ptr<btSoftRigidDynamicsWorld>                  btSoftRigidDynamicsWorld_;
-	boost::scoped_ptr<btSoftBodyWorldInfo>                       btSoftBodyWorldInfo_;
+	std::unique_ptr<btSoftBodyRigidBodyCollisionConfiguration> btSoftBodyRigidBodyCollisionConfiguration_;
+	std::unique_ptr<btCollisionDispatcher>                     btCollisionDispatcher_;
+	std::unique_ptr<btBroadphaseInterface>                     btBroadphaseInterface_;
+	std::unique_ptr<btConstraintSolver>                        btConstraintSolver_;
+	std::unique_ptr<btSoftRigidDynamicsWorld>                  btSoftRigidDynamicsWorld_;
+	std::unique_ptr<btSoftBodyWorldInfo>                       btSoftBodyWorldInfo_;
 
 	class axDebugDraw;
-	boost::scoped_ptr<axDebugDraw> debug_draw_;
+	std::unique_ptr<axDebugDraw> debug_draw_;
 
 	void set_debug_drawer(btIDebugDraw* debug_drawer)
 	{

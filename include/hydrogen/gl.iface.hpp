@@ -8,7 +8,7 @@ namespace gui { class window; }
 namespace gl {
 
 /// GL context base class
-class iface_base
+class HYDROGEN_API iface_base
 {
 public:
 	/// Create a context associated with Oxygen window

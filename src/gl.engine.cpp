@@ -1,14 +1,17 @@
 #include "hydrogen/hydrogen.hpp"
 #include "hydrogen/gl.engine.hpp"
 
-#include "jsx/v8_buffer.hpp"
 #include "image/encoder.hpp"
+
+#include <node_buffer.h>
+
+#include <v8pp/class.hpp>
+#include <v8pp/object.hpp>
 
 namespace aspect { namespace gl {
 
 engine::engine(v8::FunctionCallbackInfo<v8::Value> const& args)
-	: rt_(runtime::instance(args.GetIsolate()))
-	, camera_(nullptr)
+	: camera_(nullptr)
 	, show_engine_info_(false)
 	, engine_info_location_(0, 12)
 	, hold_rendering_(false)
@@ -35,8 +38,8 @@ engine::engine(v8::FunctionCallbackInfo<v8::Value> const& args)
 
 	// start main thread and wait for iface creation
 	is_running_ = true;
-	thread_ = boost::thread(&engine::main, this);
-	boost::mutex::scoped_lock iface_lock(iface_mutex_);
+	thread_ = std::thread(&engine::main, this);
+	std::unique_lock<std::mutex> iface_lock(iface_mutex_);
 	while (!iface_)
 	{
 		iface_cv_.wait(iface_lock);
@@ -47,19 +50,19 @@ engine::engine(v8::FunctionCallbackInfo<v8::Value> const& args)
 		v8::Local<v8::Object> config = args[1].As<v8::Object>();
 
 		v8::Local<v8::Value> info;
-		if (get_option(isolate, config, "info", info))
+		if (v8pp::get_option(isolate, config, "info", info))
 		{
 			show_info(isolate, info);
 		}
 
 		v8::Local<v8::Value> rendering_hold;
-		if (get_option(isolate, config, "rendering_hold", rendering_hold))
+		if (v8pp::get_option(isolate, config, "rendering_hold", rendering_hold))
 		{
 			set_rendering_hold(isolate, rendering_hold);
 		}
 
 		int vsync_interval;
-		if (get_option(isolate, config, "vsync_interval", vsync_interval))
+		if (v8pp::get_option(isolate, config, "vsync_interval", vsync_interval))
 		{
 			set_vsync_interval(vsync_interval);
 		}
@@ -72,13 +75,13 @@ engine::~engine()
 	if (thread_.joinable()) thread_.join();
 }
 
-bool engine::schedule(callback cb)
+bool engine::schedule(callback&& cb)
 {
-	_aspect_assert(cb);
+	assert(cb);
 	if (cb && is_running_)
 	{
-		boost::mutex::scoped_lock lock(callbacks_mutex_);
-		callbacks_.push(cb);
+		std::unique_lock<std::mutex> lock(callbacks_mutex_);
+		callbacks_.emplace(std::move(cb));
 		return true;
 	}
 	return false;
@@ -92,11 +95,11 @@ void engine::execute_callbacks(size_t limit)
 		limit = MAX_CALLBACKS;
 	}
 	
-	boost::mutex::scoped_lock lock(callbacks_mutex_);
+	std::unique_lock<std::mutex> lock(callbacks_mutex_);
 	for (size_t cb_handled = 0; !callbacks_.empty() && cb_handled < limit; ++cb_handled)
 	{
 		callback const& cb = callbacks_.front();
-		_aspect_assert(cb);
+		assert(cb);
 		try
 		{
 			cb();
@@ -112,13 +115,13 @@ void engine::execute_callbacks(size_t limit)
 void engine::main()
 {
 	// main thread
-	aspect::os::set_thread_name("hydrogen::engine");
+	//aspect::os::set_thread_name("hydrogen::engine");
 
-#if OS(WINDOWS)
+#if defined(_WIN32)
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 #endif
 
-	boost::mutex::scoped_lock iface_lock(iface_mutex_);
+	std::unique_lock<std::mutex> iface_lock(iface_mutex_);
 	iface_.reset(new gl::iface(*window_));
 	iface_cv_.notify_one();
 	iface_lock.unlock();
@@ -130,7 +133,7 @@ void engine::main()
 
 	while (is_running_)
 	{
-		double const ts0 = utils::get_ts();
+		double const ts0 = get_ts();
 
 		iface_->validate();
 
@@ -169,25 +172,25 @@ void engine::main()
 		}
 #endif
 
-		double const ts_rt = utils::get_ts();
+		double const ts_rt = get_ts();
 
 		iface_->swap_buffers();
 
 		execute_callbacks();
 
-		double const ts1 = utils::get_ts();
+		double const ts1 = get_ts();
 		double const delta_ts1 = ts1 - ts0;
 
 		if (hold_rendering_)
 		{
-			boost::this_thread::sleep_for(boost::chrono::milliseconds(static_cast<int64_t>(hold_interval_ - delta_ts1)));
+			std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int64_t>(hold_interval_ - delta_ts1)));
 		}
 		else
 		{
-			boost::this_thread::yield();
+			std::this_thread::yield();
 		}
 
-		double const ts2 = utils::get_ts();
+		double const ts2 = get_ts();
 
 		double const total_delta_ts1 = 1000.0 / (ts1-ts0);
 		double const total_delta_ts2 = 1000.0 / (ts2-ts0);
@@ -226,7 +229,7 @@ void engine::setup()
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	GLenum _err = glGetError();
-	_aspect_assert(_err == GL_NO_ERROR);
+	assert(_err == GL_NO_ERROR);
 
 	// use backface culling (this is 2D, so we'll never see the back faces anyway)
 	glFrontFace(GL_CW);
@@ -234,7 +237,7 @@ void engine::setup()
 	glDisable(GL_CULL_FACE);
 
 	_err = glGetError();
-	_aspect_assert(_err == GL_NO_ERROR);
+	assert(_err == GL_NO_ERROR);
 
 
 	// perspective calculations
@@ -293,7 +296,7 @@ void engine::setup_shaders()
 //		"	gl_FragColor = vec4(r, g, b, 0.7); \n"
 		"}\n";
 
-	shaders_.push_back(boost::make_shared<gl::shader>(GL_FRAGMENT_SHADER, source));
+	shaders_.push_back(std::make_shared<gl::shader>(GL_FRAGMENT_SHADER, source));
 }
 
 void engine::cleanup_shaders()
@@ -317,24 +320,24 @@ math::vec2 engine::map_pixel_to_view(math::vec2 const& v) const
 
 void engine::set_vsync_interval(int value)
 {
-	schedule(boost::bind(&gl::iface::set_vsync_interval, iface_.get(), value));
+	schedule([this, value](){ iface_->set_vsync_interval(value); });
 }
 
-void engine::capture_screen_gl(v8::Persistent<v8::Function>* cb, std::string format)
+void engine::capture_screen_gl(v8::UniquePersistent<v8::Function>* cb, std::string format)
 {
-	image::shared_bitmap b = boost::make_shared<image::bitmap>(iface_->viewport(), image::BGRA8);
+	image::shared_bitmap b = std::make_shared<image::bitmap>(iface_->viewport(), image::BGRA8);
 
 	glReadPixels(0, 0, iface_->viewport().width, iface_->viewport().height, GL_BGRA, GL_UNSIGNED_BYTE, b->data());
-	rt_.main_loop().schedule(boost::bind(&engine::capture_screen_complete, this, b, cb, format));
+	call_in_node([=]() { capture_screen_complete(b, cb, format); });
 }
 
-void engine::capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function>* cb, std::string format)
+void engine::capture_screen_complete(image::shared_bitmap b, v8::UniquePersistent<v8::Function>* cb, std::string format)
 {
-	v8::Isolate* isolate = rt_.isolate();
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
 	v8::HandleScope scope(isolate);
 
-	buffer data;
+	image::buffer data;
 	if (format == "png")
 	{
 		image::generate_png(*b, data, true);
@@ -356,21 +359,13 @@ void engine::capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::
 		throw std::runtime_error("unknown format to capture: " + format);
 	}
 
-	v8_core::buffer* buf = new v8_core::buffer;
-	buf->swap(data);
-
 	v8::Handle<v8::Value> args[] = {
 		v8pp::to_v8(isolate, format),
 		v8pp::to_v8(isolate, b->size()),
-		v8pp::class_<v8_core::buffer>::import_external(isolate, buf),
+		node::Buffer::New(isolate, (char*)data.data(), data.size()).ToLocalChecked(),
 	};
 
-	v8::TryCatch try_catch;
 	v8pp::to_local(isolate, *cb)->Call(v8pp::to_v8(isolate, this)->ToObject(), 3, args);
-	if ( try_catch.HasCaught() )
-	{
-		rt_.core().report_exception(try_catch);
-	}
 	cb->Reset();
 	delete cb;
 }
@@ -384,20 +379,15 @@ void engine::capture(v8::FunctionCallbackInfo<v8::Value> const& args)
 		throw std::invalid_argument("capture requires format and function callback");
 	}
 
-	char const* const allowed_formats[] =
-	{
-		"png", "jpeg", "bmp", "none"
-	};
-	std::string const format =v8pp::from_v8<std::string>(isolate, args[0]);
-	if (std::find(boost::begin(allowed_formats), boost::end(allowed_formats), format) == boost::end(allowed_formats))
+	auto const allowed_formats = { "png", "jpeg", "bmp", "none" };
+	std::string const format = v8pp::from_v8<std::string>(isolate, args[0]);
+	if (std::find(allowed_formats.begin(), allowed_formats.end(), format) == allowed_formats.end())
 	{
 		throw std::invalid_argument("unknow format  to capture: " + format);
 	}
 
-	v8::Persistent<v8::Function>* cb = new v8::Persistent<v8::Function>(isolate,
-		args[1].As<v8::Function>());
-
-	schedule(boost::bind(&engine::capture_screen_gl, this, cb, format));
+	auto cb = new v8::UniquePersistent<v8::Function>(isolate, args[1].As<v8::Function>());
+	schedule([this, cb, format]() { capture_screen_gl(cb, format); });
 }
 
 void engine::show_info(v8::Isolate* isolate, v8::Handle<v8::Value> settings)
@@ -411,9 +401,9 @@ void engine::show_info(v8::Isolate* isolate, v8::Handle<v8::Value> settings)
 		v8::HandleScope scope(isolate);
 		v8::Local<v8::Object> obj = settings.As<v8::Object>();
 		
-		get_option(isolate, obj, "show", show_engine_info_);
-		get_option(isolate, obj, "location", engine_info_location_);
-		get_option(isolate, obj, "string", debug_string_);
+		v8pp::get_option(isolate, obj, "show", show_engine_info_);
+		v8pp::get_option(isolate, obj, "location", engine_info_location_);
+		v8pp::get_option(isolate, obj, "string", debug_string_);
 	}
 	else throw std::invalid_argument("require object");
 }
@@ -425,8 +415,8 @@ void engine::set_rendering_hold(v8::Isolate* isolate, v8::Handle<v8::Value> sett
 		v8::HandleScope scope(isolate);
 		v8::Local<v8::Object> obj = settings.As<v8::Object>();
 		
-		get_option(isolate, obj, "enable", hold_rendering_);
-		get_option(isolate, obj, "interval", hold_interval_);
+		v8pp::get_option(isolate, obj, "enable", hold_rendering_);
+		v8pp::get_option(isolate, obj, "interval", hold_interval_);
 	}
 	else throw std::invalid_argument("require object");
 }

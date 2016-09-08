@@ -1,7 +1,10 @@
 #ifndef HYDROGEN_GL_ENTITY_HPP_INCLUDED
 #define HYDROGEN_GL_ENTITY_HPP_INCLUDED
 
-#include "jsx/events.hpp"
+#include <v8pp/class.hpp>
+#include <v8pp/persistent.hpp>
+
+#include "nitrogen/nodeutil.hpp"
 
 #define BT_NO_PROFILE
 #include "btBulletDynamicsCommon.h"
@@ -16,7 +19,7 @@ class entity;
 
 typedef v8pp::persistent_ptr<entity> entity_ptr;
 
-class HYDROGEN_API entity : public v8_core::event_emitter
+class HYDROGEN_API entity : public event_emitter
 {
 public:
 	explicit entity(gl::engine& engine);
@@ -173,7 +176,7 @@ public:
 
 	};
 
-	struct physics_data : boost::noncopyable
+	struct physics_data
 	{
 		bounding_type_t bounding_type;
 		math::vec3 dimension;
@@ -203,6 +206,9 @@ public:
 			, convex_hull(nullptr)
 		{
 		}
+
+		physics_data(physics_data const&) = delete;
+		physics_data& operator=(physics_data const&) = delete;
 	};
 
 	physics_data physics_data_;
@@ -252,7 +258,7 @@ private:
 
 	void fade(bool in, double msec)
 	{
-		fade_ts_ = utils::get_ts();
+		fade_ts_ = get_ts();
 		transparency_targets_[!in] = 0.0;
 		transparency_targets_[in] = 1.0;
 		fade_duration_ = msec;
@@ -263,7 +269,7 @@ private:
 
 	typedef std::vector<entity_ptr> children_list;
 	children_list children_;
-	mutable boost::mutex children_mutex_;
+	mutable std::mutex children_mutex_;
 
 	mutable transform transform_;
 

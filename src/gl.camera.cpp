@@ -3,6 +3,8 @@
 
 #include "hydrogen/gl.engine.hpp"
 
+#include "nitrogen/nodeutil.hpp"
+
 namespace aspect { namespace gl {
 
 camera::camera(gl::engine& engine)
@@ -200,19 +202,23 @@ void camera::hit_test(math::vec3 const& ray_near, math::vec3 const& ray_far)
 
 	if (!entered.empty())
 	{
-		engine().rt().main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
-			"enter", entered, ray_near, ray_far));
+		call_in_node([this, entered, ray_near, ray_far]()
+		{
+			emit_hit_events_v8("enter", entered, ray_near, ray_far);
+		});
 	}
 	if (!leaved.empty())
 	{
-		engine().rt().main_loop().schedule(boost::bind(&camera::emit_hit_events_v8, this,
-			"leave", leaved, ray_near, ray_far));
+		call_in_node([this, leaved, ray_near, ray_far]()
+		{
+			emit_hit_events_v8("leave", leaved, ray_near, ray_far);
+		});
 	}
 }
 
 void camera::emit_hit_events_v8(std::string type, entities ents, math::vec3 ray_near, math::vec3 ray_far)
 {
-	v8::Isolate* isolate = engine().rt().isolate();
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
 	v8::HandleScope scope(isolate);
 
@@ -221,13 +227,15 @@ void camera::emit_hit_events_v8(std::string type, entities ents, math::vec3 ray_
 	args[2] = v8pp::to_v8(isolate, ray_near);
 	args[3] = v8pp::to_v8(isolate, ray_far);
 
+	v8::Handle<v8::Object> self = v8pp::to_v8(isolate, this);
+
 	std::for_each(ents.begin(), ents.end(),
-		[this, isolate, &type, &args](gl::entity* e)
+		[this, isolate, &self, &type, &args](gl::entity* e)
 		{
 			args[0] = v8pp::to_v8(isolate, e);
 
-			this->engine().emit(isolate, type, 4, args);
-			e->emit(isolate, type, 3, args + 1);
+			engine().emit(type, self, 4, args);
+			e->emit(type, self, 3, args + 1);
 		});
 }
 

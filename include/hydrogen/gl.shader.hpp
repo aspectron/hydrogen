@@ -1,9 +1,13 @@
 #ifndef HYDROGEN_GL_SHADER_HPP_INCLUDED
 #define HYDROGEN_GL_SHADER_HPP_INCLUDED
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 namespace aspect { namespace gl {
 
-class shader : boost::noncopyable
+class shader
 {
 public:
 	shader(GLuint type, const char* source)
@@ -15,6 +19,9 @@ public:
 			build(type, source);
 		}
 	}
+
+	shader(shader const&) = delete;
+	shader& operator=(shader const&) = delete;
 
 	~shader()
 	{

@@ -3,8 +3,6 @@
 
 #include <numeric>
 
-#include "jsx/types.hpp"
-
 namespace aspect { namespace gl {
 
 uint64_t texture::bytes_transferred_ = 0;
@@ -27,7 +25,7 @@ image_size const& texture::max_size()
 
 void texture::configure(GLint filter, GLint wrap)
 {
-	_aspect_assert(id_);
+	assert(id_);
 	if (id_)
 	{
 		glBindTexture(GL_TEXTURE_2D, id_);
@@ -80,9 +78,9 @@ void texture::setup(image_size const& size, aspect::image::encoding encoding, mo
 	glGenTextures(1, &id_);
 
 	GLenum _err = glGetError();
-	_aspect_assert(_err == GL_NO_ERROR);
+	assert(_err == GL_NO_ERROR);
 
-	buffer image_data(data_size());
+	std::vector<char> image_data(data_size());
 
 	bool is_float = false;	// TODO - support floating point textures?
 #if 1	// RESET OR NOISE
@@ -99,14 +97,14 @@ void texture::setup(image_size const& size, aspect::image::encoding encoding, mo
 
 	glBindTexture(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, id_);
 	_err = glGetError();
-	_aspect_assert(_err == GL_NO_ERROR);
+	assert(_err == GL_NO_ERROR);
 
 	glTexImage2D(/*bfloat ? GL_TEXTURE_RECTANGLE_ARB : */GL_TEXTURE_2D, 0, format_components_,
 		output_size_.width, size_.height, 0, format_internal_,
 		is_float ? GL_FLOAT : GL_UNSIGNED_BYTE, image_data.data());
 
 	_err = glGetError();
-	_aspect_assert(_err == GL_NO_ERROR);
+	assert(_err == GL_NO_ERROR);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -126,7 +124,7 @@ void texture::setup(image_size const& size, aspect::image::encoding encoding, mo
 	if (pbo_count_) glGenBuffersARB(pbo_count_, pbo_);
 	for (GLsizei i = 0; i < pbo_count_; ++i)
 	{
-		_aspect_assert(pbo_[i] && "error - unable to create pixel buffer object");
+		assert(pbo_[i] && "error - unable to create pixel buffer object");
 		if (pbo_[i])
 		{
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_[i]);
@@ -138,14 +136,14 @@ void texture::setup(image_size const& size, aspect::image::encoding encoding, mo
 
 void texture::upload()
 {
-	_aspect_assert(id_ && mode_ == FBO);
+	assert(id_ && mode_ == FBO);
 
 	if (id_ && mode_ == FBO)
 	{
 		if (!fbo_)
 		{
 			glGenFramebuffersEXT(1,&fbo_);
-			_aspect_assert(fbo_ && "error - unable to create fbo (frame buffer object)");
+			assert(fbo_ && "error - unable to create fbo (frame buffer object)");
 		}
 
 		glBindTexture(GL_TEXTURE_2D, id_);
@@ -187,7 +185,7 @@ void texture::upload(image::shared_bitmap const& bitmap, image_point const& offs
 {
 	if (encoding_ != image::BGRA8 || mode_ != PBOx2)
 	{
-		_aspect_assert(false && "texture should be for PBOx2 with BGRA8 encoding");
+		assert(false && "texture should be for PBOx2 with BGRA8 encoding");
 	}
 
 	size_t const buffer_size = std::accumulate(update_rects.begin(), update_rects.end(), size_t(0),
@@ -241,7 +239,7 @@ void* texture::map_pbo(size_t idx)
 	{
 		return nullptr;
 	}
-	_aspect_assert(!pbo_buffer_ && "PBO buffer already has been mapped");
+	assert(!pbo_buffer_ && "PBO buffer already has been mapped");
 
 	glBindTexture(GL_TEXTURE_2D, id_);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_[idx]);
@@ -258,7 +256,7 @@ void* texture::map_pbo(size_t idx)
 	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, data_size(), 0, GL_STREAM_DRAW_ARB);
 
 	pbo_buffer_ = glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY_ARB);
-	_aspect_assert(pbo_buffer_ && "failed to map texture pbo!");
+	assert(pbo_buffer_ && "failed to map texture pbo!");
 
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
@@ -271,7 +269,7 @@ void texture::unmap_pbo(size_t idx, uint64_t buffer_size)
 	{
 		return;
 	}
-	_aspect_assert(pbo_buffer_ && "no PBO buffer mapped");
+	assert(pbo_buffer_ && "no PBO buffer mapped");
 
 	glBindTexture(GL_TEXTURE_2D, id_);
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pbo_[idx]);
@@ -288,7 +286,7 @@ void texture::unmap_pbo(size_t idx, uint64_t buffer_size)
 
 void texture::bind(bool enabled)
 {
-	_aspect_assert(id_);
+	assert(id_);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, enabled? id_ : 0);
@@ -402,7 +400,7 @@ void texture::draw_sprite(math::vec2 const& size, bool cache)
 	bind(false);
 }
 
-class texture::cleanup_info : boost::noncopyable
+class texture::cleanup_info
 {
 public:
 	explicit cleanup_info(texture& t)
@@ -411,7 +409,7 @@ public:
 		, draw_cache_list_(t.draw_cache_list_)
 		, id_(t.id_)
 	{
-		_aspect_assert(!t.pbo_buffer_);
+		assert(!t.pbo_buffer_);
 
 		std::copy(t.pbo_, t.pbo_ + pbo_count_, pbo_);
 		t.pbo_count_ = 0;
@@ -443,7 +441,10 @@ public:
 		}
 	}
 
-	static void perform(boost::shared_ptr<cleanup_info> info)
+	cleanup_info(cleanup_info const&) = delete;
+	cleanup_info& operator=(cleanup_info const&) = delete;
+
+	static void perform(std::shared_ptr<cleanup_info> info)
 	{
 		// cleanup_info dtor performs all the work
 	}
@@ -458,9 +459,12 @@ private:
 
 void texture::cleanup_async()
 {
-	_aspect_assert(!pbo_buffer_);
+	assert(!pbo_buffer_);
 
-	engine_.schedule(boost::bind(&cleanup_info::perform, boost::make_shared<cleanup_info>(*this)));
+	engine_.schedule([info = std::make_shared<cleanup_info>(*this)]()
+	{
+		cleanup_info::perform(info);
+	});
 }
 
 

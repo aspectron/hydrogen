@@ -1,14 +1,10 @@
 #pragma once
 
-#include "jsx/core.hpp"
-#include "jsx/v8_core.hpp"
-#include "jsx/geometry.hpp"
-
 #include "image/image.hpp"
 #include "math/math.hpp"
 #include "oxygen/oxygen.hpp"
 
-#if OS(WINDOWS)
+#if _MSC_VER
 //	#pragma warning ( disable : 4251 )
 #if defined(HYDROGEN_EXPORTS)
 #define HYDROGEN_API __declspec(dllexport)
@@ -22,11 +18,11 @@
 #endif
 
 
-#if OS(WINDOWS)
+#if defined(_WIN32)
 #include "glew.h"
 //#include <GL/glew.h>
 #include "hydrogen/gl.iface.wgl.hpp"
-#elif OS(DARWIN)
+#elif defined(__APPLE__)
 #include <OpenGL/gl.h>
 #include "hydrogen/gl.iface.nsgl.hpp"
 #else
@@ -38,6 +34,16 @@
 #ifdef None
 #undef None
 #endif
+
+// timestamp in millseconds
+inline double get_ts()
+{
+	using namespace std::chrono;
+	typedef high_resolution_clock clock;
+
+	clock::duration const since_epoch = clock::now().time_since_epoch();
+	return duration_cast<duration<double>>(since_epoch).count() * 1000.0;
+}
 
 #include "hydrogen/gl.color.hpp"
 #include "hydrogen/gl.shader.hpp"

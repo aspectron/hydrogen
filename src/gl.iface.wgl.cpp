@@ -82,7 +82,7 @@ iface::~iface()
 
 void iface::setup_fonts()
 {
-	HFONT hfont = ::CreateFont(12,			// Height Of Font
+	HFONT hfont = ::CreateFontW(12,			// Height Of Font
 		0,								// Width Of Font
 		0,								// Angle Of Escapement
 		0,								// Orientation Angle

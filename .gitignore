@@ -26,3 +26,8 @@
 *.suo
 *.sdf
 *.opensdf
+
+# NPM directories and files
+/build
+/node_modules
+npm-debug.log

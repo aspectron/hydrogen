@@ -1,6 +1,8 @@
 #ifndef HYDROGEN_GL_COLOR_HPP_INCLUDED
 #define HYDROGEN_GL_COLOR_HPP_INCLUDED
 
+#include <cassert>
+
 namespace aspect
 {
 	namespace gl
@@ -47,7 +49,7 @@ namespace aspect
 				float fget_b(void) const { return (float)b / 255.0f; }
 				float fget_a(void) const { return (float)a / 255.0f; }
 
-				void set_r(float _r) { _aspect_assert(_r >= 0.0f && _r <= 1.0f); r = (uint8_t)(_r * 255.0f); }
+				void set_r(float _r) { assert(_r >= 0.0f && _r <= 1.0f); r = (uint8_t)(_r * 255.0f); }
 				void set_g(float _g) { g = (uint8_t)(_g * 255.0f); }
 				void set_b(float _b) { b = (uint8_t)(_b * 255.0f); }
 				void set_a(float _a) { a = (uint8_t)(_a * 255.0f); }

@@ -1,30 +1,27 @@
 #ifndef HYDROGEN_GL_ENGINE_HPP_INCLUDED
 #define HYDROGEN_GL_ENGINE_HPP_INCLUDED
 
-#include "jsx/events.hpp"
-#include "jsx/runtime.hpp"
+#include "nitrogen/nodeutil.hpp"
 
 namespace aspect { namespace gl {
 
 class camera;
 
-class HYDROGEN_API engine : public v8_core::event_emitter
+class HYDROGEN_API engine : public event_emitter
 {
 public:
 	explicit engine(v8::FunctionCallbackInfo<v8::Value> const& args);
 	~engine();
-
-	runtime& rt() { return rt_; }
 
 	gui::window& window() { return *window_; }
 
 	math::vec2 output_scale() const;
 
 	/// Callback function to schedule in the main engine thread
-	typedef boost::function<void ()> callback;
+	typedef std::function<void ()> callback;
 
 	/// Schedule function call in the main engine thread
-	bool schedule(callback cb);
+	bool schedule(callback&& cb);
 
 	engine& attach(entity& e) { world_->attach(e); return *this; }
 	engine& detach(entity& e) { world_->detach(e); return *this; }
@@ -49,7 +46,7 @@ public:
 
 	void set_physics(physics::bullet& bullet)
 	{
-		bullet_.reset(rt_.isolate(), &bullet);
+		bullet_.reset(v8::Isolate::GetCurrent(), &bullet);
 	}
 
 	enum integrated_shaders
@@ -58,9 +55,9 @@ public:
 		integrated_shader_last
 	};
 
-	boost::shared_ptr<gl::shader> get_integrated_shader(integrated_shaders id) const
+	std::shared_ptr<gl::shader> get_integrated_shader(integrated_shaders id) const
 	{
-		_aspect_assert(id < integrated_shader_last);
+		assert(id < integrated_shader_last);
 		return shaders_[id];
 	}
 
@@ -82,12 +79,11 @@ private:
 	void setup_shaders();
 	void cleanup_shaders();
 
-	void capture_screen_gl(v8::Persistent<v8::Function>* cb, std::string format);
-	void capture_screen_complete(image::shared_bitmap b, v8::Persistent<v8::Function>* cb, std::string format);
+	void capture_screen_gl(v8::UniquePersistent<v8::Function>* cb, std::string format);
+	void capture_screen_complete(image::shared_bitmap b, v8::UniquePersistent<v8::Function>* cb, std::string format);
 private:
-	runtime& rt_;
 	v8pp::persistent_ptr<gui::window> window_;
-	std::vector<boost::shared_ptr<gl::shader>> shaders_;
+	std::vector<std::shared_ptr<gl::shader>> shaders_;
 
 	bool show_engine_info_;
 	math::vec2 engine_info_location_;
@@ -99,16 +95,16 @@ private:
 	v8pp::persistent_ptr<entity> world_;
 	v8pp::persistent_ptr<physics::bullet> bullet_;
 
-	boost::scoped_ptr<gl::iface> iface_;
+	std::unique_ptr<gl::iface> iface_;
 	gl::camera* camera_;
 
-	boost::mutex iface_mutex_;
-	boost::condition_variable iface_cv_;
-	boost::thread thread_;
+	std::mutex iface_mutex_;
+	std::condition_variable iface_cv_;
+	std::thread thread_;
 	bool is_running_;
 
 	std::queue<callback> callbacks_;
-	boost::mutex callbacks_mutex_;
+	std::mutex callbacks_mutex_;
 };
 
 }} // aspect::gl
