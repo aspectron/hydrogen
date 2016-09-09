@@ -1,6 +1,9 @@
 {
     'target_defaults': {
         'defines!': ['V8_DEPRECATION_WARNINGS=1'],
+        'conditions': [
+            ['OS=="win"', { 'defines': ['NOMINMAX', 'WIN32_LEAN_AND_MEAN'] }]
+        ],
         'cflags_cc!': ['-fno-exceptions'],
         'cflags_cc+': ['-std=c++11', '-fexceptions'],
         'configurations': {
