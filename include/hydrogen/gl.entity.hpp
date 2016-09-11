@@ -4,6 +4,7 @@
 #include <v8pp/class.hpp>
 #include <v8pp/persistent.hpp>
 
+#include "nitrogen/nitrogen.hpp"
 #include "nitrogen/nodeutil.hpp"
 
 #define BT_NO_PROFILE
