@@ -482,13 +482,16 @@ static void hydrogen_uninstall()
 	v8pp::class_<gl::entity>::destroy_objects(isolate);
 }
 
+static required_modules modules;
+
 static void init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module)
 {
-	require(module, "nitrogen");
-	require(module, "math");
-	//require(module, "oxygen");
+	modules.load(module, { "nitrogen", "math" });
 	exports->SetPrototype(hydrogen_install(v8::Isolate::GetCurrent()));
-	node::AtExit([](void*) { hydrogen_uninstall(); }, nullptr);
+	node::AtExit([](void*) {
+		hydrogen_uninstall();
+		modules.unload();
+	}, nullptr);
 }
 
 NODE_MODULE(hydrogen, init)
