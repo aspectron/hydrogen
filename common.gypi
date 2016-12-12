@@ -1,5 +1,6 @@
 {
     'target_defaults': {
+        'variables': { 'node_shared': 'true' },
         'defines!': ['V8_DEPRECATION_WARNINGS=1'],
         'defines': ['V8PP_ISOLATE_DATA_SLOT=0'],
         'conditions': [
